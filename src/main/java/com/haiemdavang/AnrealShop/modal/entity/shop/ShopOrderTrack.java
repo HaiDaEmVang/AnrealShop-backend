@@ -1,0 +1,41 @@
+package com.haiemdavang.AnrealShop.modal.entity.shop;
+
+import com.haiemdavang.AnrealShop.modal.enums.OrderStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = "shopOrder")
+@EqualsAndHashCode(of = "id")
+@Entity
+@Table(name = "shop_order_tracks")
+public class ShopOrderTrack {
+
+    @EmbeddedId
+    private ShopOrderTrackId id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("shopOrderId")
+    @JoinColumn(name = "shop_order_id", insertable = false, updatable = false)
+    private ShopOrder shopOrder;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private OrderStatus status;
+
+    public LocalDateTime getUpdatedAt() {
+        return (this.id != null) ? this.id.getUpdatedAt() : null;
+    }
+
+    public ShopOrderTrack(ShopOrder shopOrder, OrderStatus status, LocalDateTime updatedAt) {
+        this.id = new ShopOrderTrackId(shopOrder.getId(), updatedAt);
+        this.shopOrder = shopOrder;
+        this.status = status;
+    }
+}
