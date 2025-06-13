@@ -14,6 +14,6 @@ public class ProductKafkerProducer {
 
     public void sendProductSyncMessage(ProductSyncMessage productSyncMessage) {
         log.info("Sending product sync message: {}", productSyncMessage);
-        kafkaTemplate.send("product-sync-topic", productSyncMessage.getProduct().getId(), productSyncMessage);
+//        kafkaTemplate.send("product-sync-topic", productSyncMessage.getProduct().getId(), productSyncMessage);
     }
 }
