@@ -1,511 +1,797 @@
--- V1__init_db.sql
--- Initial database schema setup
+CREATE DATABASE  IF NOT EXISTS `db_testShop` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `db_testShop`;
+-- MySQL dump 10.13  Distrib 8.0.40, for Win64 (x86_64)
+--
+-- Host: 13.229.228.146    Database: db_testShop
+-- ------------------------------------------------------
+-- Server version	8.0.36
 
--- Address related tables
-CREATE TABLE `provinces` (
-                             `id` varchar(36) NOT NULL,
-    `name` varchar(100) NOT NULL,
-    PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-CREATE TABLE `districts` (
-                             `id` varchar(36) NOT NULL,
-    `name` varchar(100) NOT NULL,
-    `province_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `FK_district_province` (`province_id`),
-    CONSTRAINT `FK_district_province` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`) ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+--
+-- Table structure for table `attribute_keys`
+--
 
-CREATE TABLE `wards` (
-                         `id` varchar(36) NOT NULL,
-    `name` varchar(100) NOT NULL,
-    `district_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `FK_ward_district` (`district_id`),
-    CONSTRAINT `FK_ward_district` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`) ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Roles table
-CREATE TABLE `roles` (
-                         `id` varchar(36) NOT NULL,
-    `description` varchar(255) DEFAULT NULL,
-    `name` enum('USER','ADMIN') NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_role_name` (`name`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Users table
-CREATE TABLE `users` (
-                         `id` varchar(36) NOT NULL,
-    `username` varchar(50) NOT NULL,
-    `email` varchar(100) NOT NULL,
-    `password` varchar(255) NOT NULL,
-    `full_name` varchar(100) DEFAULT NULL,
-    `phone_number` varchar(20) DEFAULT NULL,
-    `avatar_url` varchar(255) DEFAULT NULL,
-    `gender` enum('MALE','FEMALE','OTHER') DEFAULT NULL,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `role_id` varchar(36) DEFAULT NULL,
-    `from_social` tinyint(1) DEFAULT '0',
-    `dob` date DEFAULT NULL,
-    `deleted` tinyint(1) DEFAULT '0',
-    `delete_reason` text,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_username` (`username`),
-    UNIQUE KEY `uk_user_email` (`email`),
-    KEY `FK_user_role` (`role_id`),
-    CONSTRAINT `FK_user_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- User addresses
-CREATE TABLE `user_addresses` (
-                                  `id` varchar(36) NOT NULL,
-    `user_id` varchar(36) NOT NULL, -- << Đã là user_id
-    `receiver_name` varchar(100) NOT NULL,
-    `phone_number` varchar(20) NOT NULL,
-    `province_id` varchar(36) NOT NULL,
-    `district_id` varchar(36) NOT NULL,
-    `ward_id` varchar(36) NOT NULL,
-    `detail` text NOT NULL,
-    `primary_address` tinyint(1) DEFAULT '0',
-    PRIMARY KEY (`id`),
-    KEY `FK_useraddress_user` (`user_id`),
-    KEY `FK_useraddress_province` (`province_id`),
-    KEY `FK_useraddress_district` (`district_id`),
-    KEY `FK_useraddress_ward` (`ward_id`),
-    CONSTRAINT `FK_useraddress_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_useraddress_province` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_useraddress_district` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_useraddress_ward` FOREIGN KEY (`ward_id`) REFERENCES `wards` (`id`) ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Shops table
-CREATE TABLE `shops` (
-                         `id` varchar(36) NOT NULL,
-    `name` varchar(100) NOT NULL,
-    `description` text,
-    `avatar_url` varchar(255) DEFAULT NULL,
-    `user_id` varchar(36) NOT NULL,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `product_count` int DEFAULT '0',
-    `revenue` bigint DEFAULT '0',
-    `average_rating` float DEFAULT '0',
-    `total_reviews` int DEFAULT '0',
-    `follower_count` int DEFAULT '0',
-    `deleted` tinyint(1) DEFAULT '0',
-    PRIMARY KEY (`id`),
-    KEY `FK_shop_user` (`user_id`),
-    CONSTRAINT `FK_shop_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Shop addresses
-CREATE TABLE `shop_addresses` (
-                                  `id` varchar(36) NOT NULL,
-    `shop_id` varchar(36) NOT NULL,
-    `sender_name` varchar(100) NOT NULL,
-    `phone_number` varchar(20) NOT NULL,
-    `province_id` varchar(36) NOT NULL,
-    `district_id` varchar(36) NOT NULL,
-    `ward_id` varchar(36) NOT NULL,
-    `detail` text NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `FK_shopaddress_shop` (`shop_id`),
-    KEY `FK_shopaddress_province` (`province_id`),
-    KEY `FK_shopaddress_district` (`district_id`),
-    KEY `FK_shopaddress_ward` (`ward_id`),
-    CONSTRAINT `FK_shopaddress_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_shopaddress_province` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_shopaddress_district` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_shopaddress_ward` FOREIGN KEY (`ward_id`) REFERENCES `wards` (`id`) ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Categories
-CREATE TABLE `categories` (
-                              `id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `name` varchar(100) NOT NULL,
-    `parent_id` varchar(36) DEFAULT NULL, -- << Đã sửa thành VARCHAR(36)
-    `description` text,
-    `has_children` tinyint(1) DEFAULT '0',
-    `product_count` int DEFAULT '0',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `FK_category_parent` (`parent_id`),
-    CONSTRAINT `FK_category_parent` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Shop categories (junction table header)
-CREATE TABLE `shop_categories` (
-                                   `id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `shop_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `FK_shopcategory_shop` (`shop_id`),
-    CONSTRAINT `FK_shopcategory_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `shop_category_items` (
-                                       `shop_categories_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `category_id` varchar(36) NOT NULL,        -- << Đã sửa thành VARCHAR(36)
-    PRIMARY KEY (`shop_categories_id`, `category_id`),
-    KEY `FK_shopcategoryitem_category` (`category_id`),
-    CONSTRAINT `FK_shopcategoryitem_shopcategory` FOREIGN KEY (`shop_categories_id`) REFERENCES `shop_categories` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_shopcategoryitem_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Attribute System
+DROP TABLE IF EXISTS `attribute_keys`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `attribute_keys` (
                                   `id` varchar(36) NOT NULL,
-    `key_name` enum('COLOR','SIZE','MATERIAL') NOT NULL, -- Giữ ENUM CSDL theo schema_v3
-    `display_name` varchar(100) NOT NULL, -- << Đã thêm display_name
     `allow_custom_values` tinyint(1) DEFAULT '1',
+    `created_at` datetime(6) DEFAULT NULL,
+    `display_name` varchar(100) NOT NULL,
+    `key_name` enum('BRAND','COLOR','MATERIAL','ORIGIN','PATTERN','SIZE','STYLE','TARGET_AUDIENCE') NOT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
     `shop_id` varchar(36) DEFAULT NULL,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_attributekey_keyname_shop` (`key_name`, `shop_id`), -- << UNIQUE KEY tốt hơn
-    KEY `FK_attributekey_shop` (`shop_id`),
-    CONSTRAINT `FK_attributekey_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE SET NULL
+    UNIQUE KEY `idx_attribute_key_name` (`key_name`),
+    KEY `FKsik07cug4lf4y8v8c51lpd11q` (`shop_id`),
+    CONSTRAINT `FKsik07cug4lf4y8v8c51lpd11q` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `attribute_values`
+--
+
+DROP TABLE IF EXISTS `attribute_values`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `attribute_values` (
                                     `id` varchar(36) NOT NULL,
-    `attribute_key_id` varchar(36) NOT NULL,
-    `value` varchar(255) NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
     `display_order` int DEFAULT '0',
     `metadata` text,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `value` varchar(255) NOT NULL,
+    `attribute_key_id` varchar(36) NOT NULL,
     `shop_id` varchar(36) DEFAULT NULL,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_attributevalue_key_value_shop` (`attribute_key_id`, `value`, `shop_id`), -- << Đã thêm UNIQUE
-    KEY `FK_attributevalue_key` (`attribute_key_id`),
-    KEY `FK_attributevalue_shop` (`shop_id`),
-    CONSTRAINT `FK_attributevalue_key` FOREIGN KEY (`attribute_key_id`) REFERENCES `attribute_keys` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_attributevalue_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE SET NULL
+    KEY `FKhgo27y94xcykg49kk7xfa0of8` (`attribute_key_id`),
+    KEY `FK20mh4e6em7g8r0ahsr9kvxgc1` (`shop_id`),
+    CONSTRAINT `FK20mh4e6em7g8r0ahsr9kvxgc1` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`),
+    CONSTRAINT `FKhgo27y94xcykg49kk7xfa0of8` FOREIGN KEY (`attribute_key_id`) REFERENCES `attribute_keys` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Products table
-CREATE TABLE `products` (
-                            `id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `name` varchar(255) NOT NULL,
-    `shop_id` varchar(36) NOT NULL,
+--
+-- Table structure for table `banners`
+--
+
+DROP TABLE IF EXISTS `banners`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `banners` (
+                           `id` varchar(36) NOT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
     `description` text,
-    `thumbnail_url` varchar(255) DEFAULT NULL,
-    `price` bigint NOT NULL, -- << Đã sửa về BIGINT
-    `quantity` int DEFAULT '0',
-    `category_id` varchar(36) DEFAULT NULL, -- << Đã sửa thành VARCHAR(36)
-    `weight` decimal(10,2) NOT NULL DEFAULT '0.00', -- << Đã sửa thành DECIMAL
-    `revenue` bigint DEFAULT '0',
-    `sold` int DEFAULT '0',
-    `average_rating` float DEFAULT '0',
-    `total_reviews` int DEFAULT '0',
-    `location` varchar(255) DEFAULT NULL,
-    `visible` tinyint(1) DEFAULT '1',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `restricted` tinyint(1) DEFAULT '0',
-    `restricted_reason` text,
-    `restrict_status` enum('PENDING','RESTRICTED','OPENED') DEFAULT 'PENDING',
-    `deleted` tinyint(1) DEFAULT '0',
-    PRIMARY KEY (`id`),
-    KEY `FK_product_shop` (`shop_id`),
-    KEY `FK_product_category` (`category_id`),
-    CONSTRAINT `FK_product_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_product_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
+    `display_order` int DEFAULT '0',
+    `end_date` datetime(6) DEFAULT NULL,
+    `image_url` varchar(255) NOT NULL,
+    `is_active` tinyint(1) DEFAULT '1',
+    `redirect_url` varchar(255) DEFAULT NULL,
+    `start_date` datetime(6) DEFAULT NULL,
+    `title` varchar(100) DEFAULT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Product SKUs
-CREATE TABLE `product_skus` (
-                                `id` varchar(36) NOT NULL,
-    `product_id` varchar(36) NOT NULL,
-    `sku` varchar(50) NOT NULL,
-    `price` bigint NOT NULL,
-    `quantity` int DEFAULT '0',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_productsku_sku` (`sku`), -- SKU nên là unique toàn cục hoặc ít nhất trong product
-    KEY `FK_productsku_product` (`product_id`),
-    CONSTRAINT `FK_productsku_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+--
+-- Table structure for table `cart_item_attributes`
+--
 
--- SKU attributes (junction table)
-CREATE TABLE `sku_attributes` (
-                                  `sku_id` varchar(36) NOT NULL,
-    `attribute_value_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`sku_id`, `attribute_value_id`),
-    KEY `FK_skuattribute_attributevalue` (`attribute_value_id`),
-    CONSTRAINT `FK_skuattribute_sku` FOREIGN KEY (`sku_id`) REFERENCES `product_skus` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_skuattribute_attributevalue` FOREIGN KEY (`attribute_value_id`) REFERENCES `attribute_values` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Product media
-CREATE TABLE `product_media` (
-                                 `id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `product_id` varchar(36) NOT NULL,
-    `url` varchar(255) NOT NULL,
-    `type` enum('IMAGE','VIDEO') DEFAULT 'IMAGE',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `FK_productmedia_product` (`product_id`),
-    CONSTRAINT `FK_productmedia_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Carts
-CREATE TABLE `carts` (
-                         `id` varchar(36) NOT NULL,
-    `user_id` varchar(36) NOT NULL,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `FK_cart_user` (`user_id`),
-    CONSTRAINT `FK_cart_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Cart items
-CREATE TABLE `cart_items` (
-                              `id` varchar(36) NOT NULL,
-    `cart_id` varchar(36) NOT NULL,
-    `product_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `price` bigint NOT NULL,
-    `quantity` int DEFAULT '1',
-    `selected` tinyint(1) DEFAULT '1',
-    PRIMARY KEY (`id`),
-    KEY `FK_cartitem_cart` (`cart_id`),
-    KEY `FK_cartitem_product` (`product_id`),
-    CONSTRAINT `FK_cartitem_cart` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_cartitem_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE -- Hoặc RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Cart item attributes
+DROP TABLE IF EXISTS `cart_item_attributes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cart_item_attributes` (
                                         `cart_item_id` varchar(36) NOT NULL,
     `attribute_value_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`cart_item_id`, `attribute_value_id`),
-    KEY `FK_cartitemattribute_attributevalue` (`attribute_value_id`),
-    CONSTRAINT `FK_cartitemattribute_cartitem` FOREIGN KEY (`cart_item_id`) REFERENCES `cart_items` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_cartitemattribute_attributevalue` FOREIGN KEY (`attribute_value_id`) REFERENCES `attribute_values` (`id`) ON DELETE RESTRICT
+    PRIMARY KEY (`cart_item_id`,`attribute_value_id`),
+    KEY `FKt76yq7lrg7l8jkx4vj7o80fia` (`attribute_value_id`),
+    CONSTRAINT `FKh3gmrmbtay8kh6x1r76a36v35` FOREIGN KEY (`cart_item_id`) REFERENCES `cart_items` (`id`),
+    CONSTRAINT `FKt76yq7lrg7l8jkx4vj7o80fia` FOREIGN KEY (`attribute_value_id`) REFERENCES `attribute_values` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Payments
-CREATE TABLE `payments` (
-                            `id` varchar(36) NOT NULL,
-    `amount` bigint NOT NULL,
-    `gateway` enum('VNPAY','CASH_ON_DELIVERY','MOMO','ZALOPAY','STRIPE','PAYPAL','DIRECT_COD','MANUAL_BANK_TRANSFER','NONE') DEFAULT NULL, -- << Mở rộng Enum
-    `type` enum('ORDER_PAYMENT','REFUND','WALLET_TOPUP','SUBSCRIPTION_FEE','COD','BANK_TRANSFER') DEFAULT NULL, -- << Mở rộng và điều chỉnh Enum
-    `status` enum('PENDING','COD','COMPLETED','EXPIRED','CANCELLED','REFUNDED','FAILED') NOT NULL DEFAULT 'PENDING',
-    `expire_at` timestamp NULL DEFAULT NULL,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+--
+-- Table structure for table `cart_items`
+--
 
--- Orders
-CREATE TABLE `orders` (
-                          `id` varchar(36) NOT NULL,
-    `user_id` varchar(36) NOT NULL,
-    `address_id` varchar(36) NOT NULL,
-    `payment_id` varchar(36) DEFAULT NULL,
-    `status` enum('PENDING_CONFIRMATION','PROCESSING','PREPARING','AWAITING_SHIPMENT','IN_TRANSIT','OUT_FOR_DELIVERY','DELIVERED','COMPLETED','CANCELLED','RETURNED') NOT NULL DEFAULT 'PENDING_CONFIRMATION', -- << Thêm default
-    `sub_total_amount` bigint DEFAULT NULL,
-    `shipping_fee` bigint DEFAULT NULL,
-    `grand_total_amount` bigint NOT NULL,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_order_payment` (`payment_id`), -- Đảm bảo 1 payment chỉ cho 1 order
-    KEY `FK_order_user` (`user_id`),
-    KEY `FK_order_address` (`address_id`),
-    CONSTRAINT `FK_order_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_order_address` FOREIGN KEY (`address_id`) REFERENCES `user_addresses` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_order_payment` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Order items
-CREATE TABLE `order_items` (
-                               `id` varchar(36) NOT NULL,
-    `order_id` varchar(36) NOT NULL,
-    `product_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `quantity` int NOT NULL,
+DROP TABLE IF EXISTS `cart_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cart_items` (
+                              `id` varchar(36) NOT NULL,
     `price` bigint NOT NULL,
-    `success` tinyint(1) DEFAULT '0',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `quantity` int DEFAULT '1',
+    `selected` tinyint(1) DEFAULT '1',
+    `cart_id` varchar(36) NOT NULL,
+    `product_id` varchar(36) NOT NULL,
     PRIMARY KEY (`id`),
-    KEY `FK_orderitem_order` (`order_id`),
-    KEY `FK_orderitem_product` (`product_id`),
-    CONSTRAINT `FK_orderitem_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_orderitem_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT
+    KEY `FKpcttvuq4mxppo8sxggjtn5i2c` (`cart_id`),
+    KEY `FK1re40cjegsfvw58xrkdp6bac6` (`product_id`),
+    CONSTRAINT `FK1re40cjegsfvw58xrkdp6bac6` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
+    CONSTRAINT `FKpcttvuq4mxppo8sxggjtn5i2c` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Order item attributes
-CREATE TABLE `order_item_attributes` (
-                                         `order_item_id` varchar(36) NOT NULL,
-    `attribute_value_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`order_item_id`, `attribute_value_id`),
-    KEY `FK_orderitemattribute_attributevalue` (`attribute_value_id`),
-    CONSTRAINT `FK_orderitemattribute_orderitem` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_orderitemattribute_attributevalue` FOREIGN KEY (`attribute_value_id`) REFERENCES `attribute_values` (`id`) ON DELETE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+--
+-- Table structure for table `carts`
+--
 
--- Shop orders
-CREATE TABLE `shop_orders` (
-                               `id` varchar(36) NOT NULL,
+DROP TABLE IF EXISTS `carts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `carts` (
+                         `id` varchar(36) NOT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
     `user_id` varchar(36) NOT NULL,
-    `order_id` varchar(36) NOT NULL,
-    `shop_id` varchar(36) NOT NULL,
-    `shipping_fee` int DEFAULT '0',
-    `status` enum('PENDING_CONFIRMATION','PROCESSING','PREPARING','AWAITING_SHIPMENT','IN_TRANSIT','OUT_FOR_DELIVERY','DELIVERED','COMPLETED','CANCELLED','RETURNED') DEFAULT 'PENDING_CONFIRMATION', -- << Dùng enum của OrderStatus
-    `cancel_reason` text,
-    `canceled_by` enum('USER','SHOP','ADMIN','SYSTEM') DEFAULT NULL, -- << Dùng enum CancelledParty
-    `total` bigint NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKb5o626f86h46m4s7ms6ginnop` (`user_id`),
+    CONSTRAINT `FKb5o626f86h46m4s7ms6ginnop` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `categories`
+--
+
+DROP TABLE IF EXISTS `categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `categories` (
+                              `id` varchar(36) NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
+    `description` text,
+    `has_children` tinyint(1) NOT NULL DEFAULT '0',
+    `name` varchar(100) NOT NULL,
+    `product_count` int NOT NULL DEFAULT '0',
+    `url_path` varchar(100) DEFAULT NULL,
+    `url_slug` varchar(100) DEFAULT NULL,
+    `parent_id` varchar(36) DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKsaok720gsu4u2wrgbk10b5n8d` (`parent_id`),
+    CONSTRAINT `FKsaok720gsu4u2wrgbk10b5n8d` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `chat_messages`
+--
+
+DROP TABLE IF EXISTS `chat_messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_messages` (
+                                 `id` varchar(36) NOT NULL,
+    `content` text,
     `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `is_read` tinyint(1) DEFAULT '0',
+    `type` enum('TEXT','MEDIA') NOT NULL,
+    `room_id` varchar(36) NOT NULL,
+    `sender_id` varchar(36) NOT NULL,
     PRIMARY KEY (`id`),
-    KEY `FK_shoporder_user` (`user_id`),
-    KEY `FK_shoporder_order` (`order_id`),
-    KEY `FK_shoporder_shop` (`shop_id`),
-    CONSTRAINT `FK_shoporder_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `FK_shoporder_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_shoporder_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE CASCADE
+    KEY `FKhalwepod3944695ji0suwoqb9` (`room_id`),
+    KEY `FKgiqeap8ays4lf684x7m0r2729` (`sender_id`),
+    CONSTRAINT `FKgiqeap8ays4lf684x7m0r2729` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`),
+    CONSTRAINT `FKhalwepod3944695ji0suwoqb9` FOREIGN KEY (`room_id`) REFERENCES `chat_rooms` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Shop order tracks
-CREATE TABLE `shop_order_tracks` (
-                                     `shop_order_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `updated_at` timestamp NOT NULL, -- Nên dùng timestamp thay vì datetime(6) để nhất quán với created_at
-    `status` enum('PENDING_CONFIRMATION','PROCESSING','PREPARING','AWAITING_SHIPMENT','IN_TRANSIT','OUT_FOR_DELIVERY','DELIVERED','COMPLETED','CANCELLED','RETURNED') NOT NULL, -- << Dùng enum của OrderStatus
-    PRIMARY KEY (`shop_order_id`, `updated_at`),
-    CONSTRAINT `FK_shopordertrack_shoporder` FOREIGN KEY (`shop_order_id`) REFERENCES `shop_orders` (`id`) ON DELETE CASCADE
+--
+-- Table structure for table `chat_room_participants`
+--
+
+DROP TABLE IF EXISTS `chat_room_participants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_room_participants` (
+                                          `chat_room_id` varchar(255) NOT NULL,
+    `user_id` varchar(255) NOT NULL,
+    PRIMARY KEY (`chat_room_id`,`user_id`),
+    KEY `FKiqfwuqd8c8i7hrkukc0rii5pg` (`user_id`),
+    CONSTRAINT `FKiqfwuqd8c8i7hrkukc0rii5pg` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+    CONSTRAINT `FKkrenof4in9x16he7adf6g058f` FOREIGN KEY (`chat_room_id`) REFERENCES `chat_rooms` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Shop order items (junction table)
-CREATE TABLE `shop_order_items` (
-                                    `shop_order_id` varchar(36) NOT NULL,
-    `order_item_id` varchar(36) NOT NULL,
-    PRIMARY KEY (`shop_order_id`, `order_item_id`), -- << ĐÃ THÊM PRIMARY KEY
-    KEY `FK_shoporderitem_orderitem` (`order_item_id`), -- Thêm key cho FK nếu cần
-    CONSTRAINT `FK_shoporderitem_shoporder` FOREIGN KEY (`shop_order_id`) REFERENCES `shop_orders` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_shoporderitem_orderitem` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+--
+-- Table structure for table `chat_rooms`
+--
 
--- Product reviews
-CREATE TABLE `product_reviews` (
-                                   `id` varchar(36) NOT NULL,
-    `user_id` varchar(36) NOT NULL,
-    `product_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `order_item_id` varchar(36) DEFAULT NULL, -- Giữ UNIQUE ở Entity hoặc DB constraint riêng
-    `rating` int NOT NULL,
-    `comment` text,
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_review_order_item` (`order_item_id`),
-    KEY `FK_productreview_user` (`user_id`),
-    KEY `FK_productreview_product` (`product_id`),
-    CONSTRAINT `FK_productreview_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_productreview_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_productreview_orderitem` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Product review media
-CREATE TABLE `product_review_media` (
-                                        `id` varchar(36) NOT NULL,
-    `review_id` varchar(36) NOT NULL,
-    `media_url` varchar(255) NOT NULL,
-    `media_type` enum('IMAGE','VIDEO') DEFAULT 'IMAGE',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `FK_productreviewmedia_review` (`review_id`),
-    CONSTRAINT `FK_productreviewmedia_review` FOREIGN KEY (`review_id`) REFERENCES `product_reviews` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Follows
-CREATE TABLE `follows` (
-                           `id` varchar(36) NOT NULL,
-    `shop_id` varchar(36) NOT NULL,
-    `user_id` varchar(36) NOT NULL,
-    `followed_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_shop_follow` (`user_id`, `shop_id`),
-    KEY `FK_follow_shop` (`shop_id`),
-    CONSTRAINT `FK_follow_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_follow_shop` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Chat rooms
+DROP TABLE IF EXISTS `chat_rooms`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `chat_rooms` (
                               `id` varchar(36) NOT NULL,
     `last_active` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Chat room participants
-CREATE TABLE `chat_room_participants` (
-                                          `chat_room_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `user_id` varchar(36) NOT NULL,    -- << Đã sửa thành VARCHAR(36)
-    PRIMARY KEY (`chat_room_id`, `user_id`),
-    KEY `FK_chatparticipant_user` (`user_id`),
-    CONSTRAINT `FK_chatparticipant_room` FOREIGN KEY (`chat_room_id`) REFERENCES `chat_rooms` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_chatparticipant_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+--
+-- Table structure for table `display_categories`
+--
 
--- Chat messages
-CREATE TABLE `chat_messages` (
-                                 `id` varchar(36) NOT NULL,
-    `room_id` varchar(36) NOT NULL,
-    `sender_id` varchar(36) NOT NULL,
-    `type` enum('TEXT','MEDIA') NOT NULL,
-    `content` text,
-    `is_read` tinyint(1) DEFAULT '0',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+DROP TABLE IF EXISTS `display_categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `display_categories` (
+                                      `id` varchar(36) NOT NULL,
+    `thumbnail_url` varchar(255) DEFAULT NULL,
+    `category_id` varchar(36) NOT NULL,
     PRIMARY KEY (`id`),
-    KEY `FK_chatmessage_room` (`room_id`),
-    KEY `FK_chatmessage_sender` (`sender_id`),
-    CONSTRAINT `FK_chatmessage_room` FOREIGN KEY (`room_id`) REFERENCES `chat_rooms` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `FK_chatmessage_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    KEY `FKo5i70njlkbmgagvm4hwcdnvsy` (`category_id`),
+    CONSTRAINT `FKo5i70njlkbmgagvm4hwcdnvsy` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Notifications
+--
+-- Table structure for table `districts`
+--
+
+DROP TABLE IF EXISTS `districts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `districts` (
+                             `id` varchar(36) NOT NULL,
+    `name` varchar(100) NOT NULL,
+    `province_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FK82doq1t64jhly7a546lpvnu2c` (`province_id`),
+    CONSTRAINT `FK82doq1t64jhly7a546lpvnu2c` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `follows`
+--
+
+DROP TABLE IF EXISTS `follows`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `follows` (
+                           `id` varchar(36) NOT NULL,
+    `followed_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    `shop_id` varchar(36) NOT NULL,
+    `user_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_shop_follow` (`user_id`,`shop_id`),
+    KEY `FKj0chrx7ruh4dk7l2cphamofv9` (`shop_id`),
+    CONSTRAINT `FKj0chrx7ruh4dk7l2cphamofv9` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`),
+    CONSTRAINT `FKn4am7c82j2uo8pkw4x7qibf12` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `notifications`
+--
+
+DROP TABLE IF EXISTS `notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notifications` (
                                  `id` varchar(36) NOT NULL,
     `content` text NOT NULL,
-    `scope` enum('SHOP','BUYER') NOT NULL,
-    `item_count` int DEFAULT '0',
-    `thumbnail_url` varchar(255) DEFAULT 'https://res.cloudinary.com/daxt0vwoc/image/upload/v1742230894/png-transparent-red-bell-notification-thumbnail_mvxxqa.png', -- << Giữ lại default URL
-    `receiver_id` varchar(36) NOT NULL,
-    `redirect_url` varchar(255) DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
     `is_read` tinyint(1) DEFAULT '0',
-    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `FK_notification_receiver` (`receiver_id`),
-    CONSTRAINT `FK_notification_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Display categories for homepage
-CREATE TABLE `display_categories` (
-                                      `id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `category_id` varchar(36) NOT NULL, -- << Đã sửa thành VARCHAR(36)
-    `thumbnail_url` varchar(255) DEFAULT 'https://res.cloudinary.com/daxt0vwoc/image/upload/v1742879507/Screenshot_2025-03-25_121109-removebg-preview_uizizr.png', -- << Giữ lại default URL
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_displaycategory_category` (`category_id`), -- Mỗi category chỉ nên được display một lần với config này
-    CONSTRAINT `FK_displaycategory_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Banners for homepage
-CREATE TABLE `banners` (
-                           `id` varchar(36) NOT NULL,
-    `image_url` varchar(255) NOT NULL,
+    `item_count` int DEFAULT '0',
     `redirect_url` varchar(255) DEFAULT NULL,
-    `title` varchar(100) DEFAULT NULL,
-    `description` text,
-    `is_active` tinyint(1) DEFAULT '1',
-    `display_order` int DEFAULT '0',
-    `start_date` timestamp NULL DEFAULT NULL,
-    `end_date` timestamp NULL DEFAULT NULL,
+    `scope` enum('SHOP','BUYER') NOT NULL,
+    `thumbnail_url` varchar(255) DEFAULT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `receiver_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FK9kxl0whvhifo6gw4tjq36v53k` (`receiver_id`),
+    CONSTRAINT `FK9kxl0whvhifo6gw4tjq36v53k` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `order_item_attributes`
+--
+
+DROP TABLE IF EXISTS `order_item_attributes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_item_attributes` (
+                                         `order_item_id` varchar(36) NOT NULL,
+    `attribute_value_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`order_item_id`,`attribute_value_id`),
+    KEY `FKpd3snx3p0tn43cfmu48if945v` (`attribute_value_id`),
+    CONSTRAINT `FK5y8lj9wjm12t3rwdw2t5kmvra` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`),
+    CONSTRAINT `FKpd3snx3p0tn43cfmu48if945v` FOREIGN KEY (`attribute_value_id`) REFERENCES `attribute_values` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `order_items`
+--
+
+DROP TABLE IF EXISTS `order_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_items` (
+                               `id` varchar(36) NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
+    `price` bigint NOT NULL,
+    `quantity` int NOT NULL,
+    `success` tinyint(1) DEFAULT '0',
+    `updated_at` datetime(6) DEFAULT NULL,
+    `order_id` varchar(36) NOT NULL,
+    `product_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKbioxgbv59vetrxe0ejfubep1w` (`order_id`),
+    KEY `FKocimc7dtr037rh4ls4l95nlfi` (`product_id`),
+    CONSTRAINT `FKbioxgbv59vetrxe0ejfubep1w` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+    CONSTRAINT `FKocimc7dtr037rh4ls4l95nlfi` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `orders`
+--
+
+DROP TABLE IF EXISTS `orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `orders` (
+                          `id` varchar(36) NOT NULL,
     `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `grand_total_amount` bigint NOT NULL,
+    `shipping_fee` bigint DEFAULT NULL,
+    `status` enum('AWAITING_SHIPMENT','CANCELLED','DELIVERED','IN_TRANSIT','OUT_FOR_DELIVERY','PREPARING','PROCESSING') NOT NULL,
+    `sub_total_amount` bigint DEFAULT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `payment_id` varchar(36) DEFAULT NULL,
+    `address_id` varchar(36) NOT NULL,
+    `user_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `UKhaujdjk1ohmeixjhnhslchrp1` (`payment_id`),
+    KEY `FKebxbj09m4a87s8na3lr86xnf4` (`address_id`),
+    KEY `FK32ql8ubntj5uh44ph9659tiih` (`user_id`),
+    CONSTRAINT `FK32ql8ubntj5uh44ph9659tiih` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+    CONSTRAINT `FK8aol9f99s97mtyhij0tvfj41f` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`),
+    CONSTRAINT `FKebxbj09m4a87s8na3lr86xnf4` FOREIGN KEY (`address_id`) REFERENCES `user_addresses` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `payments`
+--
+
+DROP TABLE IF EXISTS `payments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payments` (
+                            `id` varchar(36) NOT NULL,
+    `amount` bigint NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
+    `expire_at` datetime(6) DEFAULT NULL,
+    `gateway` enum('VNPAY','CASH_ON_DELIVERY') DEFAULT NULL,
+    `status` enum('PENDING','COD','COMPLETED','EXPIRED','CANCELLED','REFUNDED','FAILED') NOT NULL DEFAULT 'PENDING',
+    `type` enum('BANK_TRANSFER','COD') DEFAULT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
     PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_media`
+--
+
+DROP TABLE IF EXISTS `product_media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_media` (
+                                 `id` varchar(36) NOT NULL,
+    `type` enum('IMAGE','VIDEO') NOT NULL,
+    `url` varchar(255) NOT NULL,
+    `product_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FK6d0dleyyjhq9qg62vto0kn01f` (`product_id`),
+    CONSTRAINT `FK6d0dleyyjhq9qg62vto0kn01f` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_review_media`
+--
+
+DROP TABLE IF EXISTS `product_review_media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_review_media` (
+                                        `id` varchar(36) NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
+    `media_type` enum('IMAGE','VIDEO') DEFAULT 'IMAGE',
+    `media_url` varchar(255) NOT NULL,
+    `review_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKbrlnmogqtxbek3763sqm37t2n` (`review_id`),
+    CONSTRAINT `FKbrlnmogqtxbek3763sqm37t2n` FOREIGN KEY (`review_id`) REFERENCES `product_reviews` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_reviews`
+--
+
+DROP TABLE IF EXISTS `product_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_reviews` (
+                                   `id` varchar(36) NOT NULL,
+    `comment` text,
+    `created_at` datetime(6) DEFAULT NULL,
+    `rating` int NOT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `order_item_id` varchar(36) DEFAULT NULL,
+    `product_id` varchar(36) NOT NULL,
+    `user_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `UKi19palx1qyrw7n6jqn26mn3xb` (`order_item_id`),
+    KEY `idx_productreview_user_product` (`user_id`,`product_id`),
+    KEY `FK35kxxqe2g9r4mww80w9e3tnw9` (`product_id`),
+    CONSTRAINT `FK35kxxqe2g9r4mww80w9e3tnw9` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
+    CONSTRAINT `FK58i39bhws2hss3tbcvdmrm60f` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+    CONSTRAINT `FKau5g3dylb9eh7ua5xjjw6uopw` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_skus`
+--
+
+DROP TABLE IF EXISTS `product_skus`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_skus` (
+                                `id` varchar(36) NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
+    `price` bigint NOT NULL,
+    `quantity` int DEFAULT '0',
+    `sku` varchar(50) NOT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `product_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_productsku_sku_unique` (`sku`),
+    KEY `FKgfjst7dvihycy15ceiruv9roo` (`product_id`),
+    CONSTRAINT `FKgfjst7dvihycy15ceiruv9roo` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `products`
+--
+
+DROP TABLE IF EXISTS `products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `products` (
+                            `id` varchar(36) NOT NULL,
+    `average_rating` float NOT NULL,
+    `created_at` datetime(6) DEFAULT NULL,
+    `deleted` bit(1) NOT NULL,
+    `description` text,
+    `location` varchar(255) DEFAULT NULL,
+    `name` varchar(255) NOT NULL,
+    `price` bigint NOT NULL,
+    `quantity` int NOT NULL,
+    `restrict_status` enum('OPENED','PENDING','RESTRICTED') NOT NULL,
+    `restricted` bit(1) NOT NULL,
+    `restricted_reason` text,
+    `revenue` bigint NOT NULL,
+    `sold` int NOT NULL,
+    `sort_description` text,
+    `thumbnail_url` varchar(255) DEFAULT NULL,
+    `total_reviews` int NOT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `url_path` text,
+    `url_slug` text,
+    `visible` bit(1) NOT NULL,
+    `weight` decimal(10,2) NOT NULL DEFAULT '0.00',
+    `category_id` varchar(36) DEFAULT NULL,
+    `shop_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKog2rp4qthbtt2lfyhfo32lsw9` (`category_id`),
+    KEY `FK7kp8sbhxboponhx3lxqtmkcoj` (`shop_id`),
+    CONSTRAINT `FK7kp8sbhxboponhx3lxqtmkcoj` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`),
+    CONSTRAINT `FKog2rp4qthbtt2lfyhfo32lsw9` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `provinces`
+--
+
+DROP TABLE IF EXISTS `provinces`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `provinces` (
+                             `id` varchar(36) NOT NULL,
+    `name` varchar(100) NOT NULL,
+    PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `roles` (
+                         `id` varchar(36) NOT NULL,
+    `description` varchar(255) DEFAULT NULL,
+    `name` enum('USER','ADMIN') NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_role_name` (`name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shop_addresses`
+--
+
+DROP TABLE IF EXISTS `shop_addresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_addresses` (
+                                  `id` varchar(36) NOT NULL,
+    `detail` text NOT NULL,
+    `phone_number` varchar(20) NOT NULL,
+    `sender_name` varchar(100) NOT NULL,
+    `district_id` varchar(36) NOT NULL,
+    `province_id` varchar(36) NOT NULL,
+    `shop_id` varchar(36) NOT NULL,
+    `ward_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKjihc33pfcfolj5kdm8r5e2rjc` (`district_id`),
+    KEY `FKcjvsy6qy8vmfbvah9sdj3lhpo` (`province_id`),
+    KEY `FKdqm2dvywp1h3d1q0hjlp86224` (`shop_id`),
+    KEY `FKij8gkwnyu7mxv0r1un5u0j1x8` (`ward_id`),
+    CONSTRAINT `FKcjvsy6qy8vmfbvah9sdj3lhpo` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`),
+    CONSTRAINT `FKdqm2dvywp1h3d1q0hjlp86224` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`),
+    CONSTRAINT `FKij8gkwnyu7mxv0r1un5u0j1x8` FOREIGN KEY (`ward_id`) REFERENCES `wards` (`id`),
+    CONSTRAINT `FKjihc33pfcfolj5kdm8r5e2rjc` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shop_categories`
+--
+
+DROP TABLE IF EXISTS `shop_categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_categories` (
+                                   `id` varchar(36) NOT NULL,
+    `shop_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKidgwn2wkyt6ebkm9a1u1n7usl` (`shop_id`),
+    CONSTRAINT `FKidgwn2wkyt6ebkm9a1u1n7usl` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shop_category_items`
+--
+
+DROP TABLE IF EXISTS `shop_category_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_category_items` (
+                                       `category_id` varchar(255) NOT NULL,
+    `shop_categories_id` varchar(255) NOT NULL,
+    PRIMARY KEY (`category_id`,`shop_categories_id`),
+    KEY `FKs536flpp26ree8bhoewq8s9vp` (`shop_categories_id`),
+    CONSTRAINT `FK6kcmaid96qb4aq2qvmud4du4v` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
+    CONSTRAINT `FKs536flpp26ree8bhoewq8s9vp` FOREIGN KEY (`shop_categories_id`) REFERENCES `shop_categories` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shop_order_items`
+--
+
+DROP TABLE IF EXISTS `shop_order_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_order_items` (
+                                    `shop_order_id` varchar(36) NOT NULL,
+    `order_item_id` varchar(36) NOT NULL,
+    KEY `FKhy4fpmvty4grhm6tp7xw4v5gp` (`order_item_id`),
+    KEY `FKmmrop9hwor1kut8433j0vqtp2` (`shop_order_id`),
+    CONSTRAINT `FKhy4fpmvty4grhm6tp7xw4v5gp` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`),
+    CONSTRAINT `FKmmrop9hwor1kut8433j0vqtp2` FOREIGN KEY (`shop_order_id`) REFERENCES `shop_orders` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shop_order_tracks`
+--
+
+DROP TABLE IF EXISTS `shop_order_tracks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_order_tracks` (
+                                     `updated_at` datetime(6) NOT NULL,
+    `status` enum('AWAITING_SHIPMENT','CANCELLED','DELIVERED','IN_TRANSIT','OUT_FOR_DELIVERY','PREPARING','PROCESSING') NOT NULL,
+    `shop_order_id` varchar(255) NOT NULL,
+    PRIMARY KEY (`shop_order_id`,`updated_at`),
+    CONSTRAINT `FKcfqegwwclhbx5k6rs7oikaj50` FOREIGN KEY (`shop_order_id`) REFERENCES `shop_orders` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shop_orders`
+--
+
+DROP TABLE IF EXISTS `shop_orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_orders` (
+                               `id` varchar(36) NOT NULL,
+    `cancel_reason` text,
+    `canceled_by` enum('CUSTOMER','SHOP') DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    `shipping_fee` int DEFAULT '0',
+    `status` enum('AWAITING_SHIPMENT','CANCELLED','DELIVERED','IN_TRANSIT','OUT_FOR_DELIVERY','PREPARING','PROCESSING') DEFAULT NULL,
+    `total` bigint NOT NULL,
+    `order_id` varchar(36) NOT NULL,
+    `shop_id` varchar(36) NOT NULL,
+    `user_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKsgnvljpq2781kepnibt2mhmmg` (`order_id`),
+    KEY `FK25a2nj9yypomcxwstjglds195` (`shop_id`),
+    KEY `FKj4qixku05sstqepfps9jrq132` (`user_id`),
+    CONSTRAINT `FK25a2nj9yypomcxwstjglds195` FOREIGN KEY (`shop_id`) REFERENCES `shops` (`id`),
+    CONSTRAINT `FKj4qixku05sstqepfps9jrq132` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+    CONSTRAINT `FKsgnvljpq2781kepnibt2mhmmg` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `shops`
+--
+
+DROP TABLE IF EXISTS `shops`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shops` (
+                         `id` varchar(36) NOT NULL,
+    `avatar_url` varchar(255) DEFAULT NULL,
+    `average_rating` float DEFAULT '0',
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    `deleted` tinyint(1) DEFAULT '0',
+    `description` text,
+    `follower_count` int DEFAULT '0',
+    `name` varchar(100) NOT NULL,
+    `product_count` int DEFAULT '0',
+    `revenue` bigint DEFAULT '0',
+    `total_reviews` int DEFAULT '0',
+    `updated_at` datetime(6) DEFAULT NULL,
+    `url_slug` text,
+    `user_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FK34po7mmli7wotimo70r6640ap` (`user_id`),
+    CONSTRAINT `FK34po7mmli7wotimo70r6640ap` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `sku_attributes`
+--
+
+DROP TABLE IF EXISTS `sku_attributes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sku_attributes` (
+                                  `sku_id` varchar(36) NOT NULL,
+    `attribute_value_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`sku_id`,`attribute_value_id`),
+    KEY `FKqbgvbbnbx9jgwpkf0rk4xn7kg` (`attribute_value_id`),
+    CONSTRAINT `FKffiuqvdic86actxb7corxq4m0` FOREIGN KEY (`sku_id`) REFERENCES `product_skus` (`id`),
+    CONSTRAINT `FKqbgvbbnbx9jgwpkf0rk4xn7kg` FOREIGN KEY (`attribute_value_id`) REFERENCES `attribute_values` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_addresses`
+--
+
+DROP TABLE IF EXISTS `user_addresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_addresses` (
+                                  `id` varchar(36) NOT NULL,
+    `detail` text NOT NULL,
+    `phone_number` varchar(20) NOT NULL,
+    `primary_address` tinyint(1) DEFAULT '0',
+    `receiver_name` varchar(100) NOT NULL,
+    `district_id` varchar(36) NOT NULL,
+    `province_id` varchar(36) NOT NULL,
+    `user_id` varchar(36) NOT NULL,
+    `ward_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FK46jbhcddgi2ig4tv9wvr5282o` (`district_id`),
+    KEY `FK6vo2j9xym99dvopdbeb9glixc` (`province_id`),
+    KEY `FKn2fisxyyu3l9wlch3ve2nocgp` (`user_id`),
+    KEY `FKp0h5l8sk3usxw00hqlkybpb5r` (`ward_id`),
+    CONSTRAINT `FK46jbhcddgi2ig4tv9wvr5282o` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`),
+    CONSTRAINT `FK6vo2j9xym99dvopdbeb9glixc` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`),
+    CONSTRAINT `FKn2fisxyyu3l9wlch3ve2nocgp` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+    CONSTRAINT `FKp0h5l8sk3usxw00hqlkybpb5r` FOREIGN KEY (`ward_id`) REFERENCES `wards` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+                         `id` varchar(36) NOT NULL,
+    `avatar_url` varchar(255) DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    `delete_reason` text,
+    `deleted` tinyint(1) DEFAULT '0',
+    `dob` date DEFAULT NULL,
+    `email` varchar(100) NOT NULL,
+    `from_social` tinyint(1) DEFAULT '0',
+    `full_name` varchar(100) DEFAULT NULL,
+    `gender` enum('MALE','FEMALE','OTHER') DEFAULT NULL,
+    `password` varchar(255) NOT NULL,
+    `phone_number` varchar(20) DEFAULT NULL,
+    `updated_at` datetime(6) DEFAULT NULL,
+    `username` varchar(50) NOT NULL,
+    `role_id` varchar(36) DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_user_username` (`username`),
+    UNIQUE KEY `idx_user_email` (`email`),
+    KEY `FKp56c1712k691lhsyewcssf40f` (`role_id`),
+    CONSTRAINT `FKp56c1712k691lhsyewcssf40f` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `wards`
+--
+
+DROP TABLE IF EXISTS `wards`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wards` (
+                         `id` varchar(36) NOT NULL,
+    `name` varchar(100) NOT NULL,
+    `district_id` varchar(36) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `FKfjqt744bo800mb5uax74lav8k` (`district_id`),
+    CONSTRAINT `FKfjqt744bo800mb5uax74lav8k` FOREIGN KEY (`district_id`) REFERENCES `districts` (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-06-09 16:26:44

@@ -36,6 +36,9 @@ public class Shop {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String urlSlug;
+
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 

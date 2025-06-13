@@ -1,0 +1,77 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "analysis": {
+      "analyzer": {
+        "vietnamese_analyzer": {
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "icu_folding"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": { "type": "keyword" },
+      "name": {
+        "type": "text",
+        "analyzer": "vietnamese_analyzer",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "vietnamese_analyzer"
+      },
+      "suggest": {
+        "type": "search_as_you_type",
+        "analyzer": "vietnamese_analyzer"
+      },
+      "price": { "type": "long" },
+      "created_at": { "type": "date" },
+      "sold_count": { "type": "integer" },
+      "average_rating": { "type": "half_float" },
+      "thumbnail_url": { "type": "keyword" },
+
+      "shop": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "keyword" },
+          "name": {
+            "type": "text",
+            "analyzer": "vietnamese_analyzer",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          }
+        }
+      },
+
+      "category": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "keyword" },
+          "name": {
+            "type": "text",
+            "analyzer": "vietnamese_analyzer",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          }
+        }
+      },
+
+      "attributes": {
+        "type": "nested",
+        "properties": {
+          "key_name": { "type": "keyword" },
+          "display_name": { "type": "keyword" },
+          "value": { "type": "keyword" }
+        }
+      }
+    }
+  }
+}

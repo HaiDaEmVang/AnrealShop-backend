@@ -1,0 +1,19 @@
+package com.haiemdavang.AnrealShop.elasticsearch.document;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Data
+public class EsShop {
+    @Field(type = FieldType.Keyword)
+    private String id;
+    @Field(type = FieldType.Text, analyzer = "vietnames_analyzer", fielddata = true)
+    private String name;
+}

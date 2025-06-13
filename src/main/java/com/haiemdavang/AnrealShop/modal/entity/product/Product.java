@@ -45,7 +45,7 @@ public class Product {
     private String description;
 
     @Column(columnDefinition = "TEXT")
-    private String urlKey;
+    private String urlSlug;
 
     @Column(columnDefinition = "TEXT")
     private String urlPath;

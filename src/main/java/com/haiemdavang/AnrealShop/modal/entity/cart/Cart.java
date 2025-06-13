@@ -33,8 +33,8 @@ public class Cart {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default // Để @Builder hoạt động tốt với collection được khởi tạo
-    private List<CartItem> items = new ArrayList<>(); // Khởi tạo sẵn để tránh NullPointerException
+    @Builder.Default
+    private List<CartItem> items = new ArrayList<>();
 
     public void addItem(CartItem item) {
         if (items == null) {

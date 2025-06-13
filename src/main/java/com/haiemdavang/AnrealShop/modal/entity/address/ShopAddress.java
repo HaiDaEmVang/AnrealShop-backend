@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.modal.entity.address;
 
-import com.haiemdavang.AnrealShop.modal.entity.shop.Shop; // Import entity Shop
+import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import jakarta.persistence.*;
 import lombok.*;
 

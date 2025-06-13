@@ -1,6 +1,8 @@
 spring:
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
   datasource:
-    url: jdbc:mysql://localhost:3306/db_testShop
+    url: jdbc:mysql://13.229.228.146:3306/db_testShop
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -12,19 +14,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GG_CLIENT_ID:hello}
-            client-secret: ${GG_CLIENT_SECRET:hello}
-  elasticsearch:
-    uris: http://localhost:9200
   data:
     redis:
       port: ${REDIS_PORT:6379}
       host: ${REDIS_HOST:localhost}
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -34,11 +28,36 @@ spring:
     properties.mail.smtp.auth: true
     properties.mail.smtp.starttls.enable: true
     properties.mail.debug: true
+
   flyway:
     enabled: false
     baseline-on-migrate: true
     locations: classpath:db/migration
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer:  org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: product-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: '*'
+        spring.json.use.type.headers: false
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GG_CLIENT_ID:hello}
+            client-secret: ${GG_CLIENT_SECRET:hello}
 logging:
   level:
     org:
@@ -60,7 +79,6 @@ cloudinary:
   api-key: ${CLOUDINARY_KEY:xem_cc}
   api-secret: ${CLOUDINARY_SECRET:xem_cc}
 
-# VNPay Configuration
 payment:
   vnPay:
     url: ${VNP_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
@@ -82,5 +100,5 @@ jwt:
     expiration_refresh: 172800000
 
 ghn:
-  token: {GHN_TOKEN:your_ghn_token}
-  shop_id: {GHN_SHOPID:your_ghn_shop_id}
+  token: ${GHN_TOKEN:your_ghn_token}
+  shop_id: ${GHN_SHOPID:your_ghn_shop_id}

@@ -33,7 +33,7 @@ public class Category {
     private String description;
 
     @Column(length = 100)
-    private String urlKey;
+    private String urlSlug;
 
     @Column(length = 100)
     private String urlPath;

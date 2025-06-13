@@ -43,9 +43,9 @@ public class CartItem {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "cart_item_attributes", // Tên bảng nối
-            joinColumns = @JoinColumn(name = "cart_item_id"), // Khóa ngoại trong bảng nối trỏ về CartItem
-            inverseJoinColumns = @JoinColumn(name = "attribute_value_id") // THAY ĐỔI: Khóa ngoại trỏ về AttributeValue
+            name = "cart_item_attributes",
+            joinColumns = @JoinColumn(name = "cart_item_id"),
+            inverseJoinColumns = @JoinColumn(name = "attribute_value_id")
     )
     private Set<AttributeValue> selectedAttributes;
 }
