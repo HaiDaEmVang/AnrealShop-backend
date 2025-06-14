@@ -1,6 +1,8 @@
 package com.haiemdavang.AnrealShop.mapper;
 
+import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
+import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,38 @@ public class UserMapper {
         if (profileRequest.getAvatarUrl() != null && !profileRequest.getAvatarUrl().isEmpty()) {
             user.setAvatarUrl(profileRequest.getAvatarUrl());
         }
+        
+        return user;
+    }
+    
+    public UserDto toUserDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        
+        return new UserDto(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getFullName(),
+            user.getPhoneNumber(),
+            user.getAvatarUrl(),
+            user.getGender(),
+            user.getDob(),
+            user.getRole() != null ? user.getRole().getName().toString() : null,
+            user.getCreatedAt(),
+            user.getUpdatedAt()
+        );
+    }
+    
+    public User toUser(LoginRequest loginRequest) {
+        if (loginRequest == null) {
+            return null;
+        }
+        
+        User user = new User();
+        user.setUsername(loginRequest.getUsername());
+        user.setPassword(loginRequest.getPassword());
         
         return user;
     }

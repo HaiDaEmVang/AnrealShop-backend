@@ -48,8 +48,10 @@ services:
       - bash
       - -c
       - |
-        elasticsearch-plugin install --batch analysis-icu && \
-        elasticsearch
+        if [ ! -d "plugins/analysis-icu" ]; then
+          elasticsearch-plugin install --batch analysis-icu;
+        fi
+        exec elasticsearch
   # Kibana (v8.13.0)
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.0

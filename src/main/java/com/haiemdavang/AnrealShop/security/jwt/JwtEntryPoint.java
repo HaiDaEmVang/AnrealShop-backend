@@ -19,7 +19,7 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtEntryPoint implements AuthenticationEntryPoint {
-    private Environment env;
+    private final Environment env;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,

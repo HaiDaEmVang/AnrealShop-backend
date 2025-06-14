@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.dto.user;
+package com.haiemdavang.AnrealShop.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

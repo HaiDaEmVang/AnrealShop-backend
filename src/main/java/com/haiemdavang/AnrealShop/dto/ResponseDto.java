@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,25 @@ public class ResponseDto<T> {
 
     private T data;
 
-    @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime timestamp;
+
+    public static <T> ResponseDto<T> success(T data, String message) {
+        return ResponseDto.<T>builder()
+                .data(data)
+                .message(message)
+                .isSuccess(true)
+                .code(200)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ResponseDto<T> error(String message, int code) {
+        return ResponseDto.<T>builder()
+                .message(message)
+                .isSuccess(false)
+                .code(code)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

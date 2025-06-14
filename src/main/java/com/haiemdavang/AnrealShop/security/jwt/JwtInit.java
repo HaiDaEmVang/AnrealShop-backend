@@ -8,8 +8,8 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -21,6 +21,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+@RequiredArgsConstructor
 @Component
 @Slf4j
 public class JwtInit {
@@ -36,8 +37,9 @@ public class JwtInit {
     @Value("${jwt.token.cookie_refresh_name}")
     private String token_refresh_cookie_name;
 
-    @Autowired
-    private IRedisService redisService;
+    private final IRedisService redisService;
+    private final String PATH_COOKIE = "/api";
+    private final String PATH_COOKIE_REFRESH = "/api/auth/";
 
     private Key getKey() {
         return Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret_key));
@@ -45,21 +47,21 @@ public class JwtInit {
 
     public ResponseCookie generaJwtCookie(Authentication auth) {
         String jwt = generateTokenFromAuthentication(auth);
-        return generateCookie(token_cookie_name, jwt, "/api");
+        return generateCookie(token_cookie_name, jwt, PATH_COOKIE);
     }
 
     public ResponseCookie generaJwtCookie(String name) {
         String jwt = gennerateTokenFromUsername(name);
-        return generateCookie(token_cookie_name, jwt, "/api");
+        return generateCookie(token_cookie_name, jwt, PATH_COOKIE);
     }
 
     public ResponseCookie generaJwtRefreshCookie(String name) {
         String jwt = gennerateTokenFromUsername(name, true);
-        return generateCookie(token_refresh_cookie_name, jwt, "/api/auth/");
+        return generateCookie(token_refresh_cookie_name, jwt, PATH_COOKIE_REFRESH);
     }
     public ResponseCookie generaJwtRefreshCookie(Authentication auth) {
         String jwt = generateTokenFromAuthentication(auth, true);
-        return generateCookie(token_refresh_cookie_name, jwt, "/api/auth/");
+        return generateCookie(token_refresh_cookie_name, jwt, PATH_COOKIE_REFRESH);
     }
 
 
@@ -148,8 +150,7 @@ public class JwtInit {
 
 
     private ResponseCookie generateCookie(String name, String value, String path) {
-        ResponseCookie cookie = ResponseCookie.from(name, value).path(path).maxAge(7*24*60*60).httpOnly(true).sameSite("none").secure(true).build();
-        return cookie;
+        return ResponseCookie.from(name, value).path(path).maxAge(7*24*60*60).httpOnly(true).sameSite("none").secure(true).build();
     }
 
     private String getCookieValueByName(HttpServletRequest request, String name) {
@@ -168,11 +169,9 @@ public class JwtInit {
     }
 
     public ResponseCookie getCleanJwtCookie() {
-        ResponseCookie cookie = ResponseCookie.from(token_cookie_name, null).path("/api").build();
-        return cookie;
+        return ResponseCookie.from(token_cookie_name, null).path(PATH_COOKIE).build();
     }
     public ResponseCookie getCleanJwtRefreshCookie() {
-        ResponseCookie cookie = ResponseCookie.from(token_refresh_cookie_name, null).path("/api/auth/").build();
-        return cookie;
+        return ResponseCookie.from(token_refresh_cookie_name, null).path(PATH_COOKIE_REFRESH).build();
     }
 }
