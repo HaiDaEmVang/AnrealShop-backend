@@ -98,6 +98,8 @@ jwt:
     secret_Key: ${JWT_SECRET_KEY:""}
     expiration: 86400000
     expiration_refresh: 172800000
+    cookie_access_name: "ACCESS_TOKEN"
+    cookie_refresh_name: "REFRESH_TOKEN"
 
 ghn:
   token: ${GHN_TOKEN:your_ghn_token}
