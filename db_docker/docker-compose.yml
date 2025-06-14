@@ -30,22 +30,29 @@ services:
 
   # Dịch vụ Elasticsearch (như cũ)
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.28
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
     container_name: anreal_es
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=anreal-cluster
+      - node.name=anreal-node
     ports:
       - "9200:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
     networks:
       - elastic-net
-
-  # Dịch vụ Kibana (như cũ)
+    command:
+      - bash
+      - -c
+      - |
+        elasticsearch-plugin install --batch analysis-icu && \
+        elasticsearch
+  # Kibana (v8.13.0)
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.28
+    image: docker.elastic.co/kibana/kibana:8.13.0
     container_name: anreal_kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://anreal_es:9200

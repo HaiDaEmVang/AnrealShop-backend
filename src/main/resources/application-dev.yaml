@@ -2,7 +2,7 @@ spring:
   jackson:
     time-zone: Asia/Ho_Chi_Minh
   datasource:
-    url: jdbc:mysql://13.229.228.146:3306/db_testShop
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/db_anrealShop
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -37,12 +37,12 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     producer:
-      key-serializer:  org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.support.serializer.JsonSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
     consumer:
       group-id: product-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
       properties:
         spring.json.trusted.packages: '*'
