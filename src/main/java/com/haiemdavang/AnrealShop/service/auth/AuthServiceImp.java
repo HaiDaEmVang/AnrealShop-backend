@@ -4,6 +4,9 @@ import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
 import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OauthProvider;
 import com.haiemdavang.AnrealShop.dto.auth.TokenResponse;
+import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
+import com.haiemdavang.AnrealShop.exception.AnrealShopException;
+import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -88,5 +91,6 @@ public class AuthServiceImp implements IAuthService {
                 refreshToken.toString()
         );
     }
+
 
 }

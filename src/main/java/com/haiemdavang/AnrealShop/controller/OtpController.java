@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.controller;
 
-import com.haiemdavang.AnrealShop.dto.ResponseDto;
+import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import com.haiemdavang.AnrealShop.dto.auth.OtpRequest;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
 import lombok.RequiredArgsConstructor;

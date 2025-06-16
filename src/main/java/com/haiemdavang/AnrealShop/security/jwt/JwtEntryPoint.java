@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.haiemdavang.AnrealShop.dto.ResponseDto;
+import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

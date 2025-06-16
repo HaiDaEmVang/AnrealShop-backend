@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.dto;
+package com.haiemdavang.AnrealShop.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

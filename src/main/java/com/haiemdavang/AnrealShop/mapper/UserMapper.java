@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.mapper;
 
+import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
@@ -9,6 +10,20 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserMapper {
+
+    public User createUserFromRegisterRequest(RegisterRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        User user = new User();
+        user.setEmail(request.email());
+        user.setFullName(request.fullName());
+        String username = request.email().split("@")[0];
+        user.setUsername(username);
+        user.setPassword(request.password());
+        return user;
+    }
     
     public ProfileRequest toProfileRequest(User user) {
         if (user == null) {

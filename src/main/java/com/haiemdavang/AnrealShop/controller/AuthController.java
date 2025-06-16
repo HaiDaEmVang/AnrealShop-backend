@@ -1,9 +1,10 @@
 package com.haiemdavang.AnrealShop.controller;
 
-import com.haiemdavang.AnrealShop.dto.ResponseDto;
+import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.TokenResponse;
 import com.haiemdavang.AnrealShop.dto.auth.ResetPwRequest;
+import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -57,4 +58,6 @@ public class AuthController {
         mailService.delOTP(resetPassword.getEmail());
         return ResponseEntity.ok(ResponseDto.success("", "Thay đổi mật khẩu thành công!"));
     }
+
+
 }

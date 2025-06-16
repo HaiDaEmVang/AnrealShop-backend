@@ -1,6 +1,9 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
+import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
+import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
+import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.mapper.UserMapper;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
@@ -48,7 +51,32 @@ public class UserServiceImp implements IUserService {
         newUser.setPassword(passwordEncoder.encode(randomPassword));
         userRepository.save(newUser);
     }
-    
+
+    @Override
+    @Transactional
+    public UserDto updateProfile(String email, ProfileRequest profileRequest) {
+        User user = findByEmail(email);
+        user = userMapper.updateUserFromProfileRequest(user, profileRequest);
+        userRepository.save(user);
+        return userMapper.toUserDto(user);
+    }
+
+    @Override
+    public void deleteUser(String id) {
+        if(userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        }
+    }
+
+    @Override
+    public void registerUser(RegisterRequest request) {
+        if(userRepository.existsByEmail(request.email())) {
+            throw new AnrealShopException("EMAIL_ALREADY_EXISTS");
+        }
+        User user = userMapper.createUserFromRegisterRequest(request);
+        userRepository.save(user);
+    }
+
     private String generateRandomPassword() {
         return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }

@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.exception;
 
-import com.haiemdavang.AnrealShop.dto.ResponseDto;
+import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
