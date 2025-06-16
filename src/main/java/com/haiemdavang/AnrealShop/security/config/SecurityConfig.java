@@ -27,7 +27,13 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final String[] PUBLIC_URLS = {"/api/public/**", "/api/login", "/api/register", "/**"};
+    private final String[] PUBLIC_URLS = {
+            "/api/public/**",
+            "/api/auth/**",
+            "/api/login",
+            "/api/register",
+            "/api/otp/**",
+            "/**"};
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;

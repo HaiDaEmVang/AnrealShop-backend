@@ -59,6 +59,10 @@ spring:
           google:
             client-id: ${GG_CLIENT_ID:hello}
             client-secret: ${GG_CLIENT_SECRET:hello}
+            redirect-uri: ${fe_base_url}/login/oauth2/code
+            scope:
+              - email
+              - profile
 logging:
   level:
     org:

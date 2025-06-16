@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.mapper;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
+import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +70,22 @@ public class UserMapper {
         User user = new User();
         user.setUsername(loginRequest.getUsername());
         user.setPassword(loginRequest.getPassword());
+        
+        return user;
+    }
+
+    
+    public User createUserFromOauth2UserInfo(Oauth2UserInfo oauth2UserInfo) {
+        if (oauth2UserInfo == null) {
+            return null;
+        }
+        
+        User user = new User();
+        user.setEmail(oauth2UserInfo.getEmail());
+        user.setUsername(oauth2UserInfo.getUsername());
+        user.setFullName(oauth2UserInfo.getFullName());
+        user.setAvatarUrl(oauth2UserInfo.getAvatarUrl());
+        user.setFromSocial(true);
         
         return user;
     }

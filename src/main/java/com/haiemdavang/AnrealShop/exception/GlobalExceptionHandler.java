@@ -40,7 +40,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseDto<?>> handleValidationException(MethodArgumentNotValidException ex) {
         log.error("Validation error: {}", ex.getMessage());
-        assert ex.getBindingResult() != null;
         String errorMessage = "Validation failed: " + ex.getBindingResult().getAllErrors().stream()
                 .map(err -> environment.getProperty(Objects.requireNonNull(err.getDefaultMessage())))
                 .collect(Collectors.joining(", "));
