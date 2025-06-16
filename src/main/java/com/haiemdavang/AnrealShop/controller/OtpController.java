@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.controller;
 
 import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import com.haiemdavang.AnrealShop.dto.auth.OtpRequest;
+import com.haiemdavang.AnrealShop.mail.MailType;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
 public class OtpController {
     private final IMailService mailService;
     @PostMapping("/sendOtp/{email}")
-    public ResponseEntity<ResponseDto<String>> getCode(@PathVariable String email){
-        mailService.sendOTP(email);
+    public ResponseEntity<ResponseDto<String>> getCode(@PathVariable String email, @RequestParam String type){
+        mailService.sendOTP(email, MailType.valueOf(type.toUpperCase()));
         return ResponseEntity.ok(ResponseDto.<String>builder().data("Gửi email thành công!").build());
     }
 

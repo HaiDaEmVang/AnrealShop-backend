@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.mail.MailTemplate;
+import com.haiemdavang.AnrealShop.mail.MailType;
 import com.haiemdavang.AnrealShop.redis.service.IRedisService;
 import com.haiemdavang.AnrealShop.service.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class MailServiceImp implements IMailService{
 
 
     @Override
-    public void sendOTP(String email) {
+    public void sendOTP(String email, MailType mailType) {
         if(userService.isExitsts(email))
             throw new AnrealShopException("USER_NOT_FOUND");
         int stamp = 0;
@@ -50,7 +51,7 @@ public class MailServiceImp implements IMailService{
                 mailHelper.setFrom(mailFrom);
                 mailHelper.setSubject("Your OTP");
                 String code = getcode();
-                mailHelper.setText(MailTemplate.getEmailHTML(code, email), true);
+                mailHelper.setText(MailTemplate.getEmailHTML(code, email, mailType), true);
                 mailHelper.setTo(email);
                 javaMailSender.send(mail);
                 int EXPIRATION_TIME = 1;
