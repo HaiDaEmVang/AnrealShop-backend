@@ -1,7 +1,5 @@
 package com.haiemdavang.AnrealShop.mail;
 
-import com.haiemdavang.AnrealShop.exception.AnrealShopException;
-
 public class MailTemplate {
 
     public static String getOtpVerificationEmailHTMLVietnamese(String code, String userName) {

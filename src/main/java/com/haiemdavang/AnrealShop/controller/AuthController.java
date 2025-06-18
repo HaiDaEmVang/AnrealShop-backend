@@ -1,13 +1,12 @@
 package com.haiemdavang.AnrealShop.controller;
 
-import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
-import com.haiemdavang.AnrealShop.dto.auth.TokenResponse;
+import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
 import com.haiemdavang.AnrealShop.dto.auth.ResetPwRequest;
-import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
+import io.jsonwebtoken.lang.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -26,37 +25,32 @@ public class AuthController {
     private final IUserService userService;
     
     @PostMapping("/login")
-    public ResponseEntity<ResponseDto<TokenResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        TokenResponse loginResponse = authService.login(request, response);
-        ResponseDto<TokenResponse> responseDto = ResponseDto.success(loginResponse, "Đăng nhập thành công");
-        return ResponseEntity.ok(responseDto);
+    public ResponseEntity< LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+        return ResponseEntity.ok(authService.login(request, response));
     }
 
     @PostMapping("/oauth2/google")
     public ResponseEntity<?> oauth2Login(@RequestParam(value = "provider") String provider, @RequestParam(value = "code") String code, HttpServletRequest request, HttpServletResponse response) {
-        TokenResponse loginResponse = authService.oauthLogin(provider, code, request, response);
-        ResponseDto<TokenResponse> responseDto = ResponseDto.success(loginResponse, "Đăng nhập thành công");
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(authService.oauthLogin(provider, code, request, response));
     }
 
     @PostMapping("auth/refreshToken")
-    public ResponseEntity<ResponseDto<TokenResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response){
-        TokenResponse loginResponse = authService.refreshToken(request, response);
-        return ResponseEntity.ok(ResponseDto.success(loginResponse, "Làm mới token thành công!"));
+    public ResponseEntity< LoginResponse> refreshToken(HttpServletRequest request, HttpServletResponse response){
+        return ResponseEntity.ok(authService.refreshToken(request, response));
     }
     
     @PostMapping("/logout")
-    public ResponseEntity<ResponseDto<String>> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
-        return ResponseEntity.ok(ResponseDto.success("", "Đăng xuất hệ thống thành công!"));
+        return ResponseEntity.ok(Maps.of("message", "Đăng xuất thành công!"));
     }
 
     @PutMapping("/resetPass")
-    public ResponseEntity<ResponseDto<String>> resetPass(@RequestBody @Valid ResetPwRequest resetPassword){
+    public ResponseEntity<?> resetPass(@RequestBody @Valid ResetPwRequest resetPassword){
         mailService.verifyOTP(resetPassword.getOtp(), resetPassword.getEmail());
         userService.resetPassword(resetPassword.getEmail(), resetPassword.getPassword());
         mailService.delOTP(resetPassword.getEmail());
-        return ResponseEntity.ok(ResponseDto.success("", "Thay đổi mật khẩu thành công!"));
+        return ResponseEntity.ok(Maps.of("message", "Thay đổi mật khẩu thành công!"));
     }
 
 

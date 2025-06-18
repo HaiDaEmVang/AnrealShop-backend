@@ -3,10 +3,8 @@ package com.haiemdavang.AnrealShop.service.auth;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
 import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OauthProvider;
-import com.haiemdavang.AnrealShop.dto.auth.TokenResponse;
-import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
-import com.haiemdavang.AnrealShop.exception.AnrealShopException;
-import com.haiemdavang.AnrealShop.modal.entity.user.User;
+import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
+import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -30,7 +28,7 @@ public class AuthServiceImp implements IAuthService {
     private final Oauth2Service oauth2Service;
     private final IUserService userService;
 
-    public TokenResponse login(LoginRequest loginRequest, HttpServletResponse response) {
+    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -42,10 +40,9 @@ public class AuthServiceImp implements IAuthService {
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
-        return new TokenResponse(
-                accessTokenCookie.getValue(),
-                refreshTokenCookie.getValue()
-        );
+        UserDto user = userService.findDtoByEmail(loginRequest.getUsername());
+
+        return new LoginResponse(accessTokenCookie.getValue(), user);
     }
 
     @Override
@@ -61,7 +58,7 @@ public class AuthServiceImp implements IAuthService {
     }
 
     @Override
-    public TokenResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public LoginResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String token = jwtInit.getTokenRefreshFromCookie(request);
         jwtInit.deleteToken(token);
         var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -71,25 +68,24 @@ public class AuthServiceImp implements IAuthService {
         response.addHeader("Set-Cookie", newToken.toString());
         response.addHeader("Set-Cookie", newTokenRefresh.toString());
 
-        return new TokenResponse(
-                newToken.getValue(),
-                newTokenRefresh.getValue()
-        );
+        return new LoginResponse(newToken.getValue(), null);
     }
 
     @Override
-    public TokenResponse oauthLogin(String provider, String code, HttpServletRequest request, HttpServletResponse response) {
+    public LoginResponse oauthLogin(String provider, String code, HttpServletRequest request, HttpServletResponse response) {
         OauthProvider prov = OauthProvider.valueOf(provider.toUpperCase());
         Oauth2UserInfo info = oauth2Service.processOAuth2Login(prov, code);
         if(userService.isExitsts(info.getEmail()))
             userService.createUserFromOauth2(info);
+
         ResponseCookie accessToken = jwtInit.generaJwtCookie(info.getEmail());
         ResponseCookie refreshToken = jwtInit.generaJwtRefreshCookie(info.getEmail());
 
-        return new TokenResponse(
-                accessToken.toString(),
-                refreshToken.toString()
-        );
+        response.addHeader("Set-Cookie", accessToken.toString());
+        response.addHeader("Set-Cookie", refreshToken.toString());
+        UserDto user = userService.findDtoByEmail(info.getEmail());
+
+        return new LoginResponse(accessToken.getValue(), user);
     }
 
 

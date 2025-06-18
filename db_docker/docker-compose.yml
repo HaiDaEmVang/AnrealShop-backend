@@ -1,5 +1,20 @@
 
 services:
+  springboot-app:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    container_name: anreal_springboot
+    depends_on:
+      - kafka
+      - redis
+      - elasticsearch
+    ports:
+      - "4141:4141"
+    env_file:
+      - .env
+    networks:
+      - shared-net
   # Dịch vụ Zookeeper (Bắt buộc cho Kafka)
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -8,7 +23,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      - elastic-net
+      - shared-net
 
   # Dịch vụ Kafka
   kafka:
@@ -26,7 +41,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     networks:
-      - elastic-net
+      - shared-net
 
   # Dịch vụ Elasticsearch (như cũ)
   elasticsearch:
@@ -43,7 +58,7 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
     networks:
-      - elastic-net
+      - shared-net
     command:
       - bash
       - -c
@@ -63,7 +78,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - elastic-net
+      - shared-net
 
   # Dịch vụ Redis (như cũ)
   redis:
@@ -74,7 +89,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - elastic-net
+      - shared-net
 
 volumes:
   es_data:
@@ -83,5 +98,6 @@ volumes:
     driver: local
 
 networks:
-  elastic-net:
+  shared-net:
     driver: bridge
+    external: true

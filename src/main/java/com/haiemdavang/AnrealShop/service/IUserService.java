@@ -22,4 +22,6 @@ public interface IUserService {
     void deleteUser(String id);
 
     void registerUser(@Valid RegisterRequest request);
+
+    UserDto findDtoByEmail(String username);
 }

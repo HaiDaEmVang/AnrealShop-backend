@@ -1,9 +1,9 @@
 package com.haiemdavang.AnrealShop.controller;
 
-import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
 import com.haiemdavang.AnrealShop.dto.auth.OtpRequest;
 import com.haiemdavang.AnrealShop.mail.MailType;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
+import io.jsonwebtoken.lang.Maps;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,15 +14,14 @@ import org.springframework.web.bind.annotation.*;
 public class OtpController {
     private final IMailService mailService;
     @PostMapping("/sendOtp/{email}")
-    public ResponseEntity<ResponseDto<String>> getCode(@PathVariable String email, @RequestParam String type){
+    public ResponseEntity<?> getCode(@PathVariable String email, @RequestParam String type){
         mailService.sendOTP(email, MailType.valueOf(type.toUpperCase()));
-        return ResponseEntity.ok(ResponseDto.<String>builder().data("Gửi email thành công!").build());
+        return ResponseEntity.ok(Maps.of("message", "Gửi email thành công!"));
     }
 
-
     @PostMapping("/verifyOTP")
-    public ResponseEntity<ResponseDto<String>> verifyOTP(@RequestBody OtpRequest otpObject){
+    public ResponseEntity<?> verifyOTP(@RequestBody OtpRequest otpObject){
         mailService.verifyOTP(otpObject.code(), otpObject.email());
-        return ResponseEntity.ok(ResponseDto.<String>builder().data("Xác thực thành otp cho email "+ otpObject.email()+" Thành công!!").build());
+        return ResponseEntity.ok(Maps.of("message", "Xác thực thành otp cho email "+ otpObject.email()+" Thành công!!"));
     }
 }

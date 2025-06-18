@@ -3,7 +3,6 @@ package com.haiemdavang.AnrealShop.mail.service;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.mail.MailTemplate;
 import com.haiemdavang.AnrealShop.mail.MailType;
 import com.haiemdavang.AnrealShop.redis.service.IRedisService;

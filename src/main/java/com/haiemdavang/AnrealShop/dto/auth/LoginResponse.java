@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.dto.auth;
 
+import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenResponse {
+public class LoginResponse {
     private String accessToken;
-    private String refreshToken;
+    private UserDto user;
 }

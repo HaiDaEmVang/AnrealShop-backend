@@ -169,9 +169,9 @@ public class JwtInit {
     }
 
     public ResponseCookie getCleanJwtCookie() {
-        return ResponseCookie.from(token_cookie_name, null).path(PATH_COOKIE).build();
+        return ResponseCookie.from(token_cookie_name, "").path(PATH_COOKIE).build();
     }
     public ResponseCookie getCleanJwtRefreshCookie() {
-        return ResponseCookie.from(token_refresh_cookie_name, null).path(PATH_COOKIE_REFRESH).build();
+        return ResponseCookie.from(token_refresh_cookie_name, "").path(PATH_COOKIE_REFRESH).build();
     }
 }

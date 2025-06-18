@@ -1,9 +1,8 @@
-
 spring:
   jackson:
     time-zone: Asia/Ho_Chi_Minh
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:3306/db_anrealShop
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:db_anrealShop}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,8 +22,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${EMAIL_KEY:""}
-    password: ${EMAIL_PASS_KEY:""}
+    username: ${EMAIL_USERNAME:""}
+    password: ${EMAIL_PASSWORD:""}
     protocol: smtp
     properties.mail.smtp.auth: true
     properties.mail.smtp.starttls.enable: true
@@ -36,7 +35,7 @@ spring:
     locations: classpath:db/migration
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringDeserializer
       value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -50,7 +49,7 @@ spring:
         spring.json.use.type.headers: false
 
   elasticsearch:
-    uris: http://localhost:9200
+    uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
 
   security:
     oauth2:

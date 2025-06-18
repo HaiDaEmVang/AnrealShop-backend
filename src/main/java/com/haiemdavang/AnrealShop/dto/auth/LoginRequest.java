@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class LoginRequest {
     @NotBlank(message = "USERNAME_NOTBLANK")
-    @Pattern(regexp = "^[a-zA-Z0-9]{6,20}$", message = "USERNAME_PATTERN")
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "EMAIL_INVALID")
     private String username;
     
     @NotBlank(message = "PASSWORD_NOTBLANK")

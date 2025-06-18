@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.haiemdavang.AnrealShop.dto.common.ResponseDto;
+import com.haiemdavang.AnrealShop.dto.common.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class JwtEntryPoint implements AuthenticationEntryPoint {
             errorMessage = env.getProperty(errorMessage, "Vui long dang nhap lai");
         }
 
-        ResponseDto<Object> responseDto = ResponseDto.builder()
+        ErrorResponseDto<Object> responseDto = com.haiemdavang.AnrealShop.dto.common.ErrorResponseDto.builder()
                 .isSuccess(false)
                 .code(HttpStatus.UNAUTHORIZED.value())
                 .message(errorMessage)
