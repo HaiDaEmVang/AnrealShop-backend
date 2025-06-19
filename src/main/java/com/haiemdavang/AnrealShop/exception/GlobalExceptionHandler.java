@@ -71,6 +71,15 @@ public class GlobalExceptionHandler {
                 .body(buildErrorResponse(HttpStatus.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng.", null));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponseDto> handleConflictException(ConflictException ex) {
+        log.error("Conflict error: {}", ex.getMessage());
+        String errorMessage = environment.getProperty(ex.getMessage(), "Xung đột dữ liệu.");
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(buildErrorResponse(HttpStatus.CONFLICT, errorMessage, null));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGeneralException(Exception ex) {
         log.error("Đã xảy ra lỗi không mong muốn: {}", ex.getMessage(), ex);

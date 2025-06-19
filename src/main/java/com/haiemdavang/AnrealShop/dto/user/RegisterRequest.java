@@ -15,9 +15,9 @@ public record RegisterRequest(
         String email,
         
         @NotBlank(message = "PASSWORD_NOTBLANK")
-        @Size(min = 6, max = 20, message = "PASSWORD_SIZE")
+        @Size(min = 8, max = 20, message = "PASSWORD_SIZE")
         @Pattern(
-                regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{6,20}$",
+                regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,20}$",
                 message = "PASSWORD_PATTERN"
         )
         String password

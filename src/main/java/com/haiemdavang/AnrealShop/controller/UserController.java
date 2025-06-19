@@ -7,12 +7,14 @@ import com.haiemdavang.AnrealShop.mapper.UserMapper;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecu;
 import com.haiemdavang.AnrealShop.service.IUserService;
-import io.jsonwebtoken.lang.Maps;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 
 @RequiredArgsConstructor
@@ -23,9 +25,10 @@ public class UserController {
     private final UserMapper userMapper;
 
     @PostMapping("/register")
+    @Transactional
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         userService.registerUser(request);
-        return ResponseEntity.ok(Maps.of("message", "Tạo tài khoản thành công"));
+        return ResponseEntity.ok(Map.of("message", "Tạo tài khoản thành công"));
     }
 
     @GetMapping("/me")
@@ -55,6 +58,6 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok(Maps.of("message", "Xóa người dùng thành công"));
+        return ResponseEntity.ok(Map.of("message", "Xóa người dùng thành công"));
     }
 }

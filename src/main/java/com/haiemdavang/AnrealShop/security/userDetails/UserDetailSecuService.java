@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.security.userDetails;
 
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class UserDetailSecuService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User u = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AnrealShopException("USER_NOT_FOUND"));
+                .orElseThrow(() -> new BadRequestException("USER_NOT_FOUND"));
         return UserDetailSecu.createUserDetails(u);
     }
 }

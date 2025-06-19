@@ -4,6 +4,8 @@ import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
+import com.haiemdavang.AnrealShop.exception.ConflictException;
 import com.haiemdavang.AnrealShop.mapper.UserMapper;
 import com.haiemdavang.AnrealShop.modal.entity.user.Role;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
@@ -40,14 +42,14 @@ public class UserServiceImp implements IUserService {
     @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(()-> new AnrealShopException("USER_NOT_FOUND"));
+                .orElseThrow(()-> new BadRequestException("USER_NOT_FOUND"));
     }
 
     @Override
     @Transactional
     public void createUserFromOauth2(Oauth2UserInfo info) {
         if (info == null || info.getEmail() == null) {
-            throw new AnrealShopException("INVALID_OAUTH2_USER_INFO");
+            throw new BadRequestException("INVALID_OAUTH2_USER_INFO");
         }
         User newUser = userMapper.createUserFromOauth2UserInfo(info);
         String randomPassword = generateRandomPassword();
@@ -74,13 +76,13 @@ public class UserServiceImp implements IUserService {
     @Override
     public void registerUser(RegisterRequest request) {
         if(userRepository.existsByEmail(request.email())) {
-            throw new AnrealShopException("EMAIL_ALREADY_EXISTS");
+            throw new ConflictException("EMAIL_ALREADY_EXISTS");
         }
         User user = userMapper.createUserFromRegisterRequest(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setAvatarUrl("https://res.cloudinary.com/dqogp38jb/image/upload/v1750060824/7309681_msx5j1.jpg");
         Role role = roleRepository.findByName(RoleName.USER)
-                .orElseThrow(() -> new AnrealShopException("ROLE_NOT_FOUND"));
+                .orElseThrow(() -> new BadRequestException("ROLE_NOT_FOUND"));
         user.setRole(role);
         userRepository.save(user);
     }

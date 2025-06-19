@@ -35,11 +35,9 @@ public class JwtEntryPoint implements AuthenticationEntryPoint {
             errorMessage = env.getProperty(errorMessage, "Vui long dang nhap lai");
         }
 
-        ErrorResponseDto<Object> responseDto = com.haiemdavang.AnrealShop.dto.common.ErrorResponseDto.builder()
-                .isSuccess(false)
-                .code(HttpStatus.UNAUTHORIZED.value())
+        ErrorResponseDto responseDto = ErrorResponseDto.builder()
+                .code(Integer.toString(HttpStatus.UNAUTHORIZED.value()))
                 .message(errorMessage)
-                .data(null)
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();

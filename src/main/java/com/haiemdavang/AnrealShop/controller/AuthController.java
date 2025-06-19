@@ -6,13 +6,14 @@ import com.haiemdavang.AnrealShop.dto.auth.ResetPwRequest;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
-import io.jsonwebtoken.lang.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 
 @RequiredArgsConstructor
@@ -42,7 +43,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
-        return ResponseEntity.ok(Maps.of("message", "Đăng xuất thành công!"));
+        return ResponseEntity.ok(Map.of("message", "Đăng xuất thành công!"));
     }
 
     @PutMapping("/resetPass")
@@ -50,7 +51,7 @@ public class AuthController {
         mailService.verifyOTP(resetPassword.getOtp(), resetPassword.getEmail());
         userService.resetPassword(resetPassword.getEmail(), resetPassword.getPassword());
         mailService.delOTP(resetPassword.getEmail());
-        return ResponseEntity.ok(Maps.of("message", "Thay đổi mật khẩu thành công!"));
+        return ResponseEntity.ok(Map.of("message", "Thay đổi mật khẩu thành công!"));
     }
 
 

@@ -3,6 +3,9 @@ package com.haiemdavang.AnrealShop.mail.service;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import com.haiemdavang.AnrealShop.exception.AnrealShopException;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
+import com.haiemdavang.AnrealShop.exception.ForbiddenException;
 import com.haiemdavang.AnrealShop.mail.MailTemplate;
 import com.haiemdavang.AnrealShop.mail.MailType;
 import com.haiemdavang.AnrealShop.redis.service.IRedisService;
@@ -33,7 +36,7 @@ public class MailServiceImp implements IMailService{
     @Override
     public void sendOTP(String email, MailType mailType) {
         if(userService.isExitsts(email))
-            throw new AnrealShopException("USER_NOT_FOUND");
+            throw new BadRequestException("USER_NOT_FOUND");
         int stamp = 0;
 
         if(redisService.isExists(OTP_PREFIX + email)) {
@@ -42,7 +45,7 @@ public class MailServiceImp implements IMailService{
         int MAX_ATTEMPTS = 5;
         if(stamp >= MAX_ATTEMPTS) {
             redisService.addValue(OTP_PREFIX + email, stamp + "", 12, TimeUnit.HOURS);
-            throw new AnrealShopException("OTP_DENIED");
+            throw new ForbiddenException("OTP_DENIED");
         }else {
             MimeMessage mail = javaMailSender.createMimeMessage();
             try {
@@ -65,9 +68,9 @@ public class MailServiceImp implements IMailService{
     @Override
     public boolean verifyOTP(String otp, String email) {
         if(!redisService.isExists(email))
-            throw new AnrealShopException("OTP_NOT_FOUND");
+            throw new BadRequestException("OTP_NOT_FOUND");
         if(redisService.getValue(email) == null || !redisService.getValue(email).equals(otp) )
-            throw new AnrealShopException("OTP_INVALID");
+            throw new BadRequestException("OTP_INVALID");
         return true;
     }
 
