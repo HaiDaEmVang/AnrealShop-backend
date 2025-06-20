@@ -1,4 +1,46 @@
 spring:
-  application:
-    name: AnrealShop
-
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    protocol: smtp
+    properties.mail.smtp.auth: true
+    properties.mail.smtp.starttls.enable: true
+    properties.mail.debug: true
+  flyway:
+    enabled: false
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    consumer:
+      group-id: product-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: '*'
+        spring.json.use.type.headers: false
+logging:
+  level:
+    org:
+      elasticsearch:
+        client: TRACE
+server:
+  port: 4141
+jwt:
+  token:
+    expiration: 86400000
+    expiration_refresh: 172800000
+    cookie_access_name: "ACCESS_TOKEN"
+    cookie_refresh_name: "REFRESH_TOKEN"

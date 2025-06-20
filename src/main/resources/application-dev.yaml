@@ -2,7 +2,7 @@ spring:
   jackson:
     time-zone: Asia/Ho_Chi_Minh
   datasource:
-    url: jdbc:mysql://13.229.228.146:3306/db_testShop
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:db_anrealShop}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,8 +22,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${EMAIL_KEY:""}
-    password: ${EMAIL_PASS_KEY:""}
+    username: ${EMAIL_USERNAME:""}
+    password: ${EMAIL_PASSWORD:""}
     protocol: smtp
     properties.mail.smtp.auth: true
     properties.mail.smtp.starttls.enable: true
@@ -35,21 +35,21 @@ spring:
     locations: classpath:db/migration
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
     producer:
-      key-serializer:  org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.support.serializer.JsonSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
     consumer:
       group-id: product-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
       properties:
         spring.json.trusted.packages: '*'
         spring.json.use.type.headers: false
 
   elasticsearch:
-    uris: http://localhost:9200
+    uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
 
   security:
     oauth2:
@@ -58,6 +58,10 @@ spring:
           google:
             client-id: ${GG_CLIENT_ID:hello}
             client-secret: ${GG_CLIENT_SECRET:hello}
+            redirect-uri: ${server.base_url}${GG_URL_REDIRECT:/oauth2/callback/google}
+            scope:
+              - email
+              - profile
 logging:
   level:
     org:
@@ -65,11 +69,12 @@ logging:
         client: TRACE
 
 server:
-  base_url: http://localhost
+  base_url: http://localhost:4141
   servlet:
     session:
       cookie:
         domain: localhost
+  port: 4141
 
 
 fe_base_url: ${server.base_url}:5173
@@ -98,6 +103,8 @@ jwt:
     secret_Key: ${JWT_SECRET_KEY:""}
     expiration: 86400000
     expiration_refresh: 172800000
+    cookie_access_name: "ACCESS_TOKEN"
+    cookie_refresh_name: "REFRESH_TOKEN"
 
 ghn:
   token: ${GHN_TOKEN:your_ghn_token}
