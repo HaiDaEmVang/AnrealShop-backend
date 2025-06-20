@@ -71,6 +71,24 @@ public class GlobalExceptionHandler {
                 .body(buildErrorResponse(HttpStatus.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng.", null));
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponseDto> handleForbiddentException(ForbiddenException ex) {
+        log.error("forbidden error: {}", ex.getMessage());
+        String errorMessage = environment.getProperty(ex.getMessage(), "Quyền truy cập hạn chế.");
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(buildErrorResponse(HttpStatus.FORBIDDEN, errorMessage, null));
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequesttException(BadRequestException ex) {
+        log.error("badrequest error: {}", ex.getMessage());
+        String errorMessage = environment.getProperty(ex.getMessage(), "Dữ liệu không đúng");
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse(HttpStatus.BAD_REQUEST, errorMessage , null));
+    }
+
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponseDto> handleConflictException(ConflictException ex) {
         log.error("Conflict error: {}", ex.getMessage());

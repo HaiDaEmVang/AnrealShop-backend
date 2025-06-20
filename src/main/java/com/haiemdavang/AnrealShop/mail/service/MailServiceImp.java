@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -30,21 +31,28 @@ public class MailServiceImp implements IMailService{
     @Value("${spring.mail.username}")
     private String mailFrom;
 
-    private final String OTP_PREFIX = "otp_request:";
-
+    private final String OTP_REQUEST_PREFIX = "otp_request:";
+    private final String OTP_CODE_PREFIX = "otp_code:";
 
     @Override
-    public void sendOTP(String email, MailType mailType) {
-        if(userService.isExitsts(email))
+    @Transactional
+    public void sendOTP(String email, String mailTypeInput) {
+        MailType mailType;
+        try {
+           mailType =  MailType.valueOf(mailTypeInput);
+        } catch (IllegalArgumentException e) {
+            throw new AnrealShopException("INVALID_MAIL_TYPE");
+        }
+        if(userService.isExitsts(email) && !mailType.equals(MailType.REGISTER))
             throw new BadRequestException("USER_NOT_FOUND");
         int stamp = 0;
 
-        if(redisService.isExists(OTP_PREFIX + email)) {
-            stamp = Integer.parseInt(redisService.getValue(OTP_PREFIX + email));
+        if(redisService.isExists(OTP_REQUEST_PREFIX + email)) {
+            stamp = Integer.parseInt(redisService.getValue(OTP_REQUEST_PREFIX + email));
         }
         int MAX_ATTEMPTS = 5;
         if(stamp >= MAX_ATTEMPTS) {
-            redisService.addValue(OTP_PREFIX + email, stamp + "", 12, TimeUnit.HOURS);
+            redisService.addValue(OTP_REQUEST_PREFIX + email, stamp + "", 12, TimeUnit.HOURS);
             throw new ForbiddenException("OTP_DENIED");
         }else {
             MimeMessage mail = javaMailSender.createMimeMessage();
@@ -57,8 +65,8 @@ public class MailServiceImp implements IMailService{
                 mailHelper.setTo(email);
                 javaMailSender.send(mail);
                 int EXPIRATION_TIME = 1;
-                redisService.addValue(email, code, EXPIRATION_TIME, TimeUnit.MINUTES);
-                redisService.addValue(OTP_PREFIX + email, stamp + 1 + "", 2, TimeUnit.HOURS);
+                redisService.addValue(OTP_CODE_PREFIX + email, code, EXPIRATION_TIME, TimeUnit.MINUTES);
+                redisService.addValue(OTP_REQUEST_PREFIX + email, stamp + 1 + "", 2, TimeUnit.HOURS);
             } catch (MessagingException e) {
                 throw new AnrealShopException("EMAIL_EXCEPTION");
             }
@@ -67,9 +75,10 @@ public class MailServiceImp implements IMailService{
 
     @Override
     public boolean verifyOTP(String otp, String email) {
-        if(!redisService.isExists(email))
+        String otpKey = OTP_CODE_PREFIX + email;
+        if(!redisService.isExists(otpKey))
             throw new BadRequestException("OTP_NOT_FOUND");
-        if(redisService.getValue(email) == null || !redisService.getValue(email).equals(otp) )
+        if(redisService.getValue(otpKey) == null || !redisService.getValue(otpKey).equals(otp) )
             throw new BadRequestException("OTP_INVALID");
         return true;
     }
@@ -82,7 +91,8 @@ public class MailServiceImp implements IMailService{
 
     @Override
     public void delOTP(String email) {
-        redisService.del(OTP_PREFIX + email);
+        redisService.del(OTP_CODE_PREFIX + email);
+        redisService.del(OTP_REQUEST_PREFIX + email);
         redisService.del(email);
     }
 

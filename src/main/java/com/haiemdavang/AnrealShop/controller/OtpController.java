@@ -16,13 +16,13 @@ public class OtpController {
     private final IMailService mailService;
     @PostMapping("/sendOtp/{email}")
     public ResponseEntity<?> getCode(@PathVariable String email, @RequestParam String type){
-        mailService.sendOTP(email, MailType.valueOf(type.toUpperCase()));
+        mailService.sendOTP(email, type);
         return ResponseEntity.ok(Map.of("message", "Gửi email thành công!"));
     }
 
     @PostMapping("/verifyOTP")
     public ResponseEntity<?> verifyOTP(@RequestBody OtpRequest otpObject){
         mailService.verifyOTP(otpObject.code(), otpObject.email());
-        return ResponseEntity.ok(Map.of("message", "Xác thực thành otp cho email "+ otpObject.email()+" Thành công!!"));
+        return ResponseEntity.ok(Map.of("message", "Xác thực otp cho email "+ otpObject.email()+" Thành công!!"));
     }
 }

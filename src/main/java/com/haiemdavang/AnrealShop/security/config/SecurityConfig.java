@@ -30,13 +30,12 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final String[] PUBLIC_URLS = {
+    public final static List<String> PUBLIC_URLS = List.of(
             "/api/public/**",
             "/api/auth/**",
             "/api/login",
             "/api/register",
-            "/api/otp/**",
-            "/**"};
+            "/api/otp/**");
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;
@@ -83,7 +82,7 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(PUBLIC_URLS.toArray(new String[0])).permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(daoAuthenticationProvider())
                 .oauth2Login(oauth2 -> oauth2

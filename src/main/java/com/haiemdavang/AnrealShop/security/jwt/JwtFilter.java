@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.security.jwt;
 
 import com.haiemdavang.AnrealShop.exception.UnAuthException;
+import com.haiemdavang.AnrealShop.security.config.SecurityConfig;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecu;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecuService;
 import jakarta.servlet.FilterChain;
@@ -23,8 +24,13 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtInit jwtInit;
     private final UserDetailSecuService userDetailSecuService;
 
+    private boolean isPublicPath(String path) {
+        return SecurityConfig.PUBLIC_URLS.stream().anyMatch(path::startsWith);
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
         try {
             String token = jwtInit.getTokenRefreshFromCookie(request);
             if(token == null)

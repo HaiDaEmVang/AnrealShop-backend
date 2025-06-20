@@ -22,7 +22,7 @@ spring:
           google:
             client-id: ${GG_CLIENT_ID}
             client-secret: ${GG_CLIENT_SECRET}
-            redirect-uri: ${fe_base_url}/login/oauth2/code
+            redirect-uri: ${server.base_url}${GG_URL_REDIRECT:/oauth2/callback/google}
             scope:
               - email
               - profile
