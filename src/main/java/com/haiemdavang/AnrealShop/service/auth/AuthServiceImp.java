@@ -1,8 +1,6 @@
 package com.haiemdavang.AnrealShop.service.auth;
 
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OauthProvider;
 import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
@@ -25,7 +23,6 @@ public class AuthServiceImp implements IAuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtInit jwtInit;
-    private final Oauth2Service oauth2Service;
     private final IUserService userService;
 
     public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
@@ -71,22 +68,7 @@ public class AuthServiceImp implements IAuthService {
         return new LoginResponse(newToken.getValue(), null);
     }
 
-    @Override
-    public LoginResponse oauthLogin(String provider, String code, HttpServletRequest request, HttpServletResponse response) {
-        OauthProvider prov = OauthProvider.valueOf(provider.toUpperCase());
-        Oauth2UserInfo info = oauth2Service.processOAuth2Login(prov, code);
-        if(userService.isExitsts(info.getEmail()))
-            userService.createUserFromOauth2(info);
 
-        ResponseCookie accessToken = jwtInit.generaJwtCookie(info.getEmail());
-        ResponseCookie refreshToken = jwtInit.generaJwtRefreshCookie(info.getEmail());
-
-        response.addHeader("Set-Cookie", accessToken.toString());
-        response.addHeader("Set-Cookie", refreshToken.toString());
-        UserDto user = userService.findDtoByEmail(info.getEmail());
-
-        return new LoginResponse(accessToken.getValue(), user);
-    }
 
 
 }

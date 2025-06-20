@@ -30,10 +30,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request, response));
     }
 
-    @PostMapping("/oauth2/google")
-    public ResponseEntity<?> oauth2Login(@RequestParam(value = "provider") String provider, @RequestParam(value = "code") String code, HttpServletRequest request, HttpServletResponse response) {
-        return ResponseEntity.ok(authService.oauthLogin(provider, code, request, response));
-    }
 
     @PostMapping("auth/refreshToken")
     public ResponseEntity< LoginResponse> refreshToken(HttpServletRequest request, HttpServletResponse response){

@@ -9,7 +9,4 @@ public interface IAuthService {
     LoginResponse login(LoginRequest loginRequest, HttpServletResponse response);
     void logout(HttpServletRequest request, HttpServletResponse response);
     LoginResponse refreshToken(HttpServletRequest request, HttpServletResponse response);
-
-    LoginResponse oauthLogin(String provider, String code, HttpServletRequest request, HttpServletResponse response);
-
 }

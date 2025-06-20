@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum OauthProvider {
+public enum OAuthProvider {
     GOOGLE, FACEBOOK;
 }

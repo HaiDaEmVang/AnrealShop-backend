@@ -58,7 +58,7 @@ spring:
           google:
             client-id: ${GG_CLIENT_ID:hello}
             client-secret: ${GG_CLIENT_SECRET:hello}
-            redirect-uri: ${fe_base_url}/login/oauth2/code
+            redirect-uri: ${server.base_url}${GG_URL_REDIRECT:/oauth2/callback/google}
             scope:
               - email
               - profile
@@ -69,7 +69,7 @@ logging:
         client: TRACE
 
 server:
-  base_url: http://localhost
+  base_url: http://localhost:4141
   servlet:
     session:
       cookie:

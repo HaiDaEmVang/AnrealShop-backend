@@ -2,6 +2,9 @@ package com.haiemdavang.AnrealShop.security.config;
 
 import com.haiemdavang.AnrealShop.security.jwt.JwtEntryPoint;
 import com.haiemdavang.AnrealShop.security.jwt.JwtFilter;
+import com.haiemdavang.AnrealShop.security.oauth2.CustomOAuth2UserService;
+import com.haiemdavang.AnrealShop.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.haiemdavang.AnrealShop.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +40,9 @@ public class SecurityConfig {
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -80,6 +86,19 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(daoAuthenticationProvider())
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authz -> authz
+                                .baseUri("/oauth2/authorize")
+                        )
+                        .redirectionEndpoint(redir -> redir
+                                .baseUri("/oauth2/callback/*")
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

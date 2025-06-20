@@ -1,14 +1,19 @@
 package com.haiemdavang.AnrealShop.mapper;
 
+import com.haiemdavang.AnrealShop.config.ApplicationConfigInit;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
+import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OAuth2UserInfo;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
+@RequiredArgsConstructor
 public class UserMapper {
 
     public User createUserFromRegisterRequest(RegisterRequest request) {
@@ -22,6 +27,7 @@ public class UserMapper {
         String username = request.email().split("@")[0];
         user.setUsername(username);
         user.setPassword(request.password());
+        user.setAvatarUrl(ApplicationConfigInit.IMAGE_USER_DEFAULT);
         return user;
     }
     
@@ -90,7 +96,7 @@ public class UserMapper {
     }
 
     
-    public User createUserFromOauth2UserInfo(Oauth2UserInfo oauth2UserInfo) {
+    public User createUserFromOauth2UserInfo(OAuth2UserInfo oauth2UserInfo) {
         if (oauth2UserInfo == null) {
             return null;
         }
@@ -100,8 +106,11 @@ public class UserMapper {
         user.setUsername(oauth2UserInfo.getUsername());
         user.setFullName(oauth2UserInfo.getFullName());
         user.setAvatarUrl(oauth2UserInfo.getAvatarUrl());
+        user.setPassword(UUID.randomUUID().toString());
         user.setFromSocial(true);
         
         return user;
     }
+
+
 }

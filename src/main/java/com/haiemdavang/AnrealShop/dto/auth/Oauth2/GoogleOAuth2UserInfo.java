@@ -1,11 +1,13 @@
 package com.haiemdavang.AnrealShop.dto.auth.Oauth2;
 
+import com.haiemdavang.AnrealShop.config.ApplicationConfigInit;
+
 import java.util.Map;
 import java.util.Optional;
 
-public class GoogleOauth2UserInfo extends Oauth2UserInfo {
+public class GoogleOAuth2UserInfo extends OAuth2UserInfo {
 
-    public GoogleOauth2UserInfo(Map<String, Object> attributes) {
+    public GoogleOAuth2UserInfo(Map<String, Object> attributes) {
         super(attributes);
     }
 
@@ -28,6 +30,6 @@ public class GoogleOauth2UserInfo extends Oauth2UserInfo {
     public String getAvatarUrl() {
         return Optional.ofNullable(attributes.get("picture"))
                 .map(Object::toString)
-                .orElse(null);
+                .orElse(ApplicationConfigInit.IMAGE_USER_DEFAULT);
     }
 }

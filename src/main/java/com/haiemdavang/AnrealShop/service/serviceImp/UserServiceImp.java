@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
+import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OAuth2UserInfo;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
@@ -10,7 +10,6 @@ import com.haiemdavang.AnrealShop.mapper.UserMapper;
 import com.haiemdavang.AnrealShop.modal.entity.user.Role;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.modal.enums.RoleName;
-import com.haiemdavang.AnrealShop.repository.RoleRepository;
 import com.haiemdavang.AnrealShop.repository.UserRepository;
 import com.haiemdavang.AnrealShop.service.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserServiceImp implements IUserService {
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleServiceImp roleService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -47,13 +46,16 @@ public class UserServiceImp implements IUserService {
 
     @Override
     @Transactional
-    public void createUserFromOauth2(Oauth2UserInfo info) {
+    public void createUserFromOauth2(OAuth2UserInfo info) {
         if (info == null || info.getEmail() == null) {
             throw new BadRequestException("INVALID_OAUTH2_USER_INFO");
         }
         User newUser = userMapper.createUserFromOauth2UserInfo(info);
         String randomPassword = generateRandomPassword();
         newUser.setPassword(passwordEncoder.encode(randomPassword));
+
+        Role role = roleService.getRoleByName(RoleName.USER);
+        newUser.setRole(role);
         userRepository.save(newUser);
     }
 
@@ -80,9 +82,7 @@ public class UserServiceImp implements IUserService {
         }
         User user = userMapper.createUserFromRegisterRequest(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setAvatarUrl("https://res.cloudinary.com/dqogp38jb/image/upload/v1750060824/7309681_msx5j1.jpg");
-        Role role = roleRepository.findByName(RoleName.USER)
-                .orElseThrow(() -> new BadRequestException("ROLE_NOT_FOUND"));
+        Role role = roleService.getRoleByName(RoleName.USER);
         user.setRole(role);
         userRepository.save(user);
     }

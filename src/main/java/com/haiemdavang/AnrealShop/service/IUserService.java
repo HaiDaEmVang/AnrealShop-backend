@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.service;
 
 
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.Oauth2UserInfo;
+import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OAuth2UserInfo;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
@@ -15,7 +15,7 @@ public interface IUserService {
 
     User findByEmail(String email);                      
 
-    void createUserFromOauth2(Oauth2UserInfo info);
+    void createUserFromOauth2(OAuth2UserInfo info);
 
     UserDto updateProfile(String email, @Valid ProfileRequest profileRequest);
 
