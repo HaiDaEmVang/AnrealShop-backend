@@ -35,6 +35,7 @@ public class SecurityConfig {
             "/api/auth/**",
             "/api/login",
             "/api/register",
+            "/api/forgot-password",
             "/api/otp/**");
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;

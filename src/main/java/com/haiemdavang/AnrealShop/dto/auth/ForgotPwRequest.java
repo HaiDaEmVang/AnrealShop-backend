@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResetPwRequest {
+public class ForgotPwRequest {
     @NotBlank(message = "EMAIL_BLANK")
     @Email(message = "EMAIL_INVALID")
     private String email;
