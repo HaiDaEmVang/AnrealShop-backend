@@ -2,7 +2,7 @@ package com.haiemdavang.AnrealShop.controller;
 
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
-import com.haiemdavang.AnrealShop.dto.auth.ResetPwRequest;
+import com.haiemdavang.AnrealShop.dto.auth.ForgotPwRequest;
 import com.haiemdavang.AnrealShop.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -31,7 +31,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("auth/refreshToken")
+    @PostMapping("auth/refresh-token")
     public ResponseEntity< LoginResponse> refreshToken(HttpServletRequest request, HttpServletResponse response){
         return ResponseEntity.ok(authService.refreshToken(request, response));
     }
@@ -42,13 +42,11 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Đăng xuất thành công!"));
     }
 
-    @PutMapping("/resetPass")
-    public ResponseEntity<?> resetPass(@RequestBody @Valid ResetPwRequest resetPassword){
+    @PutMapping("/forgot-password")
+    public ResponseEntity<?> resetPass(@RequestBody @Valid ForgotPwRequest resetPassword){
         mailService.verifyOTP(resetPassword.getOtp(), resetPassword.getEmail());
         userService.resetPassword(resetPassword.getEmail(), resetPassword.getPassword());
         mailService.delOTP(resetPassword.getEmail());
         return ResponseEntity.ok(Map.of("message", "Thay đổi mật khẩu thành công!"));
     }
-
-
 }
