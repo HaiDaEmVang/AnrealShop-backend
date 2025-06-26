@@ -1,6 +1,8 @@
 package com.haiemdavang.AnrealShop.modal.entity.shop;
 
 
+import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
+import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
@@ -37,6 +39,10 @@ public class ShopOrder {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order; // Đơn hàng chính (parent order)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id", nullable = false)
+    private ShopAddress shippingAddress;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_id", nullable = false)

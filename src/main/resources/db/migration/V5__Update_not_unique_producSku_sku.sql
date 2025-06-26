@@ -1,0 +1,1 @@
+--DROP INDEX idx_productsku_sku_unique ON product_skus;

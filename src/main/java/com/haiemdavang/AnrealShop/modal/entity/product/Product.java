@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.modal.entity.product;
 
+import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
@@ -50,6 +51,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String urlPath;
 
+    @Builder.Default
     @Column(name = "thumbnail_url", length = 255)
     private String thumbnailUrl = "https://res.cloudinary.com/dlcjc36ow/image/upload/v1747916255/ImagError_jsv7hr.png";
 
@@ -62,7 +64,6 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
-    
 
     @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
     private BigDecimal weight;
@@ -70,6 +71,7 @@ public class Product {
     @Column(nullable = false)
     private long revenue = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private int sold = 0;
 
@@ -79,9 +81,7 @@ public class Product {
     @Column(name = "total_reviews", nullable = false)
     private int totalReviews = 0;
 
-    @Column(length = 255)
-    private String location;
-
+    @Builder.Default
     @Column(nullable = false)
     private boolean visible = true;
 
@@ -99,13 +99,16 @@ public class Product {
     @Column(name = "restricted_reason", columnDefinition = "TEXT")
     private String restrictedReason;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "restrict_status", nullable = false)
     private RestrictStatus restrictStatus = RestrictStatus.PENDING;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean deleted = false;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductMedia> mediaList;
+
 }

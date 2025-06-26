@@ -43,4 +43,7 @@ public class ShopAddress {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String detail;
+
+    @Column(name = "primary_address", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean primaryAddress = false;
 }

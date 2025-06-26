@@ -1,0 +1,7 @@
+-- ALTER TABLE `product_sku_media`
+-- DROP FOREIGN KEY `FK_product_sku_media_product_sku_id`;
+--
+-- DROP TABLE IF EXISTS `product_sku_media`;
+--
+-- ALTER TABLE `product_skus`
+--     ADD COLUMN `image_urls` TEXT DEFAULT NULL;

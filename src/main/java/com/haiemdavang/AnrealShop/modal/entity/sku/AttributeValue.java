@@ -1,7 +1,6 @@
 package com.haiemdavang.AnrealShop.modal.entity.sku;
 
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
-import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,7 +19,7 @@ import java.util.Set;
 @Entity
 @Table(name = "attribute_values",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_attrvalue_key_value_shop", columnNames  = "attribute_key_id, value, shop_id")
+                @UniqueConstraint(name = "uk_attrvalue_key_value", columnNames  = "attribute_key_id, value")
         }
 )
 public class AttributeValue {
@@ -32,20 +31,19 @@ public class AttributeValue {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_key_id", nullable = false)
-    private AttributeKey attributeKey; // Loại thuộc tính mà giá trị này thuộc về
+    private AttributeKey attributeKey;
 
     @Column(nullable = false, length = 255)
-    private String value; // Ví dụ: "Đỏ", "XL", "Cotton"
+    private String value;
 
     @Column(name = "display_order", columnDefinition = "INT DEFAULT 0")
-    private int displayOrder = 0; // Thứ tự hiển thị (nếu cần)
+    private int displayOrder = 0;
+
+    @Column(name = "is_Default", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isDefault = false;
 
     @Column(columnDefinition = "TEXT")
-    private String metadata; // Dữ liệu bổ sung, ví dụ: mã màu HEX cho màu sắc
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shop_id")
-    private Shop shop;
+    private String metadata; // Tam thoi bo qua, co the dung den sau nha cac pro
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -57,4 +55,5 @@ public class AttributeValue {
 
     @ManyToMany(mappedBy = "attributes", fetch = FetchType.LAZY)
     private Set<ProductSku> productSkus;
+
 }
