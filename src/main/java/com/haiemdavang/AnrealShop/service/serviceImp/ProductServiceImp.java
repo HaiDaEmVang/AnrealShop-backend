@@ -2,8 +2,12 @@ package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
 import com.haiemdavang.AnrealShop.dto.product.BaseProductSkuRequest;
+import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
 import com.haiemdavang.AnrealShop.dto.sku.AttributeRequest;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
+import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncActionType;
+import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
+import com.haiemdavang.AnrealShop.kafka.producer.ProductKafkaProducer;
 import com.haiemdavang.AnrealShop.mapper.AttributeMapper;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
@@ -13,7 +17,6 @@ import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeKey;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
 import com.haiemdavang.AnrealShop.repository.*;
-import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +36,10 @@ public class ProductServiceImp implements IProductService {
     private final ShopRepository shopRepository;
     private final AttributeValueRepository attributeValueRepository;
     private final AttributeKeyRepository attributeKeyRepository;
-    private final SecurityUtils securityUtils;
     private final ProductMapper productMapper;
     private final AttributeMapper attributeMapper;
+
+    private final ProductKafkaProducer productKafkaProducer;
 
     @Override
     @Transactional
@@ -147,5 +151,8 @@ public class ProductServiceImp implements IProductService {
         if (!productSkusToSave.isEmpty()) {
             productSkuRepository.saveAll(productSkusToSave);
         }
+        EsProductDto esProductDto = productMapper.toEsProductDto(savedProduct, existingAttributeValues.values().stream().toList());
+        ProductSyncMessage message = ProductSyncMessage.builder().action(ProductSyncActionType.CREATE).product(esProductDto).build();
+        productKafkaProducer.sendProductSyncMessage(message);
     }
 }

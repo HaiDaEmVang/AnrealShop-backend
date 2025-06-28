@@ -1,7 +1,5 @@
 spring:
-  jackson:
-    time-zone: Asia/Ho_Chi_Minh
-  datasource:
+  datasource: # 13.229.228.146
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:db_anrealShop_test}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
@@ -36,17 +34,6 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
-    consumer:
-      group-id: product-consumer-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      auto-offset-reset: earliest
-      properties:
-        spring.json.trusted.packages: '*'
-        spring.json.use.type.headers: false
 
   elasticsearch:
     uris: http://${ES_HOST:localhost}:${ES_PORT:9200}

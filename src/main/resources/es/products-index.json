@@ -22,6 +22,10 @@
           "keyword": { "type": "keyword" }
         }
       },
+      "sort_description": {
+        "type": "text",
+        "analyzer": "vietnamese_analyzer"
+      },
       "description": {
         "type": "text",
         "analyzer": "vietnamese_analyzer"
@@ -30,11 +34,20 @@
         "type": "search_as_you_type",
         "analyzer": "vietnamese_analyzer"
       },
+      "url_slug":{ "type": "text"},
       "price": { "type": "long" },
-      "created_at": { "type": "date" },
-      "sold_count": { "type": "integer" },
-      "average_rating": { "type": "half_float" },
+      "discount_price": { "type": "long" },
+      "quantity": { "type": "long" },
       "thumbnail_url": { "type": "keyword" },
+
+      "created_at": { "type": "date" },
+      "updated_at": { "type": "date" },
+      "sold": { "type": "integer" },
+      "revenue": { "type": "long" },
+      "average_rating": { "type": "half_float" },
+      "total_reviews": { "type": "integer" },
+      "visible": { "type": "boolean" },
+      "restrict_status": { "type": "keyword" },
 
       "shop": {
         "type": "object",
@@ -60,15 +73,16 @@
             "fields": {
               "keyword": { "type": "keyword" }
             }
-          }
+          },
+          "url_path": { "type": "keyword" }
         }
       },
 
       "attributes": {
         "type": "nested",
         "properties": {
+          "id": { "type": "keyword" },
           "key_name": { "type": "keyword" },
-          "display_name": { "type": "keyword" },
           "value": { "type": "keyword" }
         }
       }

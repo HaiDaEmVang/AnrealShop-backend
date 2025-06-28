@@ -24,8 +24,11 @@ public class EsProduct {
     @Field(type = FieldType.Keyword)
     private String id;
 
-    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
+    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer", fielddata = true)
     private String name;
+
+    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
+    private String sortDescription;
 
     @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
     private String description;
@@ -33,20 +36,44 @@ public class EsProduct {
     @Field(type = FieldType.Search_As_You_Type, analyzer = "vietnamese_analyzer")
     private String suggest;
 
+    @Field(type = FieldType.Keyword)
+    private String urlSlug;
+
     @Field(type = FieldType.Long)
     private Long price;
+
+    @Field(type = FieldType.Long)
+    private Long discountPrice;
+
+    @Field(type = FieldType.Integer)
+    private Integer quantity;
+
+    @Field(type = FieldType.Keyword)
+    private String thumbnailUrl;
 
     @Field(type = FieldType.Date)
     private Instant createdAt;
 
+    @Field(type = FieldType.Date)
+    private Instant updatedAt;
+
     @Field(type = FieldType.Integer)
-    private Integer soldCount;
+    private Integer sold;
+
+    @Field(type = FieldType.Long)
+    private Long revenue;
 
     @Field(type = FieldType.Half_Float)
     private Float averageRating;
 
+    @Field(type = FieldType.Integer)
+    private Integer totalReviews;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean visible;
+
     @Field(type = FieldType.Keyword)
-    private String thumbnailUrl;
+    private String restrictStatus;
 
     @Field(type = FieldType.Object)
     private EsShop shop;
@@ -56,5 +83,4 @@ public class EsProduct {
 
     @Field(type = FieldType.Nested)
     private List<EsAttribute> attributes;
-
 }

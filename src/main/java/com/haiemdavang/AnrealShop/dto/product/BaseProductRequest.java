@@ -21,11 +21,16 @@ public class BaseProductRequest {
     @NotBlank(message = "PRODUCT_DESCRIPTION_NOTBLANK")
     private String description;
 
+    @NotBlank(message = "PRODUCT_SORT_DESCRIPTION_NOTBLANK")
     private String sortDescription;
 
     @NotNull(message = "PRODUCT_PRICE_NOTNULL")
-    @Min(value = 1000, message = "{PRODUCT_PRICE_MIN}")
+    @Min(value = 1000, message = "PRODUCT_PRICE_MIN")
     private Long price;
+
+    @NotNull(message = "PRODUCT_PRICE_NOTNULL")
+    @Min(value = 1000, message = "PRODUCT_PRICE_MIN")
+    private Long discountPrice;
 
     @NotNull(message = "PRODUCT_QUANTITY_NOTNULL")
     @Min(value = 0, message = "PRODUCT_QUANTITY_MIN")
