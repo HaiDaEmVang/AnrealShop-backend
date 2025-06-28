@@ -16,8 +16,6 @@ public class ProductKafkaConsumer {
 
     @KafkaListener(topics = KafkaTopicConfig.PRODUCT_SYNC_TOPIC)
     public void listen(ProductSyncMessage message) {
-        log.info("Received message from Kafka: Action = {}, Product ID = {}",
-                message.getAction(), message.getProduct());
         productIndexerService.indexProduct(message);
     }
 }

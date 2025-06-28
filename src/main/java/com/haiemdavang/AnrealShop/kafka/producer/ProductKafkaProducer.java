@@ -14,7 +14,6 @@ public class ProductKafkaProducer {
     private final KafkaTemplate<String, ProductSyncMessage> kafkaTemplate;
 
     public void sendProductSyncMessage(ProductSyncMessage productSyncMessage) {
-        log.info("Sending product sync message: {}", productSyncMessage);
         kafkaTemplate.send(KafkaTopicConfig.PRODUCT_SYNC_TOPIC, productSyncMessage.getProduct().getId(), productSyncMessage);
     }
 }
