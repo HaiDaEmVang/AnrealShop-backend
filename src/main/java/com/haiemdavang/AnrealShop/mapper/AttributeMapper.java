@@ -1,22 +1,20 @@
 package com.haiemdavang.AnrealShop.mapper;
 
-import co.elastic.clients.util.ObjectBuilder;
-import com.haiemdavang.AnrealShop.dto.sku.AttributeRequest;
+import com.haiemdavang.AnrealShop.dto.attribute.AttributeDto;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsAttribute;
-import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeKey;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AttributeMapper {
-
+ 
     public AttributeValue createAttributeValueFromRequest(String value, AttributeKey attributeKey) {
         AttributeValue attributeValue = new AttributeValue();
         attributeValue.setValue(value);
@@ -24,41 +22,92 @@ public class AttributeMapper {
         return attributeValue;
     }
 
-    public AttributeKey createAttributeKeyFromRequest(String keyName, Shop shop) {
-        AttributeKey attributeKey = new AttributeKey();
-        attributeKey.setDisplayName(keyName);
-        attributeKey.setSlugName(ApplicationInitHelper.toSlug(keyName+ " " + shop.getName()));
-        attributeKey.setShops(Set.of(shop));
-        return attributeKey;
-    }
-
-    public AttributeRequest toAttributeRequest(AttributeValue attributeValue) {
-
-        return AttributeRequest.builder()
-                .id(attributeValue.getId())
-                .attributeKeyName(attributeValue.getAttributeKey().getDisplayName())
-                .value(attributeValue.getValue())
+    
+    public AttributeValue toAttributeValue(String value, AttributeKey attributeKey) {
+        return AttributeValue.builder()
+                .value(value)
+                .attributeKey(attributeKey)
                 .build();
     }
-
-    public List<EsAttribute> toEsAttributes(List<AttributeRequest> attributes) {
-        if (attributes == null || attributes.isEmpty()) {
-            return null;
-        }
-        return attributes.stream()
-                .map(this::toEsAttribute)
-                .toList();
+    
+    public AttributeValue toAttributeValue(String value, AttributeKey attributeKey, boolean isDefault, int displayOrder) {
+        return AttributeValue.builder()
+                .value(value)
+                .attributeKey(attributeKey)
+                .isDefault(isDefault)
+                .displayOrder(displayOrder)
+                .build();
     }
-
-    public EsAttribute toEsAttribute(AttributeRequest attributeRequest) {
-        if (attributeRequest == null) {
-            return null;
-        }
-
+    
+    public EsAttribute toEsAttribute(AttributeKey attributeKey, List<String> values) {
         return EsAttribute.builder()
-                .keyName(attributeRequest.getId())
-                .displayName(attributeRequest.getAttributeKeyName())
-                .value(attributeRequest.getValue())
+                .keyName(attributeKey.getKeyName())
+                .displayName(attributeKey.getDisplayName())
+                .value(values)
                 .build();
+    }
+    
+    public List<EsAttribute> toEsAttributes(Map<AttributeKey, List<AttributeValue>> attributeMap) {
+        if (attributeMap == null || attributeMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        return attributeMap.entrySet().stream()
+                .map(entry -> {
+                    AttributeKey key = entry.getKey();
+                    List<String> values = entry.getValue().stream()
+                            .map(AttributeValue::getValue)
+                            .collect(Collectors.toList());
+                    return toEsAttribute(key, values);
+                })
+                .collect(Collectors.toList());
+    }
+    
+    public ProductAttribute toProductAttribute(AttributeKey attributeKey, List<AttributeValue> attributeValues) {
+        List<String> values = attributeValues.stream()
+                .map(AttributeValue::getValue)
+                .collect(Collectors.toList());
+                
+        return ProductAttribute.builder()
+                .attributeKeyName(attributeKey.getKeyName())
+                .attributeKeyDisplay(attributeKey.getDisplayName())
+                .value(values)
+                .build();
+    }
+    
+    public AttributeDto toAttributeDto(AttributeKey attributeKey, List<AttributeValue> attributeValues) {
+        List<String> values = attributeValues.stream()
+                .map(AttributeValue::getValue)
+                .collect(Collectors.toList());
+                
+        return AttributeDto.builder()
+                .attributeKeyName(attributeKey.getKeyName())
+                .attributeKeyDisplay(attributeKey.getDisplayName())
+                .value(values)
+                .displayOrder(attributeKey.getDisplayOrder())
+                .isDefault(attributeKey.isDefault())
+                .isMultiSelect(attributeKey.isMultiSelected())
+                .build();
+    }
+    
+    public List<ProductAttribute> toProductAttributes(Map<AttributeKey, List<AttributeValue>> attributeMap) {
+        if (attributeMap == null || attributeMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        return attributeMap.entrySet().stream()
+                .map(entry -> toProductAttribute(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+    
+    public List<AttributeDto> toAttributeDtos(Map<AttributeKey, List<AttributeValue>> attributeMap) {
+        if (attributeMap == null || attributeMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        return attributeMap.entrySet().stream()
+                .map(entry -> toAttributeDto(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparing(AttributeDto::getDisplayOrder))
+                .collect(Collectors.toList());
     }
 }

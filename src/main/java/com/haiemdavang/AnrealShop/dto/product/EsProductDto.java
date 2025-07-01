@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.haiemdavang.AnrealShop.dto.sku.AttributeRequest;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,5 +17,5 @@ import java.util.List;
 @AllArgsConstructor
 public class EsProductDto extends BaseProductDto{
     @JsonProperty("attributes")
-    private List<AttributeRequest> attributes;
+    private List<ProductAttribute> attributes;
 }

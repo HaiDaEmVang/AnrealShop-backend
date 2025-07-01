@@ -77,12 +77,11 @@
           "url_path": { "type": "keyword" }
         }
       },
-
       "attributes": {
         "type": "nested",
         "properties": {
-          "id": { "type": "keyword" },
           "key_name": { "type": "keyword" },
+          "display_name": { "type": "keyword" },
           "value": { "type": "keyword" }
         }
       }

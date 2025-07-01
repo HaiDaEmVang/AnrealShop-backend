@@ -3,7 +3,6 @@ package com.haiemdavang.AnrealShop.mapper;
 import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
 import com.haiemdavang.AnrealShop.dto.product.BaseProductSkuRequest;
 import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
-import com.haiemdavang.AnrealShop.dto.sku.AttributeRequest;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
@@ -34,9 +33,9 @@ public class ProductMapper {
             return null;
         }
 
-        List<AttributeRequest> attributes = attributeValues.stream()
-                .map(attributeMapper::toAttributeRequest)
-                .toList();
+//        List<AttributeRequest> attributes = attributeValues.stream()
+//                .map(attributeMapper::toAttributeRequest)
+//                .toList();
 
         return EsProductDto.builder()
                 .id(product.getId())
@@ -57,7 +56,7 @@ public class ProductMapper {
                 .updatedAt(product.getUpdatedAt() == null ? LocalDateTime.now().toString() : product.getUpdatedAt().toString())
                 .shop(shopMapper.toBaseShopDto(product.getShop()))
                 .category(categoryMapper.toBaseCategoryDto(product.getCategory()))
-                .attributes(attributes)
+//                .attributes(attributes)
                 .build();
     }
 
@@ -86,7 +85,7 @@ public class ProductMapper {
                 .visible(esProductDto.isVisible())
                 .shop(shopMapper.toEsShop(esProductDto.getShop()))
                 .category(categoryMapper.toEsCategory(esProductDto.getCategory()))
-                .attributes(attributeMapper.toEsAttributes(esProductDto.getAttributes()))
+//                .attributes(attributeMapper.toEsAttributes(esProductDto.getAttributes()))
                 .build();
     }
     public Product toEntity(BaseProductRequest baseProductRequest, Category category, Shop shop) {
@@ -113,7 +112,7 @@ public class ProductMapper {
                             .product(product)
                             .build())
                     .toList();
-                    
+
             mediaList.addAll(imageMediaList);
 
             product.setThumbnailUrl(baseProductRequest.getImageUrls().get(0));
@@ -144,7 +143,7 @@ public class ProductMapper {
         if (skuRequest.getImageUrl() != null && !skuRequest.getImageUrl().isBlank()) {
             productSku.setThumbnailUrl(skuRequest.getImageUrl());
         }
-        
+
         return productSku;
     }
 

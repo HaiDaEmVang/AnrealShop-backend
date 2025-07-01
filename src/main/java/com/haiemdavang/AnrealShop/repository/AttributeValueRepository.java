@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface AttributeValueRepository extends JpaRepository<AttributeValue, String> {
     List<AttributeValue> findByAttributeKeyAndValueIn(AttributeKey ak, List<String> valuesForThisKey);
+    List<AttributeValue> findByAttributeKey(AttributeKey attributeKey);
+    List<AttributeValue> findByAttributeKeyIn(List<AttributeKey> attributeKeys);
 }

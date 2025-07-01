@@ -1,6 +1,5 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
-import com.haiemdavang.AnrealShop.dto.sku.SkuAttributeDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +17,5 @@ public class ProductSkuDto {
     private Long price;
     private int quantity;
     private String imageUrl;
-    private List<SkuAttributeDto> attributes;
+//    private List<SkuAttributeDto> attributes;
 }

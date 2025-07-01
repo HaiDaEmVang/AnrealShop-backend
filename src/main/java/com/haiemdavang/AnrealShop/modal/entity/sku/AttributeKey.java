@@ -27,14 +27,23 @@ public class AttributeKey {
     @Column(length = 36, updatable = false, nullable = false)
     private String id;
 
-    @Column(name = "slug_name", nullable = false, length = 50)
-    private String slugName; //tam thoi chua dung den nghe cu Hải
+    @Column(name = "key_name", nullable = false, length = 50)
+    private String keyName; //tam thoi chua dung den nghe cu Hải
 
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
     @Column(name = "is_default", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isDefault = false;
+
+    @Column(name = "display_order")
+    private int displayOrder = 0;
+
+    @Column(name = "is_multi_selected", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isMultiSelected = false;
+
+    @Column(name = "is_for_sku", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isForSku = false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
