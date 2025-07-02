@@ -1,8 +1,8 @@
     package com.haiemdavang.AnrealShop.modal.entity.product;
-    
-    import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
+
     import com.haiemdavang.AnrealShop.modal.entity.category.Category;
     import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
+    import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
     import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
     import jakarta.persistence.*;
     import lombok.*;
@@ -10,11 +10,13 @@
     import org.hibernate.annotations.SQLDelete;
     import org.hibernate.annotations.UpdateTimestamp;
     import org.hibernate.annotations.Where;
-    
+
     import java.math.BigDecimal;
     import java.time.LocalDateTime;
+    import java.util.HashSet;
     import java.util.List;
-    
+    import java.util.Set;
+
     @Entity
     @Table(name = "products")
     @Getter
@@ -67,6 +69,12 @@
     
         @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
         private BigDecimal weight;
+        @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
+        private BigDecimal height;
+        @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
+        private BigDecimal length;
+        @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
+        private BigDecimal width;
     
         @Column(nullable = false)
         private long revenue = 0;
@@ -110,5 +118,16 @@
     
         @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<ProductMedia> mediaList;
-    
+
+        @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+        private Set<ProductGeneralAttribute> generalAttributes = new HashSet<>();
+
+        public void addGeneralAttribute(AttributeValue attributeValue) {
+            ProductGeneralAttribute productAttribute = new ProductGeneralAttribute();
+            productAttribute.setProduct(this);
+            productAttribute.setAttributeValue(attributeValue);
+            productAttribute.setId(new ProductAttributeId(this.id, attributeValue.getId()));
+            this.generalAttributes.add(productAttribute);
+        }
+
     }

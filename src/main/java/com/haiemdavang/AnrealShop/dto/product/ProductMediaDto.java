@@ -1,6 +1,5 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
-import com.haiemdavang.AnrealShop.modal.enums.MediaType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductMediaDto {
+    private String id;
     private String url;
+    private String thumbnailUrl;
     private String type;
 }

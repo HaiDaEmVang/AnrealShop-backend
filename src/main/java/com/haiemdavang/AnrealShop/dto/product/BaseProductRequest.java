@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,12 +41,20 @@ public class BaseProductRequest {
     private String categoryId;
 
     @NotNull(message = "PRODUCT_WEIGHT_NOTNULL")
-    @DecimalMin(value = "0.01", message = "PRODUCT_WEIGHT_MIN")
     private BigDecimal weight;
+
+    @NotNull(message = "PRODUCT_HEIGHT_NOTNULL")
+    private BigDecimal height;
+
+    @NotNull(message = "PRODUCT_LENGTH_NOTNULL")
+    private BigDecimal length;
+
+    @NotNull(message = "PRODUCT_WIDTH_NOTNULL")
+    private BigDecimal width;
 
     private List<BaseProductSkuRequest> productSkus;
 
-    private List<String> imageUrls;
+    private List<ProductAttribute> attributes;
 
-    private String videoUrl;
+    private List<ProductMediaDto> media;
 }

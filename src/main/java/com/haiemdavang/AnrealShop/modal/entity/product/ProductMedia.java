@@ -26,6 +26,9 @@ public class ProductMedia {
     @Column(nullable = false, length = 255)
     private String url;
 
+    @Column(nullable = false, length = 255)
+    private String thumbnailUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MediaType type = MediaType.IMAGE;
