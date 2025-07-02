@@ -38,6 +38,10 @@ public class Category {
     @Column(length = 100)
     private String urlPath;
 
+    @Column
+    private Integer level;
+
+
     @Column(name = "has_children", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean hasChildren;
 
@@ -53,4 +57,21 @@ public class Category {
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private Set<DisplayCategory> displayCategories;
+
+
+    @Override
+    public String toString() {
+        return "Category{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", parent=" + (parent != null ? parent.getId() : null) +
+                ", description='" + description + '\'' +
+                ", urlSlug='" + urlSlug + '\'' +
+                ", urlPath='" + urlPath + '\'' +
+                ", hasChildren=" + hasChildren +
+                ", productCount=" + productCount +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
 }
