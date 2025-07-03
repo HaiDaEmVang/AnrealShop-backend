@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -20,7 +21,6 @@ import java.util.Set;
 @Entity
 @Table(name = "product_skus", indexes = {
         @Index(name = "idx_productsku_sku_unique", columnList = "sku", unique = true)
-        // Hoặc @Index(name = "idx_productsku_product_sku", columnList = "product_id, sku", unique = true)
 })
 public class ProductSku {
 
@@ -33,11 +33,11 @@ public class ProductSku {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(nullable = false, length = 50, unique = true)
+    @Column(nullable = false, length = 50)
     private String sku;
 
     @Column(nullable = false)
-    private Long price; // Giả định giá là số nguyên (đơn vị nhỏ nhất)
+    private Long price;
 
     @Column(columnDefinition = "INT DEFAULT 0")
     private int quantity = 0;
@@ -52,9 +52,12 @@ public class ProductSku {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
-            name = "sku_attributes", // Tên bảng nối trong CSDL
-            joinColumns = @JoinColumn(name = "sku_id"), // Cột trong bảng nối trỏ về ProductSku
-            inverseJoinColumns = @JoinColumn(name = "attribute_value_id") // Trỏ về id của AttributeValue
+            name = "sku_attributes",
+            joinColumns = @JoinColumn(name = "sku_id"),
+            inverseJoinColumns = @JoinColumn(name = "attribute_value_id")
     )
     private Set<AttributeValue> attributes;
+
+    @Column(name = "image_urls")
+    private String thumbnailUrl;
 }

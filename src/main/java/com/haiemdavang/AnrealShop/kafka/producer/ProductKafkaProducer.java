@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.kafka.producer;
 
+import com.haiemdavang.AnrealShop.kafka.config.KafkaTopicConfig;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,11 +10,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProductKafkerProducer {
+public class ProductKafkaProducer {
     private final KafkaTemplate<String, ProductSyncMessage> kafkaTemplate;
 
     public void sendProductSyncMessage(ProductSyncMessage productSyncMessage) {
-        log.info("Sending product sync message: {}", productSyncMessage);
-//        kafkaTemplate.send("product-sync-topic", productSyncMessage.getProduct().getId(), productSyncMessage);
+        kafkaTemplate.send(KafkaTopicConfig.PRODUCT_SYNC_TOPIC, productSyncMessage.getProduct().getId(), productSyncMessage);
     }
 }

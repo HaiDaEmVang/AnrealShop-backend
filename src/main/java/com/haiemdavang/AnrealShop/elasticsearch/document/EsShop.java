@@ -14,6 +14,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class EsShop {
     @Field(type = FieldType.Keyword)
     private String id;
-    @Field(type = FieldType.Text, analyzer = "vietnames_analyzer", fielddata = true)
+    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer", fielddata = true)
     private String name;
 }

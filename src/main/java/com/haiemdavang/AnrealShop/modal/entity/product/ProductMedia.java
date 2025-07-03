@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "product_media")
 public class ProductMedia {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36, updatable = false, nullable = false)
     private String id;
 
@@ -25,6 +24,9 @@ public class ProductMedia {
 
     @Column(nullable = false, length = 255)
     private String url;
+
+    @Column(nullable = false, length = 255)
+    private String thumbnailUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

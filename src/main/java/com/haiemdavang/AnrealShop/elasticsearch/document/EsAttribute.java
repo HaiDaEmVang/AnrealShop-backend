@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -20,5 +22,5 @@ public class EsAttribute {
     private String displayName;
 
     @Field(type = FieldType.Keyword)
-    private String value;
+    private List<String> value;
 }
