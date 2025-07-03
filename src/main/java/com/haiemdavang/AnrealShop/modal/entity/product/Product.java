@@ -127,6 +127,9 @@
             productAttribute.setProduct(this);
             productAttribute.setAttributeValue(attributeValue);
             productAttribute.setId(new ProductAttributeId(this.id, attributeValue.getId()));
+            if(this.generalAttributes == null) {
+                this.generalAttributes = new HashSet<>();
+            }
             this.generalAttributes.add(productAttribute);
         }
 

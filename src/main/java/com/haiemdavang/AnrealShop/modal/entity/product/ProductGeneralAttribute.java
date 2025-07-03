@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.modal.entity.product;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
 import jakarta.persistence.*;
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsExclude;
 
 @Entity
 @Table(name = "product_general_attributes")
@@ -10,8 +11,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = {"productId", "attributeValueId"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ProductGeneralAttribute {
+    @EqualsAndHashCode.Include
     @EmbeddedId
     private ProductAttributeId id;
 

@@ -14,3 +14,4 @@ ALTER TABLE `attribute_keys`
 
 ALTER TABLE `attribute_keys`
     ADD UNIQUE INDEX `idx_attribute_key_name` (`key_name`);
+

@@ -14,5 +14,5 @@ import java.util.List;
 public class ProductAttribute {
     private String attributeKeyName;
     private String attributeKeyDisplay;
-    private List<String> value;
+    private List<String> values;
 }

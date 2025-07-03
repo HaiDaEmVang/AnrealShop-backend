@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface AttributeKeyRepository extends JpaRepository<AttributeKey, String> {
     List<AttributeKey> findAllByIsDefaultTrueOrShopsContains(Shop shop);
+
+    List<AttributeKey> findByKeyNameIn(List<String> list);
 }

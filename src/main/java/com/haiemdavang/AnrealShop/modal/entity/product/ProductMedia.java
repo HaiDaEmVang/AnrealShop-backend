@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "product_media")
 public class ProductMedia {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36, updatable = false, nullable = false)
     private String id;
 

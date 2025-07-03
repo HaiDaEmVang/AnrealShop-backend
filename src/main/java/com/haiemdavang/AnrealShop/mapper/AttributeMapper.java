@@ -22,7 +22,7 @@ public class AttributeMapper {
         return EsAttribute.builder()
                 .keyName(productAttribute.getAttributeKeyName())
                 .displayName(productAttribute.getAttributeKeyDisplay())
-                .value(productAttribute.getValue())
+                .value(productAttribute.getValues())
                 .build();
     }
     public List<EsAttribute> toEsAttributes(List<ProductAttribute> productAttributes) {
@@ -44,7 +44,7 @@ public class AttributeMapper {
         return ProductAttribute.builder()
                 .attributeKeyName(attributeKey.getKeyName())
                 .attributeKeyDisplay(attributeKey.getDisplayName())
-                .value(values)
+                .values(values)
                 .build();
     }
     
@@ -56,7 +56,7 @@ public class AttributeMapper {
         return AttributeDto.builder()
                 .attributeKeyName(attributeKey.getKeyName())
                 .attributeKeyDisplay(attributeKey.getDisplayName())
-                .value(values)
+                .values(values)
                 .displayOrder(attributeKey.getDisplayOrder())
                 .isDefault(attributeKey.isDefault())
                 .isMultiSelect(attributeKey.isMultiSelected())

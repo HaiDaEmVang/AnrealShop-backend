@@ -54,6 +54,7 @@ public class ProductServiceImp implements IProductService {
 
         List<ProductAttribute> allAttributes = new ArrayList<>();
 
+
         if (baseProductRequest.getAttributes() != null && !baseProductRequest.getAttributes().isEmpty()) {
             Set<ProductAttribute> requestedGeneralAttributes = new HashSet<>(baseProductRequest.getAttributes());
             allAttributes.addAll(requestedGeneralAttributes);
@@ -79,14 +80,15 @@ public class ProductServiceImp implements IProductService {
                             attr -> ProductAttribute.builder()
                                     .attributeKeyName(attr.getAttributeKeyName())
                                     .attributeKeyDisplay(attr.getAttributeKeyDisplay())
-                                    .value(new ArrayList<>(attr.getValue()))
+                                    .values(new ArrayList<>(attr.getValues()))
                                     .build(), (oldA, newA) -> {
-                                oldA.getValue().addAll(newA.getValue());
+                                oldA.getValues().addAll(newA.getValues());
                                 return oldA;
                             }));
             allAttributes.addAll(skuAttributesMap.values());
         }
-        productSkuRepository.saveAll(productSkus);
+        if(!productSkus.isEmpty())
+            productSkuRepository.saveAll(productSkus);
 
         EsProductDto esProductDto = productMapper.toEsProductDto(newProduct, allAttributes);
         ProductSyncMessage message = ProductSyncMessage.builder().action(ProductSyncActionType.CREATE).product(esProductDto).build();
@@ -105,7 +107,7 @@ public class ProductServiceImp implements IProductService {
         }
 
         Set<AbstractMap.SimpleEntry<String, String>> allRequestedKeyValuePairs = requestedAttributes.stream()
-                .flatMap(attrDto -> attrDto.getValue().stream()
+                .flatMap(attrDto -> attrDto.getValues().stream()
                         .map(val -> new AbstractMap.SimpleEntry<>(attrDto.getAttributeKeyName(), val)))
                 .collect(Collectors.toSet());
 
@@ -120,7 +122,7 @@ public class ProductServiceImp implements IProductService {
                 continue;
             }
 
-            for (String value : attrReq.getValue()) {
+            for (String value : attrReq.getValues()) {
                 AbstractMap.SimpleEntry<String, String> keyValuePair = new AbstractMap.SimpleEntry<>(attrReq.getAttributeKeyName(), value); //
                 AttributeValue attributeValue = existingAttributeValuesMap.get(keyValuePair);
                 if (attributeValue == null) {
@@ -143,7 +145,7 @@ public class ProductServiceImp implements IProductService {
         }
 
         Set<AbstractMap.SimpleEntry<String, String>> allRequestedKeyValuePairs = requestedAttributes.stream()
-                .map(attrDto -> new AbstractMap.SimpleEntry<>(attrDto.getAttributeKeyName(), attrDto.getValue().get(0)))
+                .map(attrDto -> new AbstractMap.SimpleEntry<>(attrDto.getAttributeKeyName(), attrDto.getValues().get(0)))
                 .collect(Collectors.toSet());
 
         Map<AbstractMap.SimpleEntry<String, String>, AttributeValue> existingAttributeValuesMap = getOrCreateAttributeValues(
@@ -156,7 +158,7 @@ public class ProductServiceImp implements IProductService {
                 continue;
             }
 
-            AbstractMap.SimpleEntry<String, String> keyValuePair = new AbstractMap.SimpleEntry<>(attrReq.getAttributeKeyName(), attrReq.getValue().get(0));
+            AbstractMap.SimpleEntry<String, String> keyValuePair = new AbstractMap.SimpleEntry<>(attrReq.getAttributeKeyName(), attrReq.getValues().get(0));
             AttributeValue attributeValue = existingAttributeValuesMap.get(keyValuePair);
             if (attributeValue == null) {
                 continue;
