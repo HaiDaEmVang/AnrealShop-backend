@@ -12,7 +12,8 @@ public class CategoryRequest {
     private String idParentCategory;
     private String description;
     private int level;
+    private boolean active;
+    private int order;
     private String imageUrl;
-
-
+    private String publicId;
 }

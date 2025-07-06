@@ -41,6 +41,11 @@ public class Category {
     @Column
     private Integer level;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean active;
+
+    @Column(name = "order", nullable = false, columnDefinition = "INT DEFAULT 1")
+    private int order;
 
     @Column(name = "has_children", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean hasChildren;
@@ -58,7 +63,6 @@ public class Category {
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private Set<DisplayCategory> displayCategories;
 
-
     @Override
     public String toString() {
         return "Category{" +
@@ -68,10 +72,12 @@ public class Category {
                 ", description='" + description + '\'' +
                 ", urlSlug='" + urlSlug + '\'' +
                 ", urlPath='" + urlPath + '\'' +
+                ", level=" + level +
+                ", active=" + active +
+                ", order=" + order +
                 ", hasChildren=" + hasChildren +
                 ", productCount=" + productCount +
                 ", createdAt=" + createdAt +
                 '}';
     }
-
 }

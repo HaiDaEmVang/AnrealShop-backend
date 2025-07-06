@@ -3,11 +3,8 @@ package com.haiemdavang.AnrealShop.service.Cloudinary;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,19 +20,14 @@ public class StorageService {
         this.cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", cloudName,
                 "api_key", apiKey,
-                "api_secret", apiSecret,
-                "secure", true));
+                "api_secret", apiSecret));
     }
 
-    @Async
-
-    public CompletableFuture<String> store(MultipartFile file) {
+    public void deleteImage(String publicId) {
         try {
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            String url = uploadResult.get("secure_url").toString();
-            return CompletableFuture.completedFuture(url);
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi tải ảnh lên Cloudinary", e);
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            throw new RuntimeException("Xóa thất bại: " + e.getMessage());
         }
     }
 }

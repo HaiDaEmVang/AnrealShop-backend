@@ -1,6 +1,5 @@
 package com.haiemdavang.AnrealShop.modal.entity.category;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,4 +22,7 @@ public class DisplayCategory {
 
     @Column(name = "thumbnail_url", length = 255)
     private String thumbnailUrl = "https://res.cloudinary.com/dlcjc36ow/image/upload/v1747916255/ImagError_jsv7hr.png";
+
+    @Column(name = "public_id", length = 255)
+    private String publicId;
 }

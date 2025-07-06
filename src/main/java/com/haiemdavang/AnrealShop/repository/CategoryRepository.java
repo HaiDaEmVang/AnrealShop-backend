@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CategoryRepository extends JpaRepository<Category, String> {
     Optional<Category> findCategoriesById(String id);
     List<Category> findByParent_Id(String parentId);
+    Optional<Category> findByUrlSlug(String urlSlug);
 }
