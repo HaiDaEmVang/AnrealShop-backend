@@ -39,6 +39,10 @@ public class ProductSku {
     @Column(nullable = false)
     private Long price;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private int sold = 0;
+
     @Column(columnDefinition = "INT DEFAULT 0")
     private int quantity = 0;
 

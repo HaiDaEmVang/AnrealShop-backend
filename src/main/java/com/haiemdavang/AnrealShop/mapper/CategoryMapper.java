@@ -16,9 +16,21 @@ public class CategoryMapper {
                 .id(category.getId())
                 .name(category.getName())
                 .urlPath(category.getUrlPath())
+                .urlSlug(category.getUrlSlug())
                 .build();
     }
+    public BaseCategoryDto toBaseCategoryDto(EsCategory category) {
+        if (category == null) {
+            return null;
+        }
 
+        return BaseCategoryDto.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .urlPath(category.getUrlPath())
+                .urlSlug(category.getUrlSlug())
+                .build();
+    }
     public EsCategory toEsCategory(BaseCategoryDto category) {
         if (category == null) {
             return null;
@@ -28,6 +40,8 @@ public class CategoryMapper {
                 .id(category.getId())
                 .name(category.getName())
                 .urlPath(category.getUrlPath())
+                .urlSlug(category.getUrlSlug())
                 .build();
     }
+
 }

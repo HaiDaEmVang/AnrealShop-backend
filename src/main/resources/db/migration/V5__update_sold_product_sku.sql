@@ -1,0 +1,2 @@
+-- alter table product_skus
+--     modify column sold int default 0;

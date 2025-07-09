@@ -19,7 +19,11 @@
         "type": "text",
         "analyzer": "vietnamese_analyzer",
         "fields": {
-          "keyword": { "type": "keyword" }
+          "keyword": { "type": "keyword" },
+          "suggest": {
+            "type": "search_as_you_type",
+            "analyzer": "vietnamese_analyzer"
+          }
         }
       },
       "sort_description": {
@@ -64,18 +68,7 @@
       },
 
       "category": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "keyword" },
-          "name": {
-            "type": "text",
-            "analyzer": "vietnamese_analyzer",
-            "fields": {
-              "keyword": { "type": "keyword" }
-            }
-          },
-          "url_path": { "type": "keyword" }
-        }
+        "type": "keyword"
       },
       "attributes": {
         "type": "nested",

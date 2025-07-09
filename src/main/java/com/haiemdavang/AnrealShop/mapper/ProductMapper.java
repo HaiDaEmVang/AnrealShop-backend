@@ -1,10 +1,7 @@
 package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
-import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
-import com.haiemdavang.AnrealShop.dto.product.BaseProductSkuRequest;
-import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
-import com.haiemdavang.AnrealShop.dto.product.ProductMediaDto;
+import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
@@ -106,7 +103,6 @@ public class ProductMapper {
                 .attributes(new HashSet<>())
                 .build();
     }
-
     public EsProductDto toEsProductDto(Product product, List<ProductAttribute> attributeValues) {
         if (product == null) {
             return null;
@@ -128,6 +124,7 @@ public class ProductMapper {
                 .revenue(product.getRevenue())
                 .sold(product.getSold())
                 .visible(product.isVisible())
+                .restrictStatus(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
                 .createdAt(product.getCreatedAt() == null ? LocalDateTime.now().toString() : product.getCreatedAt().toString())
                 .updatedAt(product.getUpdatedAt() == null ? LocalDateTime.now().toString() : product.getUpdatedAt().toString())
                 .shop(shopMapper.toBaseShopDto(product.getShop()))
@@ -135,7 +132,6 @@ public class ProductMapper {
                 .attributes(attributeValues)
                 .build();
     }
-
     public EsProduct toEsProduct(EsProductDto esProductDto) {
         if (esProductDto == null) {
             return null;
@@ -152,6 +148,7 @@ public class ProductMapper {
                 .discountPrice(esProductDto.getDiscountPrice())
                 .quantity(esProductDto.getQuantity())
                 .thumbnailUrl(esProductDto.getThumbnailUrl())
+                .restrictStatus(esProductDto.getRestrictStatus())
                 .createdAt(LocalDateTime.parse(esProductDto.getCreatedAt()).atZone(ZoneOffset.systemDefault()).toInstant())
                 .updatedAt(LocalDateTime.parse(esProductDto.getUpdatedAt()).atZone(ZoneOffset.systemDefault()).toInstant())
                 .sold(esProductDto.getSold())
@@ -160,11 +157,51 @@ public class ProductMapper {
                 .totalReviews(esProductDto.getTotalReviews())
                 .visible(esProductDto.isVisible())
                 .shop(shopMapper.toEsShop(esProductDto.getShop()))
-                .category(categoryMapper.toEsCategory(esProductDto.getCategory()))
+                .categoryId(esProductDto.getCategory() != null ? esProductDto.getCategory().getId() : null)
                 .attributes(attributeMapper.toEsAttributes(esProductDto.getAttributes()))
                 .build();
     }
+// myshop product mânager
+    public MyShopProductSkuDto toMyShopProductSkuDto(ProductSku productSku) {
+        if (productSku == null) {
+            return null;
+        }
+        return MyShopProductSkuDto.builder()
+                .id(productSku.getId())
+                .sku(productSku.getSku())
+                .imageUrl(productSku.getThumbnailUrl())
+                .price(productSku.getPrice())
+                .quantity(productSku.getQuantity())
+                .sold(productSku.getSold())
+                .createdAt(productSku.getCreatedAt() != null ? productSku.getCreatedAt().toString() : null)
+                .build();
+    }
+    public MyShopProductDto toMyShopProductDto(Product product, List<ProductSku> productSkus) {
+        if (product == null) {
+            return null;
+        }
 
+        List<MyShopProductSkuDto> skuDtos = new ArrayList<>();
+        if (productSkus != null && !productSkus.isEmpty()) {
+            skuDtos = productSkus.stream()
+                    .map(this::toMyShopProductSkuDto)
+                    .toList();
+        }
+        return MyShopProductDto.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .thumbnailUrl(product.getThumbnailUrl())
+                .urlSlug(product.getUrlSlug())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .discountPrice(product.getDiscountPrice())
+                .quantity(product.getQuantity())
+                .sold(product.getSold())
+                .status(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
+                .visible(product.isVisible())
+                .createdAt(product.getCreatedAt() != null ? product.getCreatedAt().toString() : null)
+                .productSkus(skuDtos)
+                .build();
+    }
 
 
 }

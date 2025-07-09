@@ -1,9 +1,8 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
-import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
-import com.haiemdavang.AnrealShop.dto.product.BaseProductSkuRequest;
-import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
+import com.haiemdavang.AnrealShop.dto.product.*;
+import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncActionType;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
@@ -15,10 +14,23 @@ import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeKey;
 import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
-import com.haiemdavang.AnrealShop.repository.*;
+import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
+import com.haiemdavang.AnrealShop.repository.AttributeKeyRepository;
+import com.haiemdavang.AnrealShop.repository.AttributeValueRepository;
+import com.haiemdavang.AnrealShop.repository.ProductSkuRepository;
+import com.haiemdavang.AnrealShop.repository.ShopRepository;
+import com.haiemdavang.AnrealShop.repository.product.ProductRepository;
+import com.haiemdavang.AnrealShop.repository.product.ProductSpecification;
+import com.haiemdavang.AnrealShop.security.SecurityUtils;
+import com.haiemdavang.AnrealShop.service.ICategoryService;
 import com.haiemdavang.AnrealShop.service.IProductService;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +42,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductServiceImp implements IProductService {
     private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
+    private final ICategoryService categoryService;
     private final ProductSkuRepository productSkuRepository;
     private final ShopRepository shopRepository;
     private final AttributeValueRepository attributeValueRepository;
@@ -38,6 +50,9 @@ public class ProductServiceImp implements IProductService {
     private final ProductMapper productMapper;
 
     private final ProductKafkaProducer productKafkaProducer;
+    private final ProductIndexerService productIndexerService;
+
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional
@@ -47,8 +62,7 @@ public class ProductServiceImp implements IProductService {
         Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
                 .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
 
-        Category category = categoryRepository.findById(baseProductRequest.getCategoryId())
-                .orElseThrow(() -> new BadRequestException("CATEGORY_NOT_FOUND"));
+        Category category = categoryService.findById(baseProductRequest.getCategoryId());
 
         Product product = productMapper.toEntity(baseProductRequest, category, currentUserShop);
 
@@ -94,6 +108,81 @@ public class ProductServiceImp implements IProductService {
         ProductSyncMessage message = ProductSyncMessage.builder().action(ProductSyncActionType.CREATE).product(esProductDto).build();
         productKafkaProducer.sendProductSyncMessage(message);
     }
+
+    @Override
+    public List<String> suggestMyProductsName(String keyword) {
+    if (keyword == null || keyword.isEmpty()) {
+            return Collections.emptyList();
+        }
+//        Shop currentUserShop = securityUtils.getCurrentUserShop();
+        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
+                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
+        return productIndexerService.suggestMyProductsName(keyword, currentUserShop.getId());
+    }
+
+    @Override
+    public List<ProductStatusDto> getFilterMeta() {
+//        Shop currentUserShop = securityUtils.getCurrentUserShop();
+        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
+                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
+
+        List<ProductStatusDto> dataResult = productRepository.getMetaSumMyProductByStatus(currentUserShop.getId())
+                .stream().map(s ->
+                        ProductStatusDto.builder()
+                                .id(s.getId())
+                                .name(RestrictStatus.valueOf(s.getId()).getName())
+                                .count(s.getCount()).build())
+                .toList();
+        int totalCount = dataResult.stream()
+                .mapToInt(ProductStatusDto::getCount)
+                .sum();
+
+        List<ProductStatusDto> result = new ArrayList<>(dataResult);
+        result.add(ProductStatusDto.builder()
+                .id("ALL")
+                .name("Tất cả")
+                .count(totalCount)
+                .build());
+
+        return result;
+    }
+
+    @Override
+    public MyShopProductListResponse getMyShopProducts(int page, int limit, String status, String search, String categoryId, String sortBy) {
+        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
+                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
+
+        Category category = null;
+        if(categoryId != null && !categoryId.isEmpty()) {
+            category = categoryService.findById(categoryId);
+        }
+        RestrictStatus restrictStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                restrictStatus = RestrictStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("RESTRICT_STATUS_INVALID");
+            }
+        }
+
+        Specification<Product> spec = ProductSpecification.myShopFilter(search, category == null ? null : category.getId(), currentUserShop.getId(), restrictStatus);
+        Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<String> productIds = productPage.getContent().stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        List<ProductSku> productSkus = productSkuRepository.findByProductIdIn(productIds);
+
+        return MyShopProductListResponse.builder().products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).toList())).toList())
+                .currentPage(productPage.getPageable().getPageNumber() + 1)
+                .totalPages(productPage.getTotalPages())
+                .totalCount(productPage.getTotalElements())
+                .build();
+    }
+
 
     private void processProductAttributes(Product product, Set<ProductAttribute> requestedAttributes) {
         Set<String> allRequestedAttributeKeyNames = requestedAttributes.stream()

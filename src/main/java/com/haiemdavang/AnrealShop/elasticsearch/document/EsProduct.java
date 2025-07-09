@@ -27,7 +27,7 @@ public class EsProduct {
     @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer", fielddata = true)
     private String name;
 
-    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
+    @Field(name = "sort_description", type = FieldType.Text, analyzer = "vietnamese_analyzer")
     private String sortDescription;
 
     @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
@@ -36,25 +36,25 @@ public class EsProduct {
     @Field(type = FieldType.Search_As_You_Type, analyzer = "vietnamese_analyzer")
     private String suggest;
 
-    @Field(type = FieldType.Keyword)
+    @Field(name = "url_slug", type = FieldType.Keyword)
     private String urlSlug;
 
     @Field(type = FieldType.Long)
     private Long price;
 
-    @Field(type = FieldType.Long)
+    @Field(name = "discount_price", type = FieldType.Long)
     private Long discountPrice;
 
     @Field(type = FieldType.Integer)
     private Integer quantity;
 
-    @Field(type = FieldType.Keyword)
+    @Field(name = "thumbnail_url", type = FieldType.Keyword)
     private String thumbnailUrl;
 
-    @Field(type = FieldType.Date)
+    @Field(name = "created_at", type = FieldType.Date)
     private Instant createdAt;
 
-    @Field(type = FieldType.Date)
+    @Field(name = "updated_at", type = FieldType.Date)
     private Instant updatedAt;
 
     @Field(type = FieldType.Integer)
@@ -63,23 +63,23 @@ public class EsProduct {
     @Field(type = FieldType.Long)
     private Long revenue;
 
-    @Field(type = FieldType.Half_Float)
+    @Field(name = "average_rating", type = FieldType.Half_Float)
     private Float averageRating;
 
-    @Field(type = FieldType.Integer)
+    @Field(name = "total_reviews", type = FieldType.Integer)
     private Integer totalReviews;
 
     @Field(type = FieldType.Boolean)
     private Boolean visible;
 
-    @Field(type = FieldType.Keyword)
+    @Field(name = "restrict_status", type = FieldType.Keyword)
     private String restrictStatus;
 
     @Field(type = FieldType.Object)
     private EsShop shop;
 
-    @Field(type = FieldType.Object)
-    private EsCategory category;
+    @Field(name = "category_id", type = FieldType.Keyword)
+    private String categoryId;
 
     @Field(type = FieldType.Nested)
     private List<EsAttribute> attributes;

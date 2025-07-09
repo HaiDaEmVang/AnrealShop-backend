@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "analysis": {
+      "analyzer": {
+        "vietnamese_analyzer": {
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "icu_folding"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": { "type": "keyword" },
+      "name": {
+        "type": "text",
+        "analyzer": "vietnamese_analyzer",
+        "fields": {
+          "keyword": { "type": "keyword" },
+          "suggest": {
+            "type": "search_as_you_type",
+            "analyzer": "vietnamese_analyzer"
+          }
+        }
+      },
+      "url_path": { "type": "keyword" },
+      "url_slug": { "type": "keyword" }
+    }
+  }
+}

@@ -20,4 +20,7 @@ public class BaseCategoryDto {
     
     @JsonProperty("urlPath")
     private String urlPath;
+
+    @JsonProperty("urlSlug")
+    private String urlSlug;
 }
