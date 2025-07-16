@@ -2,12 +2,27 @@
   "settings": {
     "number_of_shards": 1,
     "analysis": {
+      "filter": {
+        "vn_edge_ngram": {
+          "type": "edge_ngram",
+          "min_gram": 2,
+          "max_gram": 20
+        }
+      },
       "analyzer": {
         "vietnamese_analyzer": {
           "tokenizer": "icu_tokenizer",
           "filter": [
             "icu_folding"
           ]
+        },
+        "vn_edge_analyzer": {
+          "tokenizer": "icu_tokenizer",
+          "filter": ["lowercase", "icu_folding", "vn_edge_ngram"]
+        },
+        "vn_edge_search": {
+          "tokenizer": "icu_tokenizer",
+          "filter": ["lowercase", "icu_folding"]
         }
       }
     }
@@ -23,6 +38,11 @@
           "suggest": {
             "type": "search_as_you_type",
             "analyzer": "vietnamese_analyzer"
+          },
+          "search_name": {
+            "type": "text",
+            "analyzer": "vn_edge_analyzer",
+            "search_analyzer": "vn_edge_search"
           }
         }
       },

@@ -21,9 +21,15 @@ public class CategoryServiceImp implements ICategoryService {
     private final CategoryMapper categoryMapper;
 
     @Override
-    public Category findById(String categoryId) {
+    public Category findByIdAndThrow(String categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new BadRequestException("CATEGORY_NOT_FOUND"));
+    }
+
+    @Override
+    public Category findById(String categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElse(null);
     }
 
     @Override
@@ -36,5 +42,15 @@ public class CategoryServiceImp implements ICategoryService {
         List<EsCategory> categories = esCategoryIndexerService.getCategoriesByKeyword(keyword);
         return categories.stream().map(categoryMapper::toBaseCategoryDto)
                 .toList();
+    }
+
+    @Override
+    public boolean existsById(String categoryId) {
+        return categoryRepository.existsById(categoryId);
+    }
+
+    @Override
+    public Category getReferenceById(String categoryId) {
+        return categoryRepository.getReferenceById(categoryId);
     }
 }

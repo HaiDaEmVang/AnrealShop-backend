@@ -1,8 +1,7 @@
 package com.haiemdavang.AnrealShop.modal.entity.product;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import jakarta.persistence.*;
 import lombok.*;
-import org.apache.commons.lang3.builder.EqualsExclude;
 
 @Entity
 @Table(name = "product_general_attributes")

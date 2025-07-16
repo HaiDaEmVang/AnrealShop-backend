@@ -16,6 +16,12 @@ public class ProductKafkaConsumer {
 
     @KafkaListener(topics = KafkaTopicConfig.PRODUCT_SYNC_TOPIC)
     public void listen(ProductSyncMessage message) {
-        productIndexerService.indexProduct(message);
+        switch (message.getAction()) {
+            case CREATE, UPDATE -> productIndexerService.indexProduct(message);
+            case DELETE -> productIndexerService.deleteProductFromIndex(message.getProductId());
+            case PRODUCT_VISIBILITY_UPDATED -> productIndexerService.updateProductVisibility(message.getProductId(), message.isVisible());
+            default -> log.warn("Unknown action type: {}", message.getAction());
+        }
+
     }
 }

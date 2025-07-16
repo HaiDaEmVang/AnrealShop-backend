@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttributeDto extends ProductAttribute{
+public class AttributeDtoDto extends ProductAttributeDto {
     private int displayOrder;
     @JsonProperty("isDefault")
     private boolean isDefault;

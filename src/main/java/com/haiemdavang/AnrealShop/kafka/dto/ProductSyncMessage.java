@@ -15,4 +15,6 @@ import lombok.NoArgsConstructor;
 public class ProductSyncMessage {
     private ProductSyncActionType action;
     private EsProductDto product;
+    private String productId;
+    private boolean visible;
 }

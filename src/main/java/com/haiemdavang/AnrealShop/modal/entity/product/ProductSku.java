@@ -1,14 +1,13 @@
 package com.haiemdavang.AnrealShop.modal.entity.product;
 
 
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Getter

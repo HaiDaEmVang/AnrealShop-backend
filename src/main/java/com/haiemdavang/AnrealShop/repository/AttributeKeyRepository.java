@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.repository;
 
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeKey;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

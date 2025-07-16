@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.controller.myshop;
 
 import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
+import com.haiemdavang.AnrealShop.dto.product.MyShopProductDto;
 import com.haiemdavang.AnrealShop.dto.product.MyShopProductListResponse;
 import com.haiemdavang.AnrealShop.dto.product.ProductStatusDto;
 import com.haiemdavang.AnrealShop.service.IProductService;
@@ -31,9 +32,17 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/create")
+    @PostMapping("")
     public ResponseEntity<?> createProduct(@Valid @RequestBody BaseProductRequest baseProductRequest) {
         productService.createProduct(baseProductRequest);
+        return ResponseEntity.ok(Map.of("message", "Product created successfully"));
+    }
+
+    @PostMapping("/creates")
+    public ResponseEntity<?> createProducts(@Valid @RequestBody List<BaseProductRequest> baseProductRequest) {
+        for (BaseProductRequest request : baseProductRequest) {
+            productService.createProduct(request);
+        }
         return ResponseEntity.ok(Map.of("message", "Product created successfully"));
     }
 
@@ -49,4 +58,21 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<MyShopProductDto> updateProduct(@PathVariable String id, @Valid @RequestBody BaseProductRequest baseProductRequest) {
+        MyShopProductDto productDto = productService.updateProduct(id, baseProductRequest);
+        return ResponseEntity.ok(productDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable String id, @RequestParam(required = false) boolean isForce) {
+        productService.delete(id, isForce);
+        return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
+    }
+
+    @PutMapping("/{id}/update-visible")
+    public ResponseEntity<MyShopProductDto> updateProductVisible(@PathVariable String id, @RequestParam boolean visible) {
+        MyShopProductDto productDto = productService.updateProductVisible(id, visible);
+        return ResponseEntity.ok(productDto);
+    }
 }

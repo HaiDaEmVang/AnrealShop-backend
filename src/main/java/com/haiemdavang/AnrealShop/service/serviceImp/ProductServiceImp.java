@@ -1,24 +1,28 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
-import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncActionType;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
 import com.haiemdavang.AnrealShop.kafka.producer.ProductKafkaProducer;
+import com.haiemdavang.AnrealShop.mapper.AttributeMapper;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeKey;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductGeneralAttribute;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductMedia;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeKey;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.enums.MediaType;
 import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
 import com.haiemdavang.AnrealShop.repository.AttributeKeyRepository;
 import com.haiemdavang.AnrealShop.repository.AttributeValueRepository;
+import com.haiemdavang.AnrealShop.repository.ProductGeneralAttributeRepository;
 import com.haiemdavang.AnrealShop.repository.ProductSkuRepository;
-import com.haiemdavang.AnrealShop.repository.ShopRepository;
 import com.haiemdavang.AnrealShop.repository.product.ProductRepository;
 import com.haiemdavang.AnrealShop.repository.product.ProductSpecification;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
@@ -44,7 +48,7 @@ public class ProductServiceImp implements IProductService {
     private final ProductRepository productRepository;
     private final ICategoryService categoryService;
     private final ProductSkuRepository productSkuRepository;
-    private final ShopRepository shopRepository;
+    private final ProductGeneralAttributeRepository productGeneralAttributeRepository;
     private final AttributeValueRepository attributeValueRepository;
     private final AttributeKeyRepository attributeKeyRepository;
     private final ProductMapper productMapper;
@@ -54,23 +58,38 @@ public class ProductServiceImp implements IProductService {
 
     private final SecurityUtils securityUtils;
 
+    private final AttributeMapper attributeMapper;
+    private final AttributeServiceImp attributeServiceImp;
+
+    @Override
+    public Product getProductById(String id) {
+        return productRepository.findById(id)
+                .orElse(null);
+    }
+
+    @Override
+    public Product getProductByIdAndThrow(String id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+    }
+
+
     @Override
     @Transactional
     public void createProduct(BaseProductRequest baseProductRequest) {
-//        Shop currentUserShop = securityUtils.getCurrentUserShop();
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
 
-        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
-                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
-
-        Category category = categoryService.findById(baseProductRequest.getCategoryId());
+        Category category = categoryService.findByIdAndThrow(baseProductRequest.getCategoryId());
 
         Product product = productMapper.toEntity(baseProductRequest, category, currentUserShop);
 
-        List<ProductAttribute> allAttributes = new ArrayList<>();
+        this.updateProductMediaList(baseProductRequest.getMedia(), product);
+
+        List<ProductAttributeDto> allAttributes = new ArrayList<>();
 
 
         if (baseProductRequest.getAttributes() != null && !baseProductRequest.getAttributes().isEmpty()) {
-            Set<ProductAttribute> requestedGeneralAttributes = new HashSet<>(baseProductRequest.getAttributes());
+            Set<ProductAttributeDto> requestedGeneralAttributes = new HashSet<>(baseProductRequest.getAttributes());
             allAttributes.addAll(requestedGeneralAttributes);
             processProductAttributes(product, requestedGeneralAttributes);
         }
@@ -78,20 +97,20 @@ public class ProductServiceImp implements IProductService {
 
         List<ProductSku> productSkus = new ArrayList<>();
         if (baseProductRequest.getProductSkus() != null && !baseProductRequest.getProductSkus().isEmpty()) {
-            Set<ProductAttribute> allSkuAttributes = new HashSet<>();
+            Set<ProductAttributeDto> allSkuAttributes = new HashSet<>();
             for (BaseProductSkuRequest skuRequest : baseProductRequest.getProductSkus()) {
                 ProductSku productSku = productMapper.toSkuEntity(skuRequest, newProduct);
 
                 if (skuRequest.getAttributes() != null && !skuRequest.getAttributes().isEmpty()) {
-                    Set<ProductAttribute> requestedSkuAttributes = new HashSet<>(skuRequest.getAttributes());
+                    Set<ProductAttributeDto> requestedSkuAttributes = new HashSet<>(skuRequest.getAttributes());
                     allSkuAttributes.addAll(requestedSkuAttributes);
                     processSkuAttributes(productSku, requestedSkuAttributes);
                 }
                 productSkus.add(productSku);
             }
-            Map<String, ProductAttribute> skuAttributesMap = allSkuAttributes.stream()
-                    .collect(Collectors.toMap(ProductAttribute::getAttributeKeyName,
-                            attr -> ProductAttribute.builder()
+            Map<String, ProductAttributeDto> skuAttributesMap = allSkuAttributes.stream()
+                    .collect(Collectors.toMap(ProductAttributeDto::getAttributeKeyName,
+                            attr -> ProductAttributeDto.builder()
                                     .attributeKeyName(attr.getAttributeKeyName())
                                     .attributeKeyDisplay(attr.getAttributeKeyDisplay())
                                     .values(new ArrayList<>(attr.getValues()))
@@ -110,22 +129,101 @@ public class ProductServiceImp implements IProductService {
     }
 
     @Override
+    @Transactional
+    public MyShopProductDto updateProduct(String id, BaseProductRequest baseProductRequest) {
+        Product product = productRepository.findWithCategoryAndMediaAndGeneralAttributeById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+
+        Category category = null;
+        if (baseProductRequest.getCategoryId() != null && categoryService.existsById(baseProductRequest.getCategoryId())) {
+            if (product.getCategory() != null && !product.getCategory().getId().equals(baseProductRequest.getCategoryId())) {
+                category = categoryService.getReferenceById(baseProductRequest.getCategoryId());
+            }
+        } else {
+            throw new BadRequestException("CATEGORY_NOT_FOUND");
+        }
+        productMapper.updateEntity(product, baseProductRequest, category);
+
+        this.updateProductMediaList(baseProductRequest.getMedia(), product);
+
+        List<ProductGeneralAttribute> oldAttributeForProduct = productGeneralAttributeRepository.findProductGeneralAttributesByProductId(id);
+
+        this.updateAttributeForProduct(oldAttributeForProduct, baseProductRequest.getAttributes(), product);
+
+        List<ProductSku> oldProductSkus = productSkuRepository.findWithAttributeByProductId(id);
+
+        List<ProductAttributeDto> attributeList = new ArrayList<>(baseProductRequest.getAttributes());
+        this.updateProductSkus(oldProductSkus, baseProductRequest.getProductSkus(), product);
+
+        productRepository.save(product);
+
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.UPDATE)
+                .productId(product.getId())
+                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public MyShopProductDto updateProductVisible(String id, boolean visible) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+        product.setVisible(visible);
+        productRepository.save(product);
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.PRODUCT_VISIBILITY_UPDATED)
+                .productId(product.getId())
+                .product(null)
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void delete(String id, boolean isForce) {
+        if(productRepository.existsById(id)){
+            if (isForce) {
+                productRepository.deleteById(id);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.DELETE).productId(id).build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            } else {
+                Product product = getProductByIdAndThrow(id);
+                product.setDeleted(true);
+                product.setVisible(false);
+                productRepository.save(product);
+                List<ProductAttributeDto> attributeForProduct = attributeMapper
+                        .toProductAttributeDto(productGeneralAttributeRepository.findProductAttributeByIdProduct(id));
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.UPDATE)
+                        .productId(product.getId())
+                        .product(productMapper.toEsProductDto(product, attributeForProduct))
+                        .build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            }
+        }
+        else {
+            throw new BadRequestException("PRODUCT_NOT_FOUND");
+        }
+    }
+
+    @Override
     public List<String> suggestMyProductsName(String keyword) {
     if (keyword == null || keyword.isEmpty()) {
             return Collections.emptyList();
         }
-//        Shop currentUserShop = securityUtils.getCurrentUserShop();
-        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
-                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
+
         return productIndexerService.suggestMyProductsName(keyword, currentUserShop.getId());
     }
 
     @Override
     public List<ProductStatusDto> getFilterMeta() {
-//        Shop currentUserShop = securityUtils.getCurrentUserShop();
-        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
-                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
-
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
         List<ProductStatusDto> dataResult = productRepository.getMetaSumMyProductByStatus(currentUserShop.getId())
                 .stream().map(s ->
                         ProductStatusDto.builder()
@@ -149,12 +247,10 @@ public class ProductServiceImp implements IProductService {
 
     @Override
     public MyShopProductListResponse getMyShopProducts(int page, int limit, String status, String search, String categoryId, String sortBy) {
-        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
-                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
-
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
         Category category = null;
         if(categoryId != null && !categoryId.isEmpty()) {
-            category = categoryService.findById(categoryId);
+            category = categoryService.findByIdAndThrow(categoryId);
         }
         RestrictStatus restrictStatus = null;
         if (status != null && !status.isEmpty()) {
@@ -183,10 +279,113 @@ public class ProductServiceImp implements IProductService {
                 .build();
     }
 
+    private void updateAttributeForProduct(List<ProductGeneralAttribute> oldAttributeForProduct,
+                                          List<ProductAttributeDto> attributes,
+                                          Product product) {
 
-    private void processProductAttributes(Product product, Set<ProductAttribute> requestedAttributes) {
+        Set<AttributeValue> newAttributeValues = attributeServiceImp.getAttributeValues(attributes);
+
+        Set<ProductGeneralAttribute> attributeToDelete = oldAttributeForProduct.stream()
+                .filter(pga -> !newAttributeValues.contains(pga.getAttributeValue()))
+                .collect(Collectors.toSet());
+        product.getGeneralAttributes().removeAll(attributeToDelete);
+
+        Set<AttributeValue> oldAttributeValues = oldAttributeForProduct.stream()
+                .map(ProductGeneralAttribute::getAttributeValue)
+                .collect(Collectors.toSet());
+
+        for (AttributeValue av : newAttributeValues) {
+            if (oldAttributeValues.contains(av)) {
+                continue;
+            }
+            product.addGeneralAttribute(av);
+        }
+    }
+
+    private void updateProductSkus(List<ProductSku> oldProductSkus, List<BaseProductSkuRequest> productSkus, Product product) {
+        Map<String, BaseProductSkuRequest> newSkuMap = productSkus.stream()
+                .collect(Collectors.toMap(BaseProductSkuRequest::getSku, sku -> sku));
+
+        Map<String, ProductSku> oldSkuMap = oldProductSkus.stream()
+                .collect(Collectors.toMap(ProductSku::getSku, sku -> sku));
+
+        Set<String> toDeleteSkus = oldSkuMap.keySet().stream()
+                .filter(sku -> !newSkuMap.containsKey(sku))
+                .collect(Collectors.toSet());
+
+        product.getProductSkus().removeIf(sku -> toDeleteSkus.contains(sku.getSku()));
+
+        Set<ProductSku> skusToSave = new HashSet<>();
+
+        for (BaseProductSkuRequest request : productSkus) {
+            ProductSku existing = oldSkuMap.get(request.getSku());
+
+            if (existing != null) {
+                existing.setPrice(request.getPrice());
+                existing.setQuantity(request.getQuantity());
+                existing.setThumbnailUrl(request.getImageUrl());
+                skusToSave.add(existing);
+            } else {
+                ProductSku newSku = productMapper.toSkuEntity(request, product);
+                Set<AttributeValue> attributes = attributeServiceImp.getAttributeValues(request.getAttributes());
+                newSku.getAttributes().addAll(attributes);
+                product.getProductSkus().add(newSku);
+                skusToSave.add(newSku);
+            }
+        }
+
+        if (!skusToSave.isEmpty()) {
+            productSkuRepository.saveAll(skusToSave);
+        }
+    }
+
+    private void updateProductMediaList(List<ProductMediaDto> productMediaDto, Product product) {
+        if (product.getMediaList() == null) {
+            product.setMediaList(new HashSet<>());
+        }
+
+        Map<String, ProductMediaDto> newMediaDtoMap = productMediaDto.stream()
+                .collect(Collectors.toMap(ProductMediaDto::getId,
+                        media -> media,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new));
+
+        Set<ProductMedia> mediaToRemoves = product.getMediaList().stream()
+                .filter(media -> !newMediaDtoMap.containsKey(media.getId()))
+                .collect(Collectors.toSet());
+        product.getMediaList().removeAll(mediaToRemoves);
+
+        Map<String, ProductMedia> existingMediaMap = product.getMediaList().stream()
+                .collect(Collectors.toMap(ProductMedia::getId, media -> media));
+
+        Set<ProductMedia> mediaToAdd = new HashSet<>();
+        for (Map.Entry<String, ProductMediaDto> entry : newMediaDtoMap.entrySet()) {
+            String mediaId = entry.getKey();
+            ProductMediaDto mediaDto = entry.getValue();
+
+            ProductMedia existingMedia = existingMediaMap.get(mediaId);
+
+            if (existingMedia == null) {
+                ProductMedia newMedia = ProductMedia.builder()
+                        .id(mediaId)
+                        .url(mediaDto.getUrl())
+                        .type(MediaType.valueOf(mediaDto.getType()))
+                        .product(product)
+                        .build();
+                mediaToAdd.add(newMedia);
+            }
+        }
+        product.getMediaList().addAll(mediaToAdd);
+
+        productMediaDto.stream()
+                .filter(media -> "IMAGE".equals(media.getType()))
+                .findFirst()
+                .ifPresent(media -> product.setThumbnailUrl(media.getUrl()));
+    }
+
+    private void processProductAttributes(Product product, Set<ProductAttributeDto> requestedAttributes) {
         Set<String> allRequestedAttributeKeyNames = requestedAttributes.stream()
-                .map(ProductAttribute::getAttributeKeyName)
+                .map(ProductAttributeDto::getAttributeKeyName)
                 .collect(Collectors.toSet());
 
         Map<String, AttributeKey> existingAttributeKeysMap = new HashMap<>();
@@ -204,7 +403,7 @@ public class ProductServiceImp implements IProductService {
                 allRequestedKeyValuePairs, existingAttributeKeysMap
         );
 
-        for (ProductAttribute attrReq : requestedAttributes) {
+        for (ProductAttributeDto attrReq : requestedAttributes) {
             AttributeKey attributeKey = existingAttributeKeysMap.get(attrReq.getAttributeKeyName());
             if (attributeKey == null || attributeKey.isForSku()) {
                 log.warn("AttributeKey '{}' ko tim thay.", attrReq.getAttributeKeyName());
@@ -222,9 +421,9 @@ public class ProductServiceImp implements IProductService {
         }
     }
 
-    private void processSkuAttributes(ProductSku productSku, Set<ProductAttribute> requestedAttributes) {
+    private void processSkuAttributes(ProductSku productSku, Set<ProductAttributeDto> requestedAttributes) {
         Set<String> allRequestedAttributeKeyNames = requestedAttributes.stream()
-                .map(ProductAttribute::getAttributeKeyName)
+                .map(ProductAttributeDto::getAttributeKeyName)
                 .collect(Collectors.toSet());
 
         Map<String, AttributeKey> existingAttributeKeysMap = new HashMap<>();
@@ -241,7 +440,7 @@ public class ProductServiceImp implements IProductService {
                 allRequestedKeyValuePairs, existingAttributeKeysMap
         );
 
-        for (ProductAttribute attrReq : requestedAttributes) {
+        for (ProductAttributeDto attrReq : requestedAttributes) {
             AttributeKey attributeKey = existingAttributeKeysMap.get(attrReq.getAttributeKeyName());
             if (attributeKey == null || !attributeKey.isForSku()) {
                 continue;

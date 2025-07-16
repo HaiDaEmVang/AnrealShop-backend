@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.mapper;
 
-import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
@@ -15,9 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,17 +25,6 @@ public class ProductMapper {
     private final CategoryMapper categoryMapper;
     private final AttributeMapper attributeMapper;
 
-    public ProductMediaDto toProductMediaDto(ProductMedia productMedia) {
-        if (productMedia == null) {
-            return null;
-        }
-        return ProductMediaDto.builder()
-                .id(productMedia.getId())
-                .url(productMedia.getUrl())
-                .thumbnailUrl(productMedia.getThumbnailUrl())
-                .type(productMedia.getType().name())
-                .build();
-    }
     public ProductMedia toProductMedia(ProductMediaDto productMediaDto) {
         if (productMediaDto == null) {
             return null;
@@ -49,6 +37,7 @@ public class ProductMapper {
                 .type(MediaType.valueOf(productMediaDto.getType()))
                 .build();
     }
+
     public Product toEntity(BaseProductRequest baseProductRequest, Category category, Shop shop) {
         Product product = Product.builder()
                 .name(baseProductRequest.getName())
@@ -58,37 +47,41 @@ public class ProductMapper {
                 .price(baseProductRequest.getPrice())
                 .discountPrice(baseProductRequest.getDiscountPrice())
                 .quantity(baseProductRequest.getQuantity())
-                .category(category)
                 .weight(baseProductRequest.getWeight())
                 .height(baseProductRequest.getHeight())
                 .length(baseProductRequest.getLength())
                 .width(baseProductRequest.getWidth())
-                .shop(shop)
                 .build();
-
-        List<ProductMedia> mediaList = new ArrayList<>();
-
-        if (baseProductRequest.getMedia() != null && !baseProductRequest.getMedia().isEmpty()) {
-            List<ProductMedia> productMediaList = baseProductRequest.getMedia().stream()
-                    .map(mediaDto -> {
-                        ProductMedia media = toProductMedia(mediaDto);
-                        media.setProduct(product);
-                        return media;
-                    })
-                    .toList();
-
-            mediaList.addAll(productMediaList);
-
-            baseProductRequest.getMedia().stream()
-                    .filter(media -> "IMAGE".equals(media.getType()))
-                    .findFirst()
-                    .ifPresent(media -> product.setThumbnailUrl(media.getUrl()));
+        if (shop != null) {
+            product.setShop(shop);
         }
-
-        product.setMediaList(mediaList);
-
+        if (category != null) {
+            product.setCategory(category);
+        }
         return product;
     }
+
+    public void updateEntity(Product product, BaseProductRequest baseProductRequest, Category category) {
+        if (product == null || baseProductRequest == null) {
+            return;
+        }
+        product.setName(baseProductRequest.getName());
+        product.setUrlSlug(ApplicationInitHelper.toSlug(baseProductRequest.getName()));
+        product.setDescription(baseProductRequest.getDescription());
+        product.setSortDescription(baseProductRequest.getSortDescription());
+        product.setPrice(baseProductRequest.getPrice());
+        product.setDiscountPrice(baseProductRequest.getDiscountPrice());
+        product.setQuantity(baseProductRequest.getQuantity());
+        product.setWeight(baseProductRequest.getWeight());
+        product.setHeight(baseProductRequest.getHeight());
+        product.setLength(baseProductRequest.getLength());
+        product.setWidth(baseProductRequest.getWidth());
+
+        if (category != null) {
+            product.setCategory(category);
+        }
+    }
+
     public ProductSku toSkuEntity(BaseProductSkuRequest skuRequest, Product product) {
         if (skuRequest == null) {
             return null;
@@ -103,7 +96,9 @@ public class ProductMapper {
                 .attributes(new HashSet<>())
                 .build();
     }
-    public EsProductDto toEsProductDto(Product product, List<ProductAttribute> attributeValues) {
+
+
+    public EsProductDto toEsProductDto(Product product, List<ProductAttributeDto> attributeValues) {
         if (product == null) {
             return null;
         }
@@ -202,6 +197,10 @@ public class ProductMapper {
                 .productSkus(skuDtos)
                 .build();
     }
+
+//    update
+
+
 
 
 }

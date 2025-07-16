@@ -5,14 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
-
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductAttribute {
+public class ProductAttributeSingleValueDto {
     private String attributeKeyName;
     private String attributeKeyDisplay;
-    private List<String> values;
+    private String values;
 }

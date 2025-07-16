@@ -1,8 +1,8 @@
     package com.haiemdavang.AnrealShop.modal.entity.product;
 
+    import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
     import com.haiemdavang.AnrealShop.modal.entity.category.Category;
     import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-    import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
     import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
     import jakarta.persistence.*;
     import lombok.*;
@@ -116,8 +116,8 @@
         @Column(nullable = false)
         private boolean deleted = false;
     
-        @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-        private List<ProductMedia> mediaList;
+        @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+        private Set<ProductMedia> mediaList;
 
         @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
         private Set<ProductGeneralAttribute> generalAttributes = new HashSet<>();
@@ -133,4 +133,14 @@
             this.generalAttributes.add(productAttribute);
         }
 
+        @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+        private List<ProductSku> productSkus;
+
+        public void addMedia(ProductMedia productMedia) {
+            if (this.mediaList == null) {
+                this.mediaList = new HashSet<>();
+            }
+            this.mediaList.add(productMedia);
+            productMedia.setProduct(this);
+        }
     }

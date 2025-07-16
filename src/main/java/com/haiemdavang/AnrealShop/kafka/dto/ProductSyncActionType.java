@@ -1,5 +1,5 @@
 package com.haiemdavang.AnrealShop.kafka.dto;
 
 public enum ProductSyncActionType {
-    CREATE, UPDATE, DELETE;
+    CREATE, UPDATE, DELETE, PRODUCT_VISIBILITY_UPDATED
 }

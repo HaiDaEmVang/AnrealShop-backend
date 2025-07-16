@@ -24,16 +24,16 @@ public class EsProduct {
     @Field(type = FieldType.Keyword)
     private String id;
 
-    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer", fielddata = true)
+    @Field(type = FieldType.Text, fielddata = true)
     private String name;
 
-    @Field(name = "sort_description", type = FieldType.Text, analyzer = "vietnamese_analyzer")
+    @Field(name = "sort_description", type = FieldType.Text)
     private String sortDescription;
 
-    @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
+    @Field(type = FieldType.Text)
     private String description;
 
-    @Field(type = FieldType.Search_As_You_Type, analyzer = "vietnamese_analyzer")
+    @Field(type = FieldType.Search_As_You_Type)
     private String suggest;
 
     @Field(name = "url_slug", type = FieldType.Keyword)

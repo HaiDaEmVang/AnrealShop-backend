@@ -24,12 +24,11 @@ public class CategoryIndexerService {
             return null;
         }
         NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(QueryBuilders.match(
-                        m -> m.field("name.suggest")
-                                .query(keyword)
-                                .analyzer("vietnamese_analyzer")
-                                .fuzziness("AUTO")
-                                .operator(Operator.And)
+                .withQuery(QueryBuilders.bool(b -> b
+                        .should(QueryBuilders.matchPhrasePrefix(m ->
+                                m.field("url_path.suggest").query(keyword)))
+                        .should(QueryBuilders.match(m ->
+                                m.field("url_path.search_name").query(keyword)))
                 ))
                 .withMaxResults(10)
                 .build();

@@ -21,7 +21,7 @@ public class EsCategory {
     private String id;
     @Field(type = FieldType.Text, analyzer = "vietnamese_analyzer")
     private String name;
-    @Field(name = "url_path", type = FieldType.Keyword)
+    @Field(type = FieldType.Text, name = "url_path", analyzer = "vietnamese_analyzer")
     private String urlPath;
     @Field(name = "url_slug", type = FieldType.Keyword)
     private String urlSlug;
