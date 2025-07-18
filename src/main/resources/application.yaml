@@ -8,6 +8,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+        order_updates: true
+        order_inserts: true
+        generate_statistics: false
+
+
   mail:
     host: smtp.gmail.com
     port: 587

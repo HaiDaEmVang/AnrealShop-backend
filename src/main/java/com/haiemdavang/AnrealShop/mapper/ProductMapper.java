@@ -5,18 +5,17 @@ import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
-import com.haiemdavang.AnrealShop.modal.entity.product.ProductMedia;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-import com.haiemdavang.AnrealShop.modal.enums.MediaType;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,19 +23,6 @@ public class ProductMapper {
     private final ShopMapper shopMapper;
     private final CategoryMapper categoryMapper;
     private final AttributeMapper attributeMapper;
-
-    public ProductMedia toProductMedia(ProductMediaDto productMediaDto) {
-        if (productMediaDto == null) {
-            return null;
-        }
-
-        return ProductMedia.builder()
-                .id(productMediaDto.getId())
-                .url(productMediaDto.getUrl())
-                .thumbnailUrl(productMediaDto.getThumbnailUrl())
-                .type(MediaType.valueOf(productMediaDto.getType()))
-                .build();
-    }
 
     public Product toEntity(BaseProductRequest baseProductRequest, Category category, Shop shop) {
         Product product = Product.builder()

@@ -1,8 +1,8 @@
 spring:
   datasource: # 13.229.228.146
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:db_anrealShop_test}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    username: ${DB_USERNAME:haiemdavang}
+    password: ${DB_PASSWORD:haiemdavang}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

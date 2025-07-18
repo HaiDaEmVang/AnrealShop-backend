@@ -25,7 +25,6 @@
     @AllArgsConstructor
     @Builder
     @EqualsAndHashCode(of = "id")
-    @SQLDelete(sql = "UPDATE products SET deleted = true, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
     @Where(clause = "deleted = false")
     public class Product {
     
@@ -133,7 +132,7 @@
             this.generalAttributes.add(productAttribute);
         }
 
-        @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+        @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
         private List<ProductSku> productSkus;
 
         public void addMedia(ProductMedia productMedia) {

@@ -61,18 +61,6 @@ public class ProductServiceImp implements IProductService {
     private final AttributeMapper attributeMapper;
     private final AttributeServiceImp attributeServiceImp;
 
-    @Override
-    public Product getProductById(String id) {
-        return productRepository.findById(id)
-                .orElse(null);
-    }
-
-    @Override
-    public Product getProductByIdAndThrow(String id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
-    }
-
 
     @Override
     @Transactional
@@ -152,8 +140,16 @@ public class ProductServiceImp implements IProductService {
 
         List<ProductSku> oldProductSkus = productSkuRepository.findWithAttributeByProductId(id);
 
-        List<ProductAttributeDto> attributeList = new ArrayList<>(baseProductRequest.getAttributes());
+        List<ProductAttributeDto> attributeList = new ArrayList<>();
+        if (baseProductRequest.getAttributes() != null) {
+            attributeList.addAll(baseProductRequest.getAttributes());
+        }
         this.updateProductSkus(oldProductSkus, baseProductRequest.getProductSkus(), product);
+        for (BaseProductSkuRequest sku : baseProductRequest.getProductSkus()) {
+            if (sku.getAttributes() != null && !sku.getAttributes().isEmpty()) {
+                attributeList.addAll(sku.getAttributes());
+            }
+        }
 
         productRepository.save(product);
 
@@ -163,12 +159,12 @@ public class ProductServiceImp implements IProductService {
                 .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
-        return null;
+        return productMapper.toMyShopProductDto(product, product.getProductSkus());
     }
 
     @Override
     @Transactional
-    public MyShopProductDto updateProductVisible(String id, boolean visible) {
+    public void updateProductVisible(String id, boolean visible) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
         product.setVisible(visible);
@@ -176,10 +172,10 @@ public class ProductServiceImp implements IProductService {
         ProductSyncMessage message = ProductSyncMessage.builder()
                 .action(ProductSyncActionType.PRODUCT_VISIBILITY_UPDATED)
                 .productId(product.getId())
+                .visible(visible)
                 .product(null)
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
-        return null;
     }
 
     @Override
@@ -192,16 +188,12 @@ public class ProductServiceImp implements IProductService {
                         .action(ProductSyncActionType.DELETE).productId(id).build();
                 productKafkaProducer.sendProductSyncMessage(message);
             } else {
-                Product product = getProductByIdAndThrow(id);
-                product.setDeleted(true);
-                product.setVisible(false);
-                productRepository.save(product);
-                List<ProductAttributeDto> attributeForProduct = attributeMapper
-                        .toProductAttributeDto(productGeneralAttributeRepository.findProductAttributeByIdProduct(id));
+                productRepository.softDelById(id);
                 ProductSyncMessage message = ProductSyncMessage.builder()
-                        .action(ProductSyncActionType.UPDATE)
-                        .productId(product.getId())
-                        .product(productMapper.toEsProductDto(product, attributeForProduct))
+                        .action(ProductSyncActionType.PRODUCT_VISIBILITY_UPDATED)
+                        .productId(id)
+                        .visible(false)
+                        .product(null)
                         .build();
                 productKafkaProducer.sendProductSyncMessage(message);
             }
@@ -272,7 +264,8 @@ public class ProductServiceImp implements IProductService {
 
         List<ProductSku> productSkus = productSkuRepository.findByProductIdIn(productIds);
 
-        return MyShopProductListResponse.builder().products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).toList())).toList())
+        return MyShopProductListResponse.builder()
+                .products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).toList())).toList())
                 .currentPage(productPage.getPageable().getPageNumber() + 1)
                 .totalPages(productPage.getTotalPages())
                 .totalCount(productPage.getTotalElements())
@@ -315,8 +308,6 @@ public class ProductServiceImp implements IProductService {
 
         product.getProductSkus().removeIf(sku -> toDeleteSkus.contains(sku.getSku()));
 
-        Set<ProductSku> skusToSave = new HashSet<>();
-
         for (BaseProductSkuRequest request : productSkus) {
             ProductSku existing = oldSkuMap.get(request.getSku());
 
@@ -324,18 +315,12 @@ public class ProductServiceImp implements IProductService {
                 existing.setPrice(request.getPrice());
                 existing.setQuantity(request.getQuantity());
                 existing.setThumbnailUrl(request.getImageUrl());
-                skusToSave.add(existing);
             } else {
                 ProductSku newSku = productMapper.toSkuEntity(request, product);
                 Set<AttributeValue> attributes = attributeServiceImp.getAttributeValues(request.getAttributes());
                 newSku.getAttributes().addAll(attributes);
                 product.getProductSkus().add(newSku);
-                skusToSave.add(newSku);
             }
-        }
-
-        if (!skusToSave.isEmpty()) {
-            productSkuRepository.saveAll(skusToSave);
         }
     }
 

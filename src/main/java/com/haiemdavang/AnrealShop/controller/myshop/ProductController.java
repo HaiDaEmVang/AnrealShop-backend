@@ -71,8 +71,8 @@ public class ProductController {
     }
 
     @PutMapping("/{id}/update-visible")
-    public ResponseEntity<MyShopProductDto> updateProductVisible(@PathVariable String id, @RequestParam boolean visible) {
-        MyShopProductDto productDto = productService.updateProductVisible(id, visible);
-        return ResponseEntity.ok(productDto);
+    public ResponseEntity<?> updateProductVisible(@PathVariable String id, @RequestParam boolean visible) {
+        productService.updateProductVisible(id, visible);
+        return ResponseEntity.ok(Map.of("message", "Product visibility updated successfully"));
     }
 }
