@@ -9,6 +9,8 @@ import java.util.List;
 public interface ICategoryService {
     Category findByIdAndThrow(String categoryId);
 
+    Category findByIdOrUrlSlug(String categoryId);
+
     Category findById(String categoryId);
 
     List<Category> getAllCategories();

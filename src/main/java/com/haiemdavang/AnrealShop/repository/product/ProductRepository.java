@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, String>, JpaSpecificationExecutor<Product> {
@@ -21,7 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
                 group by restrict_status""",
             nativeQuery = true
     )
-    List<IProductStatus> getMetaSumMyProductByStatus(String shopId);
+    Set<IProductStatus> getMetaSumMyProductByStatus(String shopId);
 
     Page<Product> findAll(Specification<Product> spec, Pageable pageable);
 

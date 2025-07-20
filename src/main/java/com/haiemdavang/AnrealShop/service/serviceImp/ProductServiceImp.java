@@ -216,24 +216,29 @@ public class ProductServiceImp implements IProductService {
     @Override
     public List<ProductStatusDto> getFilterMeta() {
         Shop currentUserShop = securityUtils.getCurrentUserShop();
-        List<ProductStatusDto> dataResult = productRepository.getMetaSumMyProductByStatus(currentUserShop.getId())
-                .stream().map(s ->
-                        ProductStatusDto.builder()
-                                .id(s.getId())
-                                .name(RestrictStatus.valueOf(s.getId()).getName())
-                                .count(s.getCount()).build())
-                .toList();
-        int totalCount = dataResult.stream()
-                .mapToInt(ProductStatusDto::getCount)
-                .sum();
+        Set<IProductStatus> dataResult = productRepository.getMetaSumMyProductByStatus(currentUserShop.getId());
 
-        List<ProductStatusDto> result = new ArrayList<>(dataResult);
+        int totalCount = 0;
+        Map<String, Integer> keyExists = new HashMap<>();
+
+        for (IProductStatus dto : dataResult) {
+            keyExists.put(dto.getId(), dto.getCount());
+            totalCount += dto.getCount();
+        }
+
+        List<ProductStatusDto> result = new ArrayList<>();
+
+        for (RestrictStatus ex :  RestrictStatus.values()) {
+            if (RestrictStatus.ALL.equals(ex)) continue;
+            result.add(new ProductStatusDto(ex.getId(), ex.getName(), keyExists.getOrDefault(ex.getId(), 0), ex.getOrder()));
+        }
+
         result.add(ProductStatusDto.builder()
                 .id("ALL")
                 .name("Tất cả")
                 .count(totalCount)
                 .build());
-
+        result.sort(Comparator.comparing(ProductStatusDto::getOrder));
         return result;
     }
 
@@ -242,7 +247,7 @@ public class ProductServiceImp implements IProductService {
         Shop currentUserShop = securityUtils.getCurrentUserShop();
         Category category = null;
         if(categoryId != null && !categoryId.isEmpty()) {
-            category = categoryService.findByIdAndThrow(categoryId);
+            category = categoryService.findByIdOrUrlSlug(categoryId);
         }
         RestrictStatus restrictStatus = null;
         if (status != null && !status.isEmpty()) {

@@ -6,11 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder 
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductStatusDto {
     private String id;
     private String name;
     private int count;
+    private int order;
 }

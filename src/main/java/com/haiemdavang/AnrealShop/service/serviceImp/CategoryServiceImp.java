@@ -27,6 +27,12 @@ public class CategoryServiceImp implements ICategoryService {
     }
 
     @Override
+    public Category findByIdOrUrlSlug(String categoryId) {
+        return categoryRepository.findByIdOrUrlSlug(categoryId, categoryId)
+                .orElseThrow(() -> new BadRequestException("CATEGORY_NOT_FOUND"));
+    }
+
+    @Override
     public Category findById(String categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElse(null);

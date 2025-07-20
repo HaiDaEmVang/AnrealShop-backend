@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor 
 @AllArgsConstructor
 public class MyShopProductListResponse {
     private Long totalCount;

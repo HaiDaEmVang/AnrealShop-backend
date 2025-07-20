@@ -17,7 +17,7 @@ public class BaseCategoryDto {
     
     @JsonProperty("name")
     private String name;
-    
+     
     @JsonProperty("urlPath")
     private String urlPath;
 

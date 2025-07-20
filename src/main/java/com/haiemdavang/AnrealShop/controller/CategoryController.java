@@ -18,7 +18,7 @@ public class CategoryController {
     private final ICategoryService categoryService;
 
     @GetMapping("/suggest")
-    public ResponseEntity<List<BaseCategoryDto>> getCategorySuggest(@RequestParam String keyword) {
+    public ResponseEntity<List<BaseCategoryDto>> getCategorySuggest(@RequestParam(required = false) String keyword) {
         List<BaseCategoryDto> categories = categoryService.getCategorySuggest(keyword);
         return ResponseEntity.ok(categories);
     }
