@@ -117,4 +117,20 @@ public class AttributeMapper {
                 .collect(Collectors.toList());
     }
 
+    public List<ProductAttributeDto> toProductAttributeDtoFromAttributeValue(List<AttributeValue> attributeValues) {
+        if (attributeValues == null || attributeValues.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<ProductAttributeDto> resutl =  new ArrayList<>();
+        for (AttributeValue attributeValue : attributeValues) {
+            ProductAttributeDto productAttributeDto = ProductAttributeDto.builder()
+                    .attributeKeyName(attributeValue.getAttributeKey().getKeyName())
+                    .attributeKeyDisplay(attributeValue.getAttributeKey().getDisplayName())
+                    .values(List.of(attributeValue.getValue()))
+                    .build();
+            resutl.add(productAttributeDto);
+        }
+        return resutl;
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
@@ -181,6 +182,69 @@ public class ProductMapper {
                 .visible(product.isVisible())
                 .createdAt(product.getCreatedAt() != null ? product.getCreatedAt().toString() : null)
                 .productSkus(skuDtos)
+                .build();
+    }
+
+    public BaseProductSkuRequest toBaseProductSkuRequest(ProductSku productSku) {
+        if (productSku == null) {
+            return null;
+        }
+
+        List<ProductAttributeDto> attributes = attributeMapper.toProductAttributeDtoFromAttributeValue(productSku.getAttributes().stream().toList());
+        attributes = attributeMapper.formatAttributes(attributes);
+
+
+        return BaseProductSkuRequest.builder()
+                .sku(productSku.getSku())
+                .price(productSku.getPrice())
+                .quantity(productSku.getQuantity())
+                .imageUrl(productSku.getThumbnailUrl())
+                .attributes(attributes)
+                .build();
+    }
+    public BaseProductRequest toBaseProductRequest(Product product, List<ProductSku> skuForProduct, List<ProductAttributeSingleValueDto> attributeValues) {
+        if (product == null) {
+            return null;
+        }
+
+        List<BaseProductSkuRequest> skuRequests = new ArrayList<>();
+        if (skuForProduct != null && !skuForProduct.isEmpty()) {
+            skuRequests = skuForProduct.stream()
+                    .map(this::toBaseProductSkuRequest)
+                    .toList();
+        }
+
+        List<ProductAttributeDto> productAttributes = new ArrayList<>();
+        if (attributeValues != null && !attributeValues.isEmpty()) {
+            productAttributes = attributeMapper.toProductAttributeDto(attributeValues.stream().toList());
+        }
+
+        List<ProductMediaDto> mediaList = product.getMediaList() != null ?
+                product.getMediaList().stream()
+                        .map(media -> ProductMediaDto.builder()
+                                .id(media.getId())
+                                .url(media.getUrl())
+                                .thumbnailUrl(media.getUrl())
+                                .type(media.getType().name())
+                                .build())
+                        .toList() :
+                new ArrayList<>();
+
+        return BaseProductRequest.builder()
+                .name(product.getName())
+                .description(product.getDescription())
+                .sortDescription(product.getSortDescription())
+                .price(product.getPrice())
+                .discountPrice(product.getDiscountPrice())
+                .quantity(product.getQuantity())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .weight(product.getWeight())
+                .height(product.getHeight())
+                .length(product.getLength())
+                .width(product.getWidth())
+                .productSkus(skuRequests)
+                .attributes(productAttributes)
+                .media(mediaList)
                 .build();
     }
 

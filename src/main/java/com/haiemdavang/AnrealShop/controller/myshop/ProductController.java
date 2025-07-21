@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RestController
@@ -19,8 +20,13 @@ import java.util.Map;
 public class ProductController {
     private final IProductService productService;
 
+    @GetMapping("/my-shop/{id}")
+    public ResponseEntity<BaseProductRequest> getMyProduct(@RequestParam String id) {
+        BaseProductRequest productDto = productService.getMyShopProductById(id);
+        return ResponseEntity.ok(productDto);
+    }
     @GetMapping("/my-shop")
-    public ResponseEntity<MyShopProductListResponse> getMyProduct(
+    public ResponseEntity<MyShopProductListResponse> getMyProducts(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int limit,
             @RequestParam(required = false, defaultValue = "ALL") String status,
@@ -47,7 +53,7 @@ public class ProductController {
     }
 
     @GetMapping("/suggest-my-products-by-name")
-    public ResponseEntity<List<String>> suggestMyProductsName(@RequestParam String keyword) {
+    public ResponseEntity<List<String>> suggestMyProductsName(@RequestParam(required = false) String keyword) {
         List<String> productNames = productService.suggestMyProductsName(keyword);
         return ResponseEntity.ok(productNames);
     }
@@ -70,9 +76,21 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
     }
 
+    @DeleteMapping("")
+    public ResponseEntity<?> deleteProduct(@RequestBody Set<String> ids, @RequestParam(required = false) boolean isForce) {
+        productService.delete(ids, isForce);
+        return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
+    }
+
     @PutMapping("/{id}/update-visible")
-    public ResponseEntity<?> updateProductVisible(@PathVariable String id, @RequestParam boolean visible) {
+    public ResponseEntity<?> updateProductVisible(@PathVariable String id, @RequestParam(required = false, defaultValue = "0") boolean visible) {
         productService.updateProductVisible(id, visible);
+        return ResponseEntity.ok(Map.of("message", "Product visibility updated successfully"));
+    }
+
+    @PutMapping("/update-visible-multiple")
+    public ResponseEntity<?> updateProductVisible(@RequestBody Set<String> ids, @RequestParam(required = false, defaultValue = "0") boolean visible) {
+        productService.updateProductVisible(ids, visible);
         return ResponseEntity.ok(Map.of("message", "Product visibility updated successfully"));
     }
 }

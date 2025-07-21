@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.elasticsearch.service;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.elasticsearch.repository.EsProductRepository;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -27,8 +29,8 @@ public class ProductIndexerService {
     private final ProductMapper productMapper;
 
     @Transactional
-    public void indexProduct(ProductSyncMessage message) {
-        EsProduct esProduct =  productMapper.toEsProduct(message.getProduct());
+    public void indexProduct(EsProductDto message) {
+        EsProduct esProduct =  productMapper.toEsProduct(message);
         esProductRepository.save(esProduct);
     }
 
@@ -60,11 +62,26 @@ public class ProductIndexerService {
     }
 
     @Transactional
-    public void updateProductVisibility(String productId, boolean visible) {
-        EsProduct esProduct = esProductRepository.findById(productId)
+    public void deleteProductFromIndex(Set<String> id) {
+        esProductRepository.deleteByIdIn(id);
+    }
+
+    @Transactional
+    public void updateProductVisibility(String id, boolean visible) {
+        EsProduct esProduct = esProductRepository.findById(id)
                 .orElseThrow(() -> new AnrealShopException("ES_PRODUCT_NOT_FOUND"));
         esProduct.setVisible(visible);
         esProduct.setUpdatedAt(Instant.now());
         esProductRepository.save(esProduct);
+    }
+
+    @Transactional
+    public void updateProductVisibility(Set<String> ids, boolean visible) {
+        Set<EsProduct> esProducts = esProductRepository.findByIdIn(ids);
+        esProducts.forEach(esProduct -> {
+            esProduct.setVisible(visible);
+            esProduct.setUpdatedAt(Instant.now());
+        });
+        esProductRepository.saveAll(esProducts);
     }
 }

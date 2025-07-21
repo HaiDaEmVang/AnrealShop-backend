@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.kafka.consumer;
 
+import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
 import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
 import com.haiemdavang.AnrealShop.kafka.config.KafkaTopicConfig;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
@@ -17,9 +18,11 @@ public class ProductKafkaConsumer {
     @KafkaListener(topics = KafkaTopicConfig.PRODUCT_SYNC_TOPIC)
     public void listen(ProductSyncMessage message) {
         switch (message.getAction()) {
-            case CREATE, UPDATE -> productIndexerService.indexProduct(message);
-            case DELETE -> productIndexerService.deleteProductFromIndex(message.getProductId());
-            case PRODUCT_VISIBILITY_UPDATED -> productIndexerService.updateProductVisibility(message.getProductId(), message.isVisible());
+            case CREATE, UPDATE -> productIndexerService.indexProduct(message.getProduct());
+            case DELETE -> productIndexerService.deleteProductFromIndex(message.getId());
+            case MULTI_DELETE -> productIndexerService.deleteProductFromIndex(message.getIds());
+            case PRODUCT_UPDATED_VISIBILITY -> productIndexerService.updateProductVisibility(message.getId(), message.isVisible());
+            case PRODUCT_UPDATE_MULTI_VISIBILITY ->  productIndexerService.updateProductVisibility(message.getIds(), message.isVisible());
             default -> log.warn("Unknown action type: {}", message.getAction());
         }
 

@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
@@ -61,6 +62,18 @@ public class ProductServiceImp implements IProductService {
     private final AttributeMapper attributeMapper;
     private final AttributeServiceImp attributeServiceImp;
 
+    @Override
+    public BaseProductRequest getMyShopProductById(String id) {
+        if (!productRepository.existsById(id))  {
+            throw new BadRequestException("PRODUCT_NOT_FOUND");
+        }else {
+            Product product = productRepository.findBaseInfoById(id);
+            List<ProductSku> skuForProduct = productSkuRepository.findWithAttributeByProductId(id);
+            List<ProductAttributeSingleValueDto> attributeValues = productGeneralAttributeRepository.findProductAttributeByIdProduct(id);
+
+            return productMapper.toBaseProductRequest(product, skuForProduct, attributeValues);
+        }
+    }
 
     @Override
     @Transactional
@@ -112,7 +125,9 @@ public class ProductServiceImp implements IProductService {
             productSkuRepository.saveAll(productSkus);
 
         EsProductDto esProductDto = productMapper.toEsProductDto(newProduct, allAttributes);
-        ProductSyncMessage message = ProductSyncMessage.builder().action(ProductSyncActionType.CREATE).product(esProductDto).build();
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.CREATE)
+                .product(esProductDto).build();
         productKafkaProducer.sendProductSyncMessage(message);
     }
 
@@ -155,7 +170,6 @@ public class ProductServiceImp implements IProductService {
 
         ProductSyncMessage message = ProductSyncMessage.builder()
                 .action(ProductSyncActionType.UPDATE)
-                .productId(product.getId())
                 .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
@@ -168,14 +182,33 @@ public class ProductServiceImp implements IProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
         product.setVisible(visible);
+        product.setRestrictStatus(visible ? RestrictStatus.ACTIVE : RestrictStatus.HIDDEN);
         productRepository.save(product);
         ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.PRODUCT_VISIBILITY_UPDATED)
-                .productId(product.getId())
-                .visible(visible)
-                .product(null)
+                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .isVisible(visible).id(id)
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
+    }
+
+    @Override
+    public void updateProductVisible(Set<String> ids, boolean visible) {
+        Set<Product> products = productRepository.findByIdIn(ids);
+        if (products.isEmpty() || products.size() != ids.size()) {
+            throw new BadRequestException("PRODUCT_NOT_FOUND_IN_LIST");
+        }else {
+            RestrictStatus status = visible ? RestrictStatus.ACTIVE : RestrictStatus.HIDDEN;
+            products.forEach(t -> {
+                t.setRestrictStatus(status);
+                t.setVisible(visible);
+            });
+            productRepository.saveAll(products);
+            ProductSyncMessage message = ProductSyncMessage.builder()
+                    .action(ProductSyncActionType.PRODUCT_UPDATE_MULTI_VISIBILITY)
+                    .isVisible(visible).ids(ids)
+                    .build();
+            productKafkaProducer.sendProductSyncMessage(message);
+        }
     }
 
     @Override
@@ -185,21 +218,41 @@ public class ProductServiceImp implements IProductService {
             if (isForce) {
                 productRepository.deleteById(id);
                 ProductSyncMessage message = ProductSyncMessage.builder()
-                        .action(ProductSyncActionType.DELETE).productId(id).build();
+                        .action(ProductSyncActionType.DELETE).id(id).build();
                 productKafkaProducer.sendProductSyncMessage(message);
             } else {
                 productRepository.softDelById(id);
                 ProductSyncMessage message = ProductSyncMessage.builder()
-                        .action(ProductSyncActionType.PRODUCT_VISIBILITY_UPDATED)
-                        .productId(id)
-                        .visible(false)
-                        .product(null)
+                        .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                        .isVisible(false).id(id)
                         .build();
                 productKafkaProducer.sendProductSyncMessage(message);
             }
         }
         else {
             throw new BadRequestException("PRODUCT_NOT_FOUND");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void delete(Set<String> ids, boolean isForce) {
+        Set<Product> products = productRepository.findByIdIn(ids);
+        if (products.isEmpty() || products.size() != ids.size()) {
+            throw new BadRequestException("PRODUCT_NOT_FOUND_IN_LIST");
+        }else {
+            if(isForce) {
+                productRepository.deleteByIdIn(ids);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.MULTI_DELETE).ids(ids).build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            }else {
+                productRepository.softDelById(ids);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.PRODUCT_UPDATE_MULTI_VISIBILITY)
+                        .isVisible(false).ids(ids).build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            }
         }
     }
 

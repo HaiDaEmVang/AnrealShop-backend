@@ -7,6 +7,7 @@ import com.haiemdavang.AnrealShop.dto.product.ProductStatusDto;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Set;
 
 public interface IProductService {
     void createProduct(@Valid BaseProductRequest baseProductRequest);
@@ -19,5 +20,11 @@ public interface IProductService {
 
     void delete(String id, boolean isForce);
 
+    void delete(Set<String> ids, boolean isForce);
+
     void updateProductVisible(String id, boolean visible);
+
+    void updateProductVisible(Set<String> ids, boolean visible);
+
+    BaseProductRequest getMyShopProductById(String id);
 }
