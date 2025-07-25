@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
+import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.elasticsearch.repository.EsCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
@@ -13,11 +14,14 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryIndexerService {
     private final EsCategoryRepository esCategoryRepository;
+    private final ProductIndexerService productIndexerService;
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     public List<EsCategory> getCategoriesByKeyword(String keyword) {
@@ -46,4 +50,9 @@ public class CategoryIndexerService {
                 .toList();
     }
 
+    public Set<EsCategory> getCategoriesByProductName(String keyword, String idShop) {
+        List<EsProduct> products = productIndexerService.suggestMyProductsName(keyword, idShop);
+        Set<String> cateIds = products.stream().map(EsProduct::getCategoryId).collect(Collectors.toSet());
+        return esCategoryRepository.findByIdIn(cateIds);
+    }
 }

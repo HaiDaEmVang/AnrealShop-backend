@@ -17,6 +17,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -158,7 +159,7 @@ public class ProductMapper {
                 .createdAt(productSku.getCreatedAt() != null ? productSku.getCreatedAt().toString() : null)
                 .build();
     }
-    public MyShopProductDto toMyShopProductDto(Product product, List<ProductSku> productSkus) {
+    public MyShopProductDto toMyShopProductDto(Product product, Set<ProductSku> productSkus) {
         if (product == null) {
             return null;
         }

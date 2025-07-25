@@ -2,9 +2,9 @@ package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.category.BaseCategoryDto;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ICategoryService {
     Category findByIdAndThrow(String categoryId);
@@ -20,4 +20,6 @@ public interface ICategoryService {
     boolean existsById(String categoryId);
 
     Category getReferenceById(String categoryId);
+
+    Set<BaseCategoryDto> getCategorySuggestByProductName(String keyword);
 }

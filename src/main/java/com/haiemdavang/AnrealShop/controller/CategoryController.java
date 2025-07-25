@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RestController
@@ -20,6 +21,12 @@ public class CategoryController {
     @GetMapping("/suggest")
     public ResponseEntity<List<BaseCategoryDto>> getCategorySuggest(@RequestParam(required = false) String keyword) {
         List<BaseCategoryDto> categories = categoryService.getCategorySuggest(keyword);
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/suggest-by-product-name")
+    public ResponseEntity<Set<BaseCategoryDto>> getCategorySuggestByProductName(@RequestParam(required = false) String keyword) {
+        Set<BaseCategoryDto> categories = categoryService.getCategorySuggestByProductName(keyword);
         return ResponseEntity.ok(categories);
     }
 

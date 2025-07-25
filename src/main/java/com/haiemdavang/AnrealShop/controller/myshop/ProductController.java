@@ -21,7 +21,7 @@ public class ProductController {
     private final IProductService productService;
 
     @GetMapping("/my-shop/{id}")
-    public ResponseEntity<BaseProductRequest> getMyProduct(@RequestParam String id) {
+    public ResponseEntity<BaseProductRequest> getMyProduct(@PathVariable String id) {
         BaseProductRequest productDto = productService.getMyShopProductById(id);
         return ResponseEntity.ok(productDto);
     }
@@ -40,6 +40,7 @@ public class ProductController {
 
     @PostMapping("")
     public ResponseEntity<?> createProduct(@Valid @RequestBody BaseProductRequest baseProductRequest) {
+
         productService.createProduct(baseProductRequest);
         return ResponseEntity.ok(Map.of("message", "Product created successfully"));
     }

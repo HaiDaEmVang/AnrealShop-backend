@@ -133,7 +133,7 @@
         }
 
         @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-        private List<ProductSku> productSkus;
+        private Set<ProductSku> productSkus;
 
         public void addMedia(ProductMedia productMedia) {
             if (this.mediaList == null) {

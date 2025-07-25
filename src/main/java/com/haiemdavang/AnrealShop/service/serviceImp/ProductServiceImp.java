@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.service.serviceImp;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
+import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncActionType;
@@ -166,13 +167,13 @@ public class ProductServiceImp implements IProductService {
             }
         }
 
-        productRepository.save(product);
+//        productRepository.save(product);
 
-        ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.UPDATE)
-                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
-                .build();
-        productKafkaProducer.sendProductSyncMessage(message);
+//        ProductSyncMessage message = ProductSyncMessage.builder()
+//                .action(ProductSyncActionType.UPDATE)
+//                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
+//                .build();
+//        productKafkaProducer.sendProductSyncMessage(message);
         return productMapper.toMyShopProductDto(product, product.getProductSkus());
     }
 
@@ -258,12 +259,12 @@ public class ProductServiceImp implements IProductService {
 
     @Override
     public List<String> suggestMyProductsName(String keyword) {
-    if (keyword == null || keyword.isEmpty()) {
+        if (keyword == null || keyword.isEmpty()) {
             return Collections.emptyList();
         }
         Shop currentUserShop = securityUtils.getCurrentUserShop();
 
-        return productIndexerService.suggestMyProductsName(keyword, currentUserShop.getId());
+        return productIndexerService.suggestMyProductsName(keyword, currentUserShop.getId()).stream().map(EsProduct::getName).toList();
     }
 
     @Override
@@ -323,7 +324,7 @@ public class ProductServiceImp implements IProductService {
         List<ProductSku> productSkus = productSkuRepository.findByProductIdIn(productIds);
 
         return MyShopProductListResponse.builder()
-                .products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).toList())).toList())
+                .products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).collect(Collectors.toSet()))).toList())
                 .currentPage(productPage.getPageable().getPageNumber() + 1)
                 .totalPages(productPage.getTotalPages())
                 .totalCount(productPage.getTotalElements())

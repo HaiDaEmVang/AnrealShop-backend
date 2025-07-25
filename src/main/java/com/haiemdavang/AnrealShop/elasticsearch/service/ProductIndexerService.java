@@ -5,13 +5,12 @@ import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.elasticsearch.repository.EsProductRepository;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
-import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncActionType;
-import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,25 +33,28 @@ public class ProductIndexerService {
         esProductRepository.save(esProduct);
     }
 
-    public List<String> suggestMyProductsName(String keyword, String id) {
+    public List<EsProduct> suggestMyProductsName(String keyword, String id) {
         NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(QueryBuilders.bool(b -> b
-                        .should(QueryBuilders.matchPhrasePrefix(m ->
-                                m.field("name.suggest").query(keyword)))
-                        .should(QueryBuilders.match(m ->
-                                m.field("name.search_name").query(keyword)))
-                        .filter(f -> f
-                                .term(t -> t
-                                        .field("shop.id")
-                                        .value(id)))
-                        .minimumShouldMatch("1")
+                .withQuery(QueryBuilders.bool(b -> {
+                            b.should(QueryBuilders.matchPhrasePrefix(m ->
+                                    m.field("name.suggest").query(keyword)));
+                            b.should(QueryBuilders.match(m ->
+                                    m.field("name.search_name").query(keyword)));
+
+                            b.minimumShouldMatch("1");
+
+                            if (id != null && !id.isBlank()) {
+                                b.filter(f -> f.term(t -> t.field("shop.id").value(id)));
+                            }
+                            return b;
+                        }
                 ))
                 .withMaxResults(10)
                 .build();
 
         SearchHits<EsProduct> searchHit = elasticsearchTemplate.search(searchQuery, EsProduct.class);
         return searchHit.getSearchHits().stream()
-                .map(hit -> hit.getContent().getName())
+                .map(SearchHit::getContent)
                 .toList();
     }
 

@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +53,13 @@ public class CategoryServiceImp implements ICategoryService {
     }
 
     @Override
+    public Set<BaseCategoryDto> getCategorySuggestByProductName(String keyword) {
+        Set<EsCategory> categories = esCategoryIndexerService.getCategoriesByProductName(keyword, null);
+        return categories.stream().map(categoryMapper::toBaseCategoryDto)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public boolean existsById(String categoryId) {
         return categoryRepository.existsById(categoryId);
     }
@@ -59,4 +68,6 @@ public class CategoryServiceImp implements ICategoryService {
     public Category getReferenceById(String categoryId) {
         return categoryRepository.getReferenceById(categoryId);
     }
+
+
 }
