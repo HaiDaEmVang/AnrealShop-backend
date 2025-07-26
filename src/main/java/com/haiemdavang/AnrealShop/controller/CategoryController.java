@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.controller;
 
 import com.haiemdavang.AnrealShop.dto.category.BaseCategoryDto;
+import com.haiemdavang.AnrealShop.dto.category.CategoryModalSelectedDto;
 import com.haiemdavang.AnrealShop.service.ICategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,12 @@ import java.util.Set;
 @RequestMapping("/api/categories")
 public class CategoryController {
     private final ICategoryService categoryService;
+
+    @GetMapping("/my-shop")
+    public ResponseEntity<List<CategoryModalSelectedDto>> getCategoryMyShop() {
+        List<CategoryModalSelectedDto> categories = categoryService.getCategoryMyShop();
+        return ResponseEntity.ok(categories);
+    }
 
     @GetMapping("/suggest")
     public ResponseEntity<List<BaseCategoryDto>> getCategorySuggest(@RequestParam(required = false) String keyword) {

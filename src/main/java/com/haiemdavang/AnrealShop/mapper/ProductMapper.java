@@ -239,6 +239,7 @@ public class ProductMapper {
                 .discountPrice(product.getDiscountPrice())
                 .quantity(product.getQuantity())
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .categoryPath(product.getCategory() != null ? product.getCategory().getUrlPath() : null)
                 .weight(product.getWeight())
                 .height(product.getHeight())
                 .length(product.getLength())

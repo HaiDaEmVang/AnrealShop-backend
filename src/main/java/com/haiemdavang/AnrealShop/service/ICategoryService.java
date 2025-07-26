@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.category.BaseCategoryDto;
+import com.haiemdavang.AnrealShop.dto.category.CategoryModalSelectedDto;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface ICategoryService {
     Category getReferenceById(String categoryId);
 
     Set<BaseCategoryDto> getCategorySuggestByProductName(String keyword);
+
+    List<CategoryModalSelectedDto> getCategoryMyShop();
 }

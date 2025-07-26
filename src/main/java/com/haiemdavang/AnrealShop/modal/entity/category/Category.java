@@ -34,6 +34,9 @@ public class Category {
     @Column(length = 100)
     private String urlSlug;
 
+    @Column
+    private int level;
+
     @Column(columnDefinition = "TEXT")
     private String urlPath;
 

@@ -1,16 +1,20 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.category.BaseCategoryDto;
+import com.haiemdavang.AnrealShop.dto.category.CategoryModalSelectedDto;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
 import com.haiemdavang.AnrealShop.elasticsearch.service.CategoryIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.CategoryMapper;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
+import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.repository.CategoryRepository;
+import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.ICategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +25,8 @@ public class CategoryServiceImp implements ICategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryIndexerService esCategoryIndexerService;
     private final CategoryMapper categoryMapper;
+
+    private final SecurityUtils securityUtils;
 
     @Override
     public Category findByIdAndThrow(String categoryId) {
@@ -57,6 +63,14 @@ public class CategoryServiceImp implements ICategoryService {
         Set<EsCategory> categories = esCategoryIndexerService.getCategoriesByProductName(keyword, null);
         return categories.stream().map(categoryMapper::toBaseCategoryDto)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<CategoryModalSelectedDto> getCategoryMyShop() {
+//        Shop shop = securityUtils.getCurrentUserShop();
+        return categoryRepository.findAll().stream()
+                .map(categoryMapper::toCategoryModalSelectedDto)
+                .toList();
     }
 
     @Override

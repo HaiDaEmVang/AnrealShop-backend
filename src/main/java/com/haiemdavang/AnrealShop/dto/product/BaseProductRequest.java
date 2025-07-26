@@ -40,6 +40,8 @@ public class BaseProductRequest {
     @NotNull(message = "PRODUCT_CATEGORYID_NOTNULL")
     private String categoryId;
 
+    private String categoryPath;
+
     @NotNull(message = "PRODUCT_WEIGHT_NOTNULL")
     private BigDecimal weight;
 
