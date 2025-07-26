@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
-import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,5 +31,5 @@ public class BaseProductSkuRequest {
 
     private String imageUrl;
 
-    private List<ProductAttribute> attributes;
+    private List<ProductAttributeDto> attributes;
 }

@@ -1,17 +1,18 @@
 package com.haiemdavang.AnrealShop.dto.attribute;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttributeResponse {
-    List<AttributeDtoDto> attribute; // branch, original, etc.
-    List<ProductAttributeDto> attributeForSku; //size, color, etc.
+public class ProductAttributeDto {
+    private String attributeKeyName;
+    private String attributeKeyDisplay;
+    private List<String> values;
 }

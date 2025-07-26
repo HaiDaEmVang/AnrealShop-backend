@@ -4,26 +4,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BaseCategoryDto {
-    @JsonProperty("id")
-    private String id;
-    
-    @JsonProperty("name")
-    private String name;
-     
-    @JsonProperty("urlPath")
-    private String urlPath;
-
-    @JsonProperty("urlSlug")
-    private String urlSlug;
+public class CategoryModalSelectedDto extends BaseCategoryDto{
 
     @JsonProperty("parentId")
     private String parentId;

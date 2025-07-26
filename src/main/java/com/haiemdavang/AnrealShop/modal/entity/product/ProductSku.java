@@ -1,14 +1,13 @@
 package com.haiemdavang.AnrealShop.modal.entity.product;
 
 
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -38,6 +37,10 @@ public class ProductSku {
 
     @Column(nullable = false)
     private Long price;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private int sold = 0;
 
     @Column(columnDefinition = "INT DEFAULT 0")
     private int quantity = 0;

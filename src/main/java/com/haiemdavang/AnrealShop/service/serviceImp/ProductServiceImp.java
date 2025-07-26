@@ -1,24 +1,42 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
-import com.haiemdavang.AnrealShop.dto.attribute.ProductAttribute;
-import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
-import com.haiemdavang.AnrealShop.dto.product.BaseProductSkuRequest;
-import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
+import com.haiemdavang.AnrealShop.dto.product.*;
+import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
+import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncActionType;
 import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
 import com.haiemdavang.AnrealShop.kafka.producer.ProductKafkaProducer;
+import com.haiemdavang.AnrealShop.mapper.AttributeMapper;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeKey;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductGeneralAttribute;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductMedia;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeKey;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
-import com.haiemdavang.AnrealShop.repository.*;
+import com.haiemdavang.AnrealShop.modal.enums.MediaType;
+import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
+import com.haiemdavang.AnrealShop.repository.AttributeKeyRepository;
+import com.haiemdavang.AnrealShop.repository.AttributeValueRepository;
+import com.haiemdavang.AnrealShop.repository.ProductGeneralAttributeRepository;
+import com.haiemdavang.AnrealShop.repository.ProductSkuRepository;
+import com.haiemdavang.AnrealShop.repository.product.ProductRepository;
+import com.haiemdavang.AnrealShop.repository.product.ProductSpecification;
+import com.haiemdavang.AnrealShop.security.SecurityUtils;
+import com.haiemdavang.AnrealShop.service.ICategoryService;
 import com.haiemdavang.AnrealShop.service.IProductService;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,33 +48,50 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductServiceImp implements IProductService {
     private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
+    private final ICategoryService categoryService;
     private final ProductSkuRepository productSkuRepository;
-    private final ShopRepository shopRepository;
+    private final ProductGeneralAttributeRepository productGeneralAttributeRepository;
     private final AttributeValueRepository attributeValueRepository;
     private final AttributeKeyRepository attributeKeyRepository;
     private final ProductMapper productMapper;
 
     private final ProductKafkaProducer productKafkaProducer;
+    private final ProductIndexerService productIndexerService;
+
+    private final SecurityUtils securityUtils;
+
+    private final AttributeMapper attributeMapper;
+    private final AttributeServiceImp attributeServiceImp;
+
+    @Override
+    public BaseProductRequest getMyShopProductById(String id) {
+        if (!productRepository.existsById(id))  {
+            throw new BadRequestException("PRODUCT_NOT_FOUND");
+        }else {
+            Product product = productRepository.findBaseInfoById(id);
+            List<ProductSku> skuForProduct = productSkuRepository.findWithAttributeByProductId(id);
+            List<ProductAttributeSingleValueDto> attributeValues = productGeneralAttributeRepository.findProductAttributeByIdProduct(id);
+
+            return productMapper.toBaseProductRequest(product, skuForProduct, attributeValues);
+        }
+    }
 
     @Override
     @Transactional
     public void createProduct(BaseProductRequest baseProductRequest) {
-//        Shop currentUserShop = securityUtils.getCurrentUserShop();
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
 
-        Shop currentUserShop = shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
-                .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
-
-        Category category = categoryRepository.findById(baseProductRequest.getCategoryId())
-                .orElseThrow(() -> new BadRequestException("CATEGORY_NOT_FOUND"));
+        Category category = categoryService.findByIdAndThrow(baseProductRequest.getCategoryId());
 
         Product product = productMapper.toEntity(baseProductRequest, category, currentUserShop);
 
-        List<ProductAttribute> allAttributes = new ArrayList<>();
+        this.updateProductMediaList(baseProductRequest.getMedia(), product);
+
+        List<ProductAttributeDto> allAttributes = new ArrayList<>();
 
 
         if (baseProductRequest.getAttributes() != null && !baseProductRequest.getAttributes().isEmpty()) {
-            Set<ProductAttribute> requestedGeneralAttributes = new HashSet<>(baseProductRequest.getAttributes());
+            Set<ProductAttributeDto> requestedGeneralAttributes = new HashSet<>(baseProductRequest.getAttributes());
             allAttributes.addAll(requestedGeneralAttributes);
             processProductAttributes(product, requestedGeneralAttributes);
         }
@@ -64,20 +99,20 @@ public class ProductServiceImp implements IProductService {
 
         List<ProductSku> productSkus = new ArrayList<>();
         if (baseProductRequest.getProductSkus() != null && !baseProductRequest.getProductSkus().isEmpty()) {
-            Set<ProductAttribute> allSkuAttributes = new HashSet<>();
+            Set<ProductAttributeDto> allSkuAttributes = new HashSet<>();
             for (BaseProductSkuRequest skuRequest : baseProductRequest.getProductSkus()) {
                 ProductSku productSku = productMapper.toSkuEntity(skuRequest, newProduct);
 
                 if (skuRequest.getAttributes() != null && !skuRequest.getAttributes().isEmpty()) {
-                    Set<ProductAttribute> requestedSkuAttributes = new HashSet<>(skuRequest.getAttributes());
+                    Set<ProductAttributeDto> requestedSkuAttributes = new HashSet<>(skuRequest.getAttributes());
                     allSkuAttributes.addAll(requestedSkuAttributes);
                     processSkuAttributes(productSku, requestedSkuAttributes);
                 }
                 productSkus.add(productSku);
             }
-            Map<String, ProductAttribute> skuAttributesMap = allSkuAttributes.stream()
-                    .collect(Collectors.toMap(ProductAttribute::getAttributeKeyName,
-                            attr -> ProductAttribute.builder()
+            Map<String, ProductAttributeDto> skuAttributesMap = allSkuAttributes.stream()
+                    .collect(Collectors.toMap(ProductAttributeDto::getAttributeKeyName,
+                            attr -> ProductAttributeDto.builder()
                                     .attributeKeyName(attr.getAttributeKeyName())
                                     .attributeKeyDisplay(attr.getAttributeKeyDisplay())
                                     .values(new ArrayList<>(attr.getValues()))
@@ -91,13 +126,310 @@ public class ProductServiceImp implements IProductService {
             productSkuRepository.saveAll(productSkus);
 
         EsProductDto esProductDto = productMapper.toEsProductDto(newProduct, allAttributes);
-        ProductSyncMessage message = ProductSyncMessage.builder().action(ProductSyncActionType.CREATE).product(esProductDto).build();
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.CREATE)
+                .product(esProductDto).build();
         productKafkaProducer.sendProductSyncMessage(message);
     }
 
-    private void processProductAttributes(Product product, Set<ProductAttribute> requestedAttributes) {
+    @Override
+    @Transactional
+    public MyShopProductDto updateProduct(String id, BaseProductRequest baseProductRequest) {
+        Product product = productRepository.findWithCategoryAndMediaAndGeneralAttributeById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+
+        Category category = null;
+        if (baseProductRequest.getCategoryId() != null && categoryService.existsById(baseProductRequest.getCategoryId())) {
+            if (product.getCategory() != null && !product.getCategory().getId().equals(baseProductRequest.getCategoryId())) {
+                category = categoryService.getReferenceById(baseProductRequest.getCategoryId());
+            }
+        } else {
+            throw new BadRequestException("CATEGORY_NOT_FOUND");
+        }
+        productMapper.updateEntity(product, baseProductRequest, category);
+
+        this.updateProductMediaList(baseProductRequest.getMedia(), product);
+
+        List<ProductGeneralAttribute> oldAttributeForProduct = productGeneralAttributeRepository.findProductGeneralAttributesByProductId(id);
+
+        this.updateAttributeForProduct(oldAttributeForProduct, baseProductRequest.getAttributes(), product);
+
+        List<ProductSku> oldProductSkus = productSkuRepository.findWithAttributeByProductId(id);
+
+        List<ProductAttributeDto> attributeList = new ArrayList<>();
+        if (baseProductRequest.getAttributes() != null) {
+            attributeList.addAll(baseProductRequest.getAttributes());
+        }
+        this.updateProductSkus(oldProductSkus, baseProductRequest.getProductSkus(), product);
+        for (BaseProductSkuRequest sku : baseProductRequest.getProductSkus()) {
+            if (sku.getAttributes() != null && !sku.getAttributes().isEmpty()) {
+                attributeList.addAll(sku.getAttributes());
+            }
+        }
+
+//        productRepository.save(product);
+
+//        ProductSyncMessage message = ProductSyncMessage.builder()
+//                .action(ProductSyncActionType.UPDATE)
+//                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
+//                .build();
+//        productKafkaProducer.sendProductSyncMessage(message);
+        return productMapper.toMyShopProductDto(product, product.getProductSkus());
+    }
+
+    @Override
+    @Transactional
+    public void updateProductVisible(String id, boolean visible) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+        product.setVisible(visible);
+        product.setRestrictStatus(visible ? RestrictStatus.ACTIVE : RestrictStatus.HIDDEN);
+        productRepository.save(product);
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .isVisible(visible).id(id)
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+    }
+
+    @Override
+    public void updateProductVisible(Set<String> ids, boolean visible) {
+        Set<Product> products = productRepository.findByIdIn(ids);
+        if (products.isEmpty() || products.size() != ids.size()) {
+            throw new BadRequestException("PRODUCT_NOT_FOUND_IN_LIST");
+        }else {
+            RestrictStatus status = visible ? RestrictStatus.ACTIVE : RestrictStatus.HIDDEN;
+            products.forEach(t -> {
+                t.setRestrictStatus(status);
+                t.setVisible(visible);
+            });
+            productRepository.saveAll(products);
+            ProductSyncMessage message = ProductSyncMessage.builder()
+                    .action(ProductSyncActionType.PRODUCT_UPDATE_MULTI_VISIBILITY)
+                    .isVisible(visible).ids(ids)
+                    .build();
+            productKafkaProducer.sendProductSyncMessage(message);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void delete(String id, boolean isForce) {
+        if(productRepository.existsById(id)){
+            if (isForce) {
+                productRepository.deleteById(id);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.DELETE).id(id).build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            } else {
+                productRepository.softDelById(id);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                        .isVisible(false).id(id)
+                        .build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            }
+        }
+        else {
+            throw new BadRequestException("PRODUCT_NOT_FOUND");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void delete(Set<String> ids, boolean isForce) {
+        Set<Product> products = productRepository.findByIdIn(ids);
+        if (products.isEmpty() || products.size() != ids.size()) {
+            throw new BadRequestException("PRODUCT_NOT_FOUND_IN_LIST");
+        }else {
+            if(isForce) {
+                productRepository.deleteByIdIn(ids);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.MULTI_DELETE).ids(ids).build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            }else {
+                productRepository.softDelById(ids);
+                ProductSyncMessage message = ProductSyncMessage.builder()
+                        .action(ProductSyncActionType.PRODUCT_UPDATE_MULTI_VISIBILITY)
+                        .isVisible(false).ids(ids).build();
+                productKafkaProducer.sendProductSyncMessage(message);
+            }
+        }
+    }
+
+    @Override
+    public List<String> suggestMyProductsName(String keyword) {
+        if (keyword == null || keyword.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
+
+        return productIndexerService.suggestMyProductsName(keyword, currentUserShop.getId()).stream().map(EsProduct::getName).toList();
+    }
+
+    @Override
+    public List<ProductStatusDto> getFilterMeta() {
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
+        Set<IProductStatus> dataResult = productRepository.getMetaSumMyProductByStatus(currentUserShop.getId());
+
+        int totalCount = 0;
+        Map<String, Integer> keyExists = new HashMap<>();
+
+        for (IProductStatus dto : dataResult) {
+            keyExists.put(dto.getId(), dto.getCount());
+            totalCount += dto.getCount();
+        }
+
+        List<ProductStatusDto> result = new ArrayList<>();
+
+        for (RestrictStatus ex :  RestrictStatus.values()) {
+            if (RestrictStatus.ALL.equals(ex)) continue;
+            result.add(new ProductStatusDto(ex.getId(), ex.getName(), keyExists.getOrDefault(ex.getId(), 0), ex.getOrder()));
+        }
+
+        result.add(ProductStatusDto.builder()
+                .id("ALL")
+                .name("Tất cả")
+                .count(totalCount)
+                .build());
+        result.sort(Comparator.comparing(ProductStatusDto::getOrder));
+        return result;
+    }
+
+    @Override
+    public MyShopProductListResponse getMyShopProducts(int page, int limit, String status, String search, String categoryId, String sortBy) {
+        Shop currentUserShop = securityUtils.getCurrentUserShop();
+        Category category = null;
+        if(categoryId != null && !categoryId.isEmpty()) {
+            category = categoryService.findByIdOrUrlSlug(categoryId);
+        }
+        RestrictStatus restrictStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                restrictStatus = RestrictStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("RESTRICT_STATUS_INVALID");
+            }
+        }
+
+        Specification<Product> spec = ProductSpecification.myShopFilter(search, category == null ? null : category.getId(), currentUserShop.getId(), restrictStatus);
+        Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<String> productIds = productPage.getContent().stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        List<ProductSku> productSkus = productSkuRepository.findByProductIdIn(productIds);
+
+        return MyShopProductListResponse.builder()
+                .products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).collect(Collectors.toSet()))).toList())
+                .currentPage(productPage.getPageable().getPageNumber() + 1)
+                .totalPages(productPage.getTotalPages())
+                .totalCount(productPage.getTotalElements())
+                .build();
+    }
+
+    private void updateAttributeForProduct(List<ProductGeneralAttribute> oldAttributeForProduct,
+                                          List<ProductAttributeDto> attributes,
+                                          Product product) {
+
+        Set<AttributeValue> newAttributeValues = attributeServiceImp.getAttributeValues(attributes);
+
+        Set<ProductGeneralAttribute> attributeToDelete = oldAttributeForProduct.stream()
+                .filter(pga -> !newAttributeValues.contains(pga.getAttributeValue()))
+                .collect(Collectors.toSet());
+        product.getGeneralAttributes().removeAll(attributeToDelete);
+
+        Set<AttributeValue> oldAttributeValues = oldAttributeForProduct.stream()
+                .map(ProductGeneralAttribute::getAttributeValue)
+                .collect(Collectors.toSet());
+
+        for (AttributeValue av : newAttributeValues) {
+            if (oldAttributeValues.contains(av)) {
+                continue;
+            }
+            product.addGeneralAttribute(av);
+        }
+    }
+
+    private void updateProductSkus(List<ProductSku> oldProductSkus, List<BaseProductSkuRequest> productSkus, Product product) {
+        Map<String, BaseProductSkuRequest> newSkuMap = productSkus.stream()
+                .collect(Collectors.toMap(BaseProductSkuRequest::getSku, sku -> sku));
+
+        Map<String, ProductSku> oldSkuMap = oldProductSkus.stream()
+                .collect(Collectors.toMap(ProductSku::getSku, sku -> sku));
+
+        Set<String> toDeleteSkus = oldSkuMap.keySet().stream()
+                .filter(sku -> !newSkuMap.containsKey(sku))
+                .collect(Collectors.toSet());
+
+        product.getProductSkus().removeIf(sku -> toDeleteSkus.contains(sku.getSku()));
+
+        for (BaseProductSkuRequest request : productSkus) {
+            ProductSku existing = oldSkuMap.get(request.getSku());
+
+            if (existing != null) {
+                existing.setPrice(request.getPrice());
+                existing.setQuantity(request.getQuantity());
+                existing.setThumbnailUrl(request.getImageUrl());
+            } else {
+                ProductSku newSku = productMapper.toSkuEntity(request, product);
+                Set<AttributeValue> attributes = attributeServiceImp.getAttributeValues(request.getAttributes());
+                newSku.getAttributes().addAll(attributes);
+                product.getProductSkus().add(newSku);
+            }
+        }
+    }
+
+    private void updateProductMediaList(List<ProductMediaDto> productMediaDto, Product product) {
+        if (product.getMediaList() == null) {
+            product.setMediaList(new HashSet<>());
+        }
+
+        Map<String, ProductMediaDto> newMediaDtoMap = productMediaDto.stream()
+                .collect(Collectors.toMap(ProductMediaDto::getId,
+                        media -> media,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new));
+
+        Set<ProductMedia> mediaToRemoves = product.getMediaList().stream()
+                .filter(media -> !newMediaDtoMap.containsKey(media.getId()))
+                .collect(Collectors.toSet());
+        product.getMediaList().removeAll(mediaToRemoves);
+
+        Map<String, ProductMedia> existingMediaMap = product.getMediaList().stream()
+                .collect(Collectors.toMap(ProductMedia::getId, media -> media));
+
+        Set<ProductMedia> mediaToAdd = new HashSet<>();
+        for (Map.Entry<String, ProductMediaDto> entry : newMediaDtoMap.entrySet()) {
+            String mediaId = entry.getKey();
+            ProductMediaDto mediaDto = entry.getValue();
+
+            ProductMedia existingMedia = existingMediaMap.get(mediaId);
+
+            if (existingMedia == null) {
+                ProductMedia newMedia = ProductMedia.builder()
+                        .id(mediaId)
+                        .url(mediaDto.getUrl())
+                        .type(MediaType.valueOf(mediaDto.getType()))
+                        .product(product)
+                        .build();
+                mediaToAdd.add(newMedia);
+            }
+        }
+        product.getMediaList().addAll(mediaToAdd);
+
+        productMediaDto.stream()
+                .filter(media -> "IMAGE".equals(media.getType()))
+                .findFirst()
+                .ifPresent(media -> product.setThumbnailUrl(media.getUrl()));
+    }
+
+    private void processProductAttributes(Product product, Set<ProductAttributeDto> requestedAttributes) {
         Set<String> allRequestedAttributeKeyNames = requestedAttributes.stream()
-                .map(ProductAttribute::getAttributeKeyName)
+                .map(ProductAttributeDto::getAttributeKeyName)
                 .collect(Collectors.toSet());
 
         Map<String, AttributeKey> existingAttributeKeysMap = new HashMap<>();
@@ -115,7 +447,7 @@ public class ProductServiceImp implements IProductService {
                 allRequestedKeyValuePairs, existingAttributeKeysMap
         );
 
-        for (ProductAttribute attrReq : requestedAttributes) {
+        for (ProductAttributeDto attrReq : requestedAttributes) {
             AttributeKey attributeKey = existingAttributeKeysMap.get(attrReq.getAttributeKeyName());
             if (attributeKey == null || attributeKey.isForSku()) {
                 log.warn("AttributeKey '{}' ko tim thay.", attrReq.getAttributeKeyName());
@@ -133,9 +465,9 @@ public class ProductServiceImp implements IProductService {
         }
     }
 
-    private void processSkuAttributes(ProductSku productSku, Set<ProductAttribute> requestedAttributes) {
+    private void processSkuAttributes(ProductSku productSku, Set<ProductAttributeDto> requestedAttributes) {
         Set<String> allRequestedAttributeKeyNames = requestedAttributes.stream()
-                .map(ProductAttribute::getAttributeKeyName)
+                .map(ProductAttributeDto::getAttributeKeyName)
                 .collect(Collectors.toSet());
 
         Map<String, AttributeKey> existingAttributeKeysMap = new HashMap<>();
@@ -152,7 +484,7 @@ public class ProductServiceImp implements IProductService {
                 allRequestedKeyValuePairs, existingAttributeKeysMap
         );
 
-        for (ProductAttribute attrReq : requestedAttributes) {
+        for (ProductAttributeDto attrReq : requestedAttributes) {
             AttributeKey attributeKey = existingAttributeKeysMap.get(attrReq.getAttributeKeyName());
             if (attributeKey == null || !attributeKey.isForSku()) {
                 continue;

@@ -54,6 +54,9 @@ public class BaseProductDto {
     
     @JsonProperty("visible")
     private boolean visible;
+
+    @JsonProperty("restrictStatus")
+    private String restrictStatus;
     
     @JsonProperty("createdAt")
     private String createdAt;

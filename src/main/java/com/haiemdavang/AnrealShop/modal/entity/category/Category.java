@@ -1,10 +1,7 @@
 package com.haiemdavang.AnrealShop.modal.entity.category;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -15,9 +12,11 @@ import java.util.Set;
 @Builder
 @Entity
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @Table(name = "categories")
 public class Category {
     @Id
+    @ToString.Include
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36, updatable = false, nullable = false)
     private String id;
@@ -35,7 +34,10 @@ public class Category {
     @Column(length = 100)
     private String urlSlug;
 
-    @Column(length = 100)
+    @Column
+    private int level;
+
+    @Column(columnDefinition = "TEXT")
     private String urlPath;
 
     @Column(name = "has_children", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")

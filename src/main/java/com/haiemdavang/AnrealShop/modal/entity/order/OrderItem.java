@@ -2,7 +2,7 @@ package com.haiemdavang.AnrealShop.modal.entity.order;
 
 
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.modal.entity.cart;
 
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
-import com.haiemdavang.AnrealShop.modal.entity.sku.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import jakarta.persistence.*;
 import lombok.*;
 

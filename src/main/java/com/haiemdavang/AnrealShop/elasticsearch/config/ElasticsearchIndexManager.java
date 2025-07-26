@@ -22,6 +22,7 @@ public class ElasticsearchIndexManager {
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
         this.createIndexIfNotExists("products", "es/products-index.json");
+        this.createIndexIfNotExists("categories", "es/categories-index.json");
     }
 
     private void createIndexIfNotExists(String indexName, String mappingFilePath) {

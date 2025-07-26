@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.modal.entity.sku;
+package com.haiemdavang.AnrealShop.modal.entity.attribute;
 
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import jakarta.persistence.*;

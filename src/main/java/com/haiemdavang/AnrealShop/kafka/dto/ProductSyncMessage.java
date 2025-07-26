@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,5 +16,8 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductSyncMessage {
     private ProductSyncActionType action;
+    private String id;
+    private Set<String> ids;
     private EsProductDto product;
+    private boolean isVisible;
 }
