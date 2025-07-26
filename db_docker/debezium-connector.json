@@ -1,0 +1,17 @@
+{
+  "name": "mysql-source-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "debezium",
+    "database.password": "debeziumpass",
+    "database.server.id": "184054",
+    "database.server.name": "anrealShop",
+    "database.include.list": "db_anrealShop_test",
+    "table.include.list": "db_anrealShop_test.outbox_messages",
+    "include.schema.changes": "false",
+    "database.history.kafka.bootstrap.servers": "kafka:9092",
+    "database.history.kafka.topic": "schema-changes.anreal"
+  }
+}

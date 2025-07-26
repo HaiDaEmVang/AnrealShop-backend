@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
@@ -11,6 +12,7 @@ import com.haiemdavang.AnrealShop.kafka.dto.ProductSyncMessage;
 import com.haiemdavang.AnrealShop.kafka.producer.ProductKafkaProducer;
 import com.haiemdavang.AnrealShop.mapper.AttributeMapper;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
+import com.haiemdavang.AnrealShop.modal.entity.OutboxMessage;
 import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeKey;
 import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
@@ -20,16 +22,15 @@ import com.haiemdavang.AnrealShop.modal.entity.product.ProductMedia;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.enums.MediaType;
+import com.haiemdavang.AnrealShop.modal.enums.OutboxMessageType;
 import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
-import com.haiemdavang.AnrealShop.repository.AttributeKeyRepository;
-import com.haiemdavang.AnrealShop.repository.AttributeValueRepository;
-import com.haiemdavang.AnrealShop.repository.ProductGeneralAttributeRepository;
-import com.haiemdavang.AnrealShop.repository.ProductSkuRepository;
+import com.haiemdavang.AnrealShop.repository.*;
 import com.haiemdavang.AnrealShop.repository.product.ProductRepository;
 import com.haiemdavang.AnrealShop.repository.product.ProductSpecification;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.ICategoryService;
 import com.haiemdavang.AnrealShop.service.IProductService;
+import com.haiemdavang.AnrealShop.service.common.OutboxMessageService;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,8 @@ public class ProductServiceImp implements IProductService {
 
     private final AttributeMapper attributeMapper;
     private final AttributeServiceImp attributeServiceImp;
+
+    private final OutboxMessageService outboxMessageService;
 
     @Override
     public BaseProductRequest getMyShopProductById(String id) {
@@ -126,10 +129,8 @@ public class ProductServiceImp implements IProductService {
             productSkuRepository.saveAll(productSkus);
 
         EsProductDto esProductDto = productMapper.toEsProductDto(newProduct, allAttributes);
-        ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.CREATE)
-                .product(esProductDto).build();
-        productKafkaProducer.sendProductSyncMessage(message);
+
+        outboxMessageService.saveMessage(esProductDto, OutboxMessageType.PRODUCT_CREATE, esProductDto.getId(), "Products");
     }
 
     @Override
