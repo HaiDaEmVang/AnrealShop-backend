@@ -52,8 +52,12 @@ spring:
 logging:
   level:
     org:
+      springframework:
+        cache: DEBUG
+        data.redis.serializer: debug
       elasticsearch:
         client: TRACE
+
 
 server:
   base_url: http://localhost:4141
