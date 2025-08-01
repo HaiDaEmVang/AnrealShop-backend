@@ -67,20 +67,20 @@ public class UserMapper {
         if (user == null) {
             return null;
         }
-        
-        return new UserDto(
-            user.getId(),
-            user.getUsername(),
-            user.getEmail(),
-            user.getFullName(),
-            user.getPhoneNumber(),
-            user.getAvatarUrl(),
-            user.getGender(),
-            user.getDob(),
-            user.getRole() != null ? user.getRole().getName().toString() : null,
-            user.getCreatedAt(),
-            user.getUpdatedAt()
-        );
+
+        return UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .avatarUrl(user.getAvatarUrl())
+                .gender(user.getGender())
+                .dob(user.getDob())
+                .role(user.getRole() != null ? user.getRole().getName().toString() : null)
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
     }
     
     public User toUser(LoginRequest loginRequest) {

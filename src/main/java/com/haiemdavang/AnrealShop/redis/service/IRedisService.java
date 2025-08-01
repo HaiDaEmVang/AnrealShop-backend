@@ -9,6 +9,7 @@ public interface IRedisService {
     <T> void addValue(String key, T value, long time, TimeUnit timeUnit);
     <T> void addValue(Map<String , T> values);
     <T> T getValue(String key);
+    <T> T getValue(String key, T defaultValue);
 
     void del(String key);
     boolean isExists(String key);
