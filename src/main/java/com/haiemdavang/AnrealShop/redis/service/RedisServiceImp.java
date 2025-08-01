@@ -30,6 +30,13 @@ public class RedisServiceImp implements IRedisService{
     }
 
     @Override
+    public <T> T getValue(String key, T defaultValue) {
+        if ((T) redisTemplate.opsForValue().get(key) ==  null)
+            return defaultValue;
+        return (T) redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
     public <T> void addValue(Map<String, T> values) {
         for (Map.Entry<String, T> entry : values.entrySet()) {
             String key = entry.getKey();

@@ -1,7 +1,6 @@
 package com.haiemdavang.AnrealShop.security.oauth2;
 
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
-import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecu;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
