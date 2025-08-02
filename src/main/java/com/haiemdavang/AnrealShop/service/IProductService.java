@@ -1,9 +1,6 @@
 package com.haiemdavang.AnrealShop.service;
 
-import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
-import com.haiemdavang.AnrealShop.dto.product.MyShopProductDto;
-import com.haiemdavang.AnrealShop.dto.product.MyShopProductListResponse;
-import com.haiemdavang.AnrealShop.dto.product.ProductStatusDto;
+import com.haiemdavang.AnrealShop.dto.product.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -27,4 +24,6 @@ public interface IProductService {
     void updateProductVisible(Set<String> ids, boolean visible);
 
     BaseProductRequest getMyShopProductById(String id);
+
+    List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy);
 }

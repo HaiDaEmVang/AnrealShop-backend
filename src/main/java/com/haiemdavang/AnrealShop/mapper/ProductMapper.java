@@ -176,6 +176,7 @@ public class ProductMapper {
                 .thumbnailUrl(product.getThumbnailUrl())
                 .urlSlug(product.getUrlSlug())
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .categoryPath(product.getCategory() != null ? product.getCategory().getUrlPath() : null)
                 .discountPrice(product.getDiscountPrice())
                 .quantity(product.getQuantity())
                 .sold(product.getSold())
@@ -252,7 +253,36 @@ public class ProductMapper {
 
 //    update
 
+    //    home
+    public UserProductDto toUserProductDto(EsProduct esProduct) {
+        if (esProduct == null) {
+            return null;
+        }
 
+        return UserProductDto.builder()
+                .id(esProduct.getId())
+                .name(esProduct.getName())
+                .thumbnailUrl(esProduct.getThumbnailUrl())
+                .sortDescription(esProduct.getSortDescription())
+                .urlSlug(esProduct.getUrlSlug())
+                .discountPrice(esProduct.getDiscountPrice())
+                .price(esProduct.getPrice())
+                .quantity(esProduct.getQuantity())
+                .sold(esProduct.getSold())
+                .categoryId(esProduct.getCategoryId())
+                .categoryName(null)
+                .shopId(esProduct.getShop() != null ? esProduct.getShop().getId() : null)
+                .shopName(esProduct.getShop() != null ? esProduct.getShop().getName() : null)
+                .shopThumbnailUrl(esProduct.getThumbnailUrl())
+                .build();
+    }
+    public List<UserProductDto> toUserProductDtos(List<EsProduct> esProducts) {
+        if (esProducts == null || esProducts.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-
+        return esProducts.stream()
+                .map(this::toUserProductDto)
+                .toList();
+    }
 }

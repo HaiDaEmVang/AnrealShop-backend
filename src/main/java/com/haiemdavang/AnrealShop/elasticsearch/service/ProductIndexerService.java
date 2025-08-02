@@ -1,13 +1,16 @@
 package com.haiemdavang.AnrealShop.elasticsearch.service;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.elasticsearch.repository.EsProductRepository;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -86,4 +90,38 @@ public class ProductIndexerService {
         });
         esProductRepository.saveAll(esProducts);
     }
+
+    public List<EsProduct> searchProducts(int page, int limit, String search, String categoryId, String sortBy) {
+        var queryBuilder = NativeQuery.builder();
+
+        queryBuilder.withQuery(QueryBuilders.bool(b -> {
+            b.filter(f -> f.term(t -> t.field("visible").value(true)));
+            b.filter(f -> f.term(t -> t.field("restrict_status").value("ACTIVE")));
+
+            if (search != null && !search.trim().isEmpty()) {
+                b.must(m -> m.multiMatch(mm ->
+                        mm.query(search)
+                                .fields("name", "sort_description")
+                                .type(TextQueryType.BestFields)
+                ));
+            }else {
+                b.must(m -> m.matchAll(a -> a));
+            }
+
+            if (categoryId != null && !categoryId.trim().isEmpty()) {
+                b.filter(f -> f.term(t -> t.field("category_id").value(categoryId)));
+            }
+
+            return b;
+        }));
+
+        queryBuilder.withPageable(PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy)));
+
+        SearchHits<EsProduct> searchHits = elasticsearchTemplate.search(queryBuilder.build(), EsProduct.class);
+
+        return searchHits.getSearchHits().stream()
+                .map(SearchHit::getContent)
+                .collect(Collectors.toList());
+    }
+
 }

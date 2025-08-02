@@ -167,13 +167,13 @@ public class ProductServiceImp implements IProductService {
             }
         }
 
-//        productRepository.save(product);
+        productRepository.save(product);
 
-//        ProductSyncMessage message = ProductSyncMessage.builder()
-//                .action(ProductSyncActionType.UPDATE)
-//                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
-//                .build();
-//        productKafkaProducer.sendProductSyncMessage(message);
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.UPDATE)
+                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
         return productMapper.toMyShopProductDto(product, product.getProductSkus());
     }
 
@@ -330,6 +330,14 @@ public class ProductServiceImp implements IProductService {
                 .totalCount(productPage.getTotalElements())
                 .build();
     }
+
+    @Override
+    public List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy) {
+        List<EsProduct> esProducts = productIndexerService.searchProducts(page, limit, search, categoryId, sortBy);
+        return productMapper.toUserProductDtos(esProducts);
+    }
+
+
 
     private void updateAttributeForProduct(List<ProductGeneralAttribute> oldAttributeForProduct,
                                           List<ProductAttributeDto> attributes,

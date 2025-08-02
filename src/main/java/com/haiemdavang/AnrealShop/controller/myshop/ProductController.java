@@ -1,9 +1,6 @@
 package com.haiemdavang.AnrealShop.controller.myshop;
 
-import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
-import com.haiemdavang.AnrealShop.dto.product.MyShopProductDto;
-import com.haiemdavang.AnrealShop.dto.product.MyShopProductListResponse;
-import com.haiemdavang.AnrealShop.dto.product.ProductStatusDto;
+import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.service.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +34,8 @@ public class ProductController {
         MyShopProductListResponse response = productService.getMyShopProducts(page, limit, status, search, categoryId, sortBy);
         return ResponseEntity.ok(response);
     }
-
     @PostMapping("")
     public ResponseEntity<?> createProduct(@Valid @RequestBody BaseProductRequest baseProductRequest) {
-
         productService.createProduct(baseProductRequest);
         return ResponseEntity.ok(Map.of("message", "Product created successfully"));
     }

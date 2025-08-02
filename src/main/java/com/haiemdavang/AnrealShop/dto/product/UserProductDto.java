@@ -5,24 +5,25 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MyShopProductDto {
+public class UserProductDto {
     private String id;
     private String name;
     private String thumbnailUrl;
+    private String sortDescription;
     private String urlSlug;
-    private String categoryId;
-    private String categoryPath;
     private Long discountPrice;
+    private Long price;
     private Integer quantity;
     private Integer sold;
-    private String status;
-    private Boolean visible;
-    private String createdAt;
-    private List<MyShopProductSkuDto> productSkus;
+
+    private String categoryId;
+    private String categoryName;
+
+    private String shopId;
+    private String shopName;
+    private String shopThumbnailUrl;
 }
