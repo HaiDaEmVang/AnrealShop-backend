@@ -40,6 +40,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,6 +76,109 @@ public class ProductServiceImp implements IProductService {
 
             return productMapper.toBaseProductRequest(product, skuForProduct, attributeValues);
         }
+    }
+
+    @Override
+    public MyShopProductListResponse getMyShopProductsForAdmin(int page, int limit, String status, String search, LocalDate startDate, LocalDate endDate) {
+
+        RestrictStatus restrictStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                restrictStatus = RestrictStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("RESTRICT_STATUS_INVALID");
+            }
+        }
+        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
+        LocalDateTime enDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
+
+        Specification<Product> spec = ProductSpecification.adminFilter(search, restrictStatus, startDateTime, enDateTime);
+        Pageable pageable = PageRequest.of(page, limit );
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        return MyShopProductListResponse.builder()
+                .products(productPage.getContent().stream().map(productMapper::toAdminProductDto).toList())
+                .currentPage(productPage.getPageable().getPageNumber() + 1)
+                .totalPages(productPage.getTotalPages())
+                .totalCount(productPage.getTotalElements())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void rejectProduct(String id, String reason) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+
+        product.setRestricted(true);
+        product.setRestrictedReason(reason);
+        product.setRestrictStatus(RestrictStatus.VIOLATION);
+        product.setVisible(false);
+
+        productRepository.save(product);
+
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .isVisible(false)
+                .id(id)
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+    }
+
+    @Override
+    @Transactional
+    public void approveProduct(String id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+
+        if (product.getRestrictedReason() != null)
+            throw new BadRequestException("PRODUCT_ALREADY_APPROVED");
+
+        product.setRestricted(false);
+        product.setRestrictedReason("Xac nhan san pham thanh cong");
+        if (product.getRestrictStatus() == RestrictStatus.PENDING) {
+            product.setRestrictStatus(RestrictStatus.ACTIVE);
+            product.setVisible(true);
+        }
+        productRepository.save(product);
+
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .isVisible(true)
+                .id(id)
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+    }
+
+    @Override
+    public List<ProductStatusDto> getFilterMetaForAdmin(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
+        LocalDateTime enDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
+
+        Set<IProductStatus> dataResult = productRepository.getMetaSumByStatusForAdmin(startDateTime, enDateTime);
+
+        int totalCount = 0;
+        List<ProductStatusDto> result = new ArrayList<>();
+        for (IProductStatus dto : dataResult) {
+            totalCount += dto.getCount();
+            result.add(
+                    ProductStatusDto.builder()
+                            .id(dto.getId())
+                            .count(dto.getCount())
+                            .order(RestrictStatus.valueOf(dto.getId()).getOrder())
+                            .build()
+            );
+        }
+
+        result.add(ProductStatusDto.builder()
+                .id("ALL")
+                .name("Tất cả")
+                .count(totalCount)
+                .order(0)
+                .build());
+        result.sort(Comparator.comparing(ProductStatusDto::getOrder));
+        return result;
     }
 
     @Override
@@ -167,13 +272,13 @@ public class ProductServiceImp implements IProductService {
             }
         }
 
-//        productRepository.save(product);
+        productRepository.save(product);
 
-//        ProductSyncMessage message = ProductSyncMessage.builder()
-//                .action(ProductSyncActionType.UPDATE)
-//                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
-//                .build();
-//        productKafkaProducer.sendProductSyncMessage(message);
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.UPDATE)
+                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
         return productMapper.toMyShopProductDto(product, product.getProductSkus());
     }
 

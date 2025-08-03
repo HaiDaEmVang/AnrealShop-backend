@@ -1,15 +1,14 @@
 package com.haiemdavang.AnrealShop.controller.myshop;
 
-import com.haiemdavang.AnrealShop.dto.product.BaseProductRequest;
-import com.haiemdavang.AnrealShop.dto.product.MyShopProductDto;
-import com.haiemdavang.AnrealShop.dto.product.MyShopProductListResponse;
-import com.haiemdavang.AnrealShop.dto.product.ProductStatusDto;
+import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.service.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,9 +37,27 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+//    @GetMapping("/admin/{id}")
+//    public ResponseEntity<BaseProductRequest> getMyProduct(@PathVariable String id) {
+//        BaseProductRequest productDto = productService.getMyShopProductById(id);
+//        return ResponseEntity.ok(productDto);
+//    }
+
+    @GetMapping("/admin")
+    public ResponseEntity<MyShopProductListResponse> getProductsForAdmin(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int limit,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate endDate) {
+
+        MyShopProductListResponse response = productService.getMyShopProductsForAdmin(page, limit, status, search, startDate, endDate);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("")
     public ResponseEntity<?> createProduct(@Valid @RequestBody BaseProductRequest baseProductRequest) {
-
         productService.createProduct(baseProductRequest);
         return ResponseEntity.ok(Map.of("message", "Product created successfully"));
     }
@@ -62,6 +79,14 @@ public class ProductController {
     @GetMapping("/filter-statuses")
     public ResponseEntity<List<ProductStatusDto>> getFilterMeta() {
         List<ProductStatusDto> response = productService.getFilterMeta();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/filter-statuses-admin")
+    public ResponseEntity<List<ProductStatusDto>> getFilterMetaForAdmin(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate endDate) {
+        List<ProductStatusDto> response = productService.getFilterMetaForAdmin(startDate, endDate);
         return ResponseEntity.ok(response);
     }
 
@@ -93,5 +118,17 @@ public class ProductController {
     public ResponseEntity<?> updateProductVisible(@RequestBody Set<String> ids, @RequestParam(required = false, defaultValue = "0") boolean visible) {
         productService.updateProductVisible(ids, visible);
         return ResponseEntity.ok(Map.of("message", "Product visibility updated successfully"));
+    }
+
+    @PutMapping("/reject/{id}")
+    public ResponseEntity<?> rejectProduct(@PathVariable String id, @RequestBody ReasonDto rejectReason) {
+        productService.rejectProduct(id, rejectReason.reason());
+        return ResponseEntity.ok(Map.of("message", "Product reject successfully"));
+    }
+
+    @PutMapping("/approve/{id}")
+    public ResponseEntity<?> approveProduct(@PathVariable String id ) {
+        productService.approveProduct(id );
+        return ResponseEntity.ok(Map.of("message", "Product approve successfully"));
     }
 }
