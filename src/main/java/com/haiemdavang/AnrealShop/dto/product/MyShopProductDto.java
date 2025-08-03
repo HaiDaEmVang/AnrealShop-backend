@@ -20,6 +20,7 @@ public class MyShopProductDto {
     private String thumbnailUrl;
     private String urlSlug;
     private String categoryId;
+    private String categoryPath;
     private Long discountPrice;
     private Integer quantity;
     private Integer sold;

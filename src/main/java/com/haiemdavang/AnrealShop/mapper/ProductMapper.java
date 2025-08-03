@@ -258,6 +258,7 @@ public class ProductMapper {
         MyShopProductDto myShopProductDto = toMyShopProductDto(product, new HashSet<>());
         myShopProductDto.setRestricted(product.isRestricted());
         myShopProductDto.setRestrictedReason(product.getRestrictedReason());
+        myShopProductDto.setCategoryPath(product.getCategory().getUrlPath());
         myShopProductDto.setBaseShopDto(shopMapper.toBaseShopDto(product.getShop()));
         return myShopProductDto;
     }
