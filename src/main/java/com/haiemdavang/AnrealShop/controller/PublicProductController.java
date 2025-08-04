@@ -2,19 +2,16 @@ package com.haiemdavang.AnrealShop.controller;
 
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.service.IProductService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/public/products")
-public class Public_ProductController {
+public class PublicProductController {
     private final IProductService productService;
 
 

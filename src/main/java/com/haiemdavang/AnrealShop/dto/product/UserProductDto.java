@@ -19,6 +19,8 @@ public class UserProductDto {
     private Long price;
     private Integer quantity;
     private Integer sold;
+    private float averageRating;
+    private Integer totalReviews;
 
     private String categoryId;
     private String categoryName;

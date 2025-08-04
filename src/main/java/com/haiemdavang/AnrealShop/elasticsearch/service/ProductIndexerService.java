@@ -3,10 +3,13 @@ package com.haiemdavang.AnrealShop.elasticsearch.service;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
+import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
+import com.haiemdavang.AnrealShop.elasticsearch.repository.EsCategoryRepository;
 import com.haiemdavang.AnrealShop.elasticsearch.repository.EsProductRepository;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.mapper.ProductMapper;
+import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductIndexerService {
     private final EsProductRepository esProductRepository;
+    private final EsCategoryRepository esCategoryRepository;
     private final ElasticsearchTemplate elasticsearchTemplate;
     private final ProductMapper productMapper;
 
@@ -91,7 +96,7 @@ public class ProductIndexerService {
         esProductRepository.saveAll(esProducts);
     }
 
-    public List<EsProduct> searchProducts(int page, int limit, String search, String categoryId, String sortBy) {
+    public List<EsProductDto> searchProducts(int page, int limit, String search, String categoryId, String sortBy) {
         var queryBuilder = NativeQuery.builder();
 
         queryBuilder.withQuery(QueryBuilders.bool(b -> {
@@ -119,9 +124,36 @@ public class ProductIndexerService {
 
         SearchHits<EsProduct> searchHits = elasticsearchTemplate.search(queryBuilder.build(), EsProduct.class);
 
+        Set<String> cateIds = searchHits.getSearchHits().stream()
+                .map(SearchHit::getContent)
+                .map(EsProduct::getCategoryId)
+                .collect(Collectors.toSet());
+
+        Set<EsCategory> categories = esCategoryRepository.findByIdIn(cateIds);
+        Map<String, EsCategory> categoryMap = categories.stream()
+                .collect(Collectors.toMap(EsCategory::getId, category -> category));
+
+
         return searchHits.getSearchHits().stream()
                 .map(SearchHit::getContent)
+                .map(esProduct -> {
+                    EsCategory category = categoryMap.get(esProduct.getCategoryId());
+                    return productMapper.toEsProductDto(esProduct, category);
+                })
                 .collect(Collectors.toList());
     }
 
+
+    public void updateProductStatus(String id, RestrictStatus status) {
+        EsProduct esProduct = esProductRepository.findById(id)
+                .orElseThrow(() -> new AnrealShopException("ES_PRODUCT_NOT_FOUND"));
+        if (status == RestrictStatus.VIOLATION) {
+            esProduct.setVisible(false);
+        } else if (status == RestrictStatus.ACTIVE) {
+            esProduct.setVisible(true);
+        }
+        esProduct.setUpdatedAt(Instant.now());
+        esProduct.setRestrictStatus(status.getId());
+        esProductRepository.save(esProduct);
+    }
 }

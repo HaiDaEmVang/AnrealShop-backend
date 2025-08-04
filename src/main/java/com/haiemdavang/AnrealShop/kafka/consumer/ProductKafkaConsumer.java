@@ -23,6 +23,7 @@ public class ProductKafkaConsumer {
             case MULTI_DELETE -> productIndexerService.deleteProductFromIndex(message.getIds());
             case PRODUCT_UPDATED_VISIBILITY -> productIndexerService.updateProductVisibility(message.getId(), message.isVisible());
             case PRODUCT_UPDATE_MULTI_VISIBILITY ->  productIndexerService.updateProductVisibility(message.getIds(), message.isVisible());
+            case PRODUCT_UPDATED_STATUS -> productIndexerService.updateProductStatus(message.getId(), message.getStatus());
             default -> log.warn("Unknown action type: {}", message.getAction());
         }
 

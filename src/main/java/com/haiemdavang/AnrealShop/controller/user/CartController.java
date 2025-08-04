@@ -14,29 +14,29 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/api/user/cart")
 public class CartController {
-
-    private final ICartService cartService;
-
-    @PostMapping("/add")
-    public ResponseEntity<? > addToCart(@RequestBody CartItemDto cartItemDto) {
-        cartService.addToCart(cartItemDto);
-        return ResponseEntity.ok(Map.of("message","Product is added to cart" ));
-    }
-
-    @DeleteMapping("/remove/{productId}")
-    public ResponseEntity<?> removeFromCart(@PathVariable String productId) {
-        cartService.removeFromCart(productId);
-        return ResponseEntity.ok(Map.of("message","Product is remove to cart" ));
-    }
-
-    @DeleteMapping("/clear")
-    public ResponseEntity<?> clearCart(@RequestBody List<String> productIds) {
-        cartService.clearCart(productIds);
-        return ResponseEntity.ok(Map.of("message","Product list is remove to cart" ));
-    }
-
-    @GetMapping
-    public ResponseEntity<?> getCart() {
-        return ResponseEntity.ok(cartService.getCartItems());
-    }
+//
+//    private final ICartService cartService;
+//
+//    @PostMapping("/add")
+//    public ResponseEntity<? > addToCart(@RequestBody CartItemDto cartItemDto) {
+//        cartService.addToCart(cartItemDto);
+//        return ResponseEntity.ok(Map.of("message","Product is added to cart" ));
+//    }
+//
+//    @DeleteMapping("/remove/{productId}")
+//    public ResponseEntity<?> removeFromCart(@PathVariable String productId) {
+//        cartService.removeFromCart(productId);
+//        return ResponseEntity.ok(Map.of("message","Product is remove to cart" ));
+//    }
+//
+//    @DeleteMapping("/clear")
+//    public ResponseEntity<?> clearCart(@RequestBody List<String> productIds) {
+//        cartService.clearCart(productIds);
+//        return ResponseEntity.ok(Map.of("message","Product list is remove to cart" ));
+//    }
+//
+//    @GetMapping
+//    public ResponseEntity<?> getCart() {
+//        return ResponseEntity.ok(cartService.getCartItems());
+//    }
 }

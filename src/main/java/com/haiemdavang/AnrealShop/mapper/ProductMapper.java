@@ -3,8 +3,8 @@ package com.haiemdavang.AnrealShop.mapper;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
+import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
-import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
@@ -114,6 +114,34 @@ public class ProductMapper {
                 .shop(shopMapper.toBaseShopDto(product.getShop()))
                 .category(categoryMapper.toBaseCategoryDto(product.getCategory()))
                 .attributes(attributeValues)
+                .build();
+    }
+
+    public EsProductDto toEsProductDto(EsProduct esProduct, EsCategory esCategory) {
+        if (esProduct == null) {
+            return null;
+        }
+
+        return EsProductDto.builder()
+                .id(esProduct.getId())
+                .name(esProduct.getName())
+                .sortDescription(esProduct.getSortDescription())
+                .description(esProduct.getDescription())
+                .slug(esProduct.getUrlSlug())
+                .thumbnailUrl(esProduct.getThumbnailUrl())
+                .price(esProduct.getPrice())
+                .discountPrice(esProduct.getDiscountPrice())
+                .quantity(esProduct.getQuantity())
+                .averageRating(esProduct.getAverageRating())
+                .totalReviews(esProduct.getTotalReviews())
+                .revenue(esProduct.getRevenue())
+                .sold(esProduct.getSold())
+                .visible(esProduct.getVisible())
+                .restrictStatus(esProduct.getRestrictStatus())
+                .createdAt(LocalDateTime.ofInstant(esProduct.getCreatedAt(), ZoneOffset.systemDefault()).toString())
+                .updatedAt(LocalDateTime.ofInstant(esProduct.getUpdatedAt(), ZoneOffset.systemDefault()).toString())
+                .shop(shopMapper.toBaseShopDto(esProduct.getShop()))
+                .category(categoryMapper.toBaseCategoryDto(esCategory))
                 .build();
     }
     public EsProduct toEsProduct(EsProductDto esProductDto) {
@@ -327,7 +355,7 @@ public class ProductMapper {
                 .build();
     }
     //    home
-    public UserProductDto toUserProductDto(EsProduct esProduct) {
+    public UserProductDto toUserProductDto(EsProductDto esProduct) {
         if (esProduct == null) {
             return null;
         }
@@ -337,19 +365,22 @@ public class ProductMapper {
                 .name(esProduct.getName())
                 .thumbnailUrl(esProduct.getThumbnailUrl())
                 .sortDescription(esProduct.getSortDescription())
-                .urlSlug(esProduct.getUrlSlug())
+                .urlSlug(esProduct.getSlug())
                 .discountPrice(esProduct.getDiscountPrice())
                 .price(esProduct.getPrice())
                 .quantity(esProduct.getQuantity())
                 .sold(esProduct.getSold())
-                .categoryId(esProduct.getCategoryId())
-                .categoryName(null)
+                .averageRating(esProduct.getAverageRating())
+                .totalReviews(esProduct.getTotalReviews())
+                .categoryId(esProduct.getCategory().getId())
+                .categoryName(esProduct.getCategory().getName())
                 .shopId(esProduct.getShop() != null ? esProduct.getShop().getId() : null)
                 .shopName(esProduct.getShop() != null ? esProduct.getShop().getName() : null)
                 .shopThumbnailUrl(esProduct.getThumbnailUrl())
                 .build();
     }
-    public List<UserProductDto> toUserProductDtos(List<EsProduct> esProducts) {
+
+    public List<UserProductDto> toUserProductDtos(List<EsProductDto> esProducts) {
         if (esProducts == null || esProducts.isEmpty()) {
             return new ArrayList<>();
         }

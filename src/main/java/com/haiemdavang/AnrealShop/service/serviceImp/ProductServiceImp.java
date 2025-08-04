@@ -120,8 +120,9 @@ public class ProductServiceImp implements IProductService {
         productRepository.save(product);
 
         ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .action(ProductSyncActionType.PRODUCT_UPDATED_STATUS)
                 .isVisible(false)
+                .status(RestrictStatus.VIOLATION)
                 .id(id)
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
@@ -142,8 +143,9 @@ public class ProductServiceImp implements IProductService {
         productRepository.save(product);
 
         ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .action(ProductSyncActionType.PRODUCT_UPDATED_STATUS)
                 .isVisible(true)
+                .status(product.getRestrictStatus())
                 .id(id)
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
@@ -402,11 +404,9 @@ public class ProductServiceImp implements IProductService {
 
     @Override
     public List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy) {
-        List<EsProduct> esProducts = productIndexerService.searchProducts(page, limit, search, categoryId, sortBy);
+        List<EsProductDto> esProducts = productIndexerService.searchProducts(page, limit, search, categoryId, sortBy);
         return productMapper.toUserProductDtos(esProducts);
     }
-
-
 
     private void updateAttributeForProduct(List<ProductGeneralAttribute> oldAttributeForProduct,
                                           List<ProductAttributeDto> attributes,

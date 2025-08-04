@@ -36,94 +36,94 @@ public class CartServiceImp implements ICartService {
         redisService.addValue(key, count);
         return count;
     }
+//
+//    @Override
+//    public void addToCart(CartItemDto cartItemDto) {
+//        User currentUser = securityUtils.getCurrentUser();
+//        String userId = currentUser.getId();
+//
+//        Cart cart = findOrCreateCart(currentUser);
+//        Product product = productRepository.findById(cartItemDto.getProductId())
+//                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+//
+//        Optional<CartItem> existingItem = cart.getItems().stream()
+//                .filter(item -> item.getProduct().getId().equals(cartItemDto.getProductId()))
+//                .findFirst();
+//
+//        if (existingItem.isPresent()) {
+//            CartItem item = existingItem.get();
+//            item.setQuantity(item.getQuantity() + cartItemDto.getQuantity());
+//        } else {
+//            CartItem newItem = CartItem.builder()
+//                    .cart(cart)
+//                    .product(product)
+//                    .quantity(cartItemDto.getQuantity())
+//                    .price(product.getPrice())
+//                    .selected(true)
+//                    .build();
+//            cart.addItem(newItem);
+//        }
+//
+//        cartRepository.save(cart);
+//        invalidateCartCache(userId);
+//    }
+//
+//    @Override
+//    public void removeFromCart(String productId) {
+//        User currentUser = securityUtils.getCurrentUser();
+//        String userId = currentUser.getId();
+//
+//        Cart cart = findOrCreateCart(currentUser);
+//        cart.getItems().removeIf(item -> item.getProduct().getId().equals(productId));
+//
+//        cartRepository.save(cart);
+//        invalidateCartCache(userId);
+//    }
+//
+//    @Override
+//    public void clearCart(List<String> productIds) {
+//        User currentUser = securityUtils.getCurrentUser();
+//        String userId = currentUser.getId();
+//
+//        Cart cart = findOrCreateCart(currentUser);
+//        cart.getItems().removeIf(item -> productIds.contains(item.getProduct().getId()));
+//
+//        cartRepository.save(cart);
+//        invalidateCartCache(userId);
+//    }
+//
+//    @Override
+//    public List<CartItemDto> getCartItems() {
+//        User currentUser = securityUtils.getCurrentUser();
+//        Cart cart = findOrCreateCart(currentUser);
+//
+//        return cart.getItems().stream()
+//                .map(this::convertToDto)
+//                .collect(Collectors.toList());
+//    }
+//
+//    private Cart findOrCreateCart(User user) {
+//        return cartRepository.findByUserId(user.getId())
+//                .orElseGet(() -> {
+//                    Cart newCart = Cart.builder()
+//                            .user(user)
+//                            .build();
+//                    return cartRepository.save(newCart);
+//                });
+//    }
 
-    @Override
-    public void addToCart(CartItemDto cartItemDto) {
-        User currentUser = securityUtils.getCurrentUser();
-        String userId = currentUser.getId();
+//    private CartItemDto convertToDto(CartItem cartItem) {
+//        return CartItemDto.builder()
+//                .id(cartItem.getId())
+//                .productId(cartItem.getProduct().getId())
+//                .quantity(cartItem.getQuantity())
+//                .price(cartItem.getPrice())
+//                .selected(cartItem.isSelected())
+//                .build();
+//    }
 
-        Cart cart = findOrCreateCart(currentUser);
-        Product product = productRepository.findById(cartItemDto.getProductId())
-                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
-
-        Optional<CartItem> existingItem = cart.getItems().stream()
-                .filter(item -> item.getProduct().getId().equals(cartItemDto.getProductId()))
-                .findFirst();
-
-        if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + cartItemDto.getQuantity());
-        } else {
-            CartItem newItem = CartItem.builder()
-                    .cart(cart)
-                    .product(product)
-                    .quantity(cartItemDto.getQuantity())
-                    .price(product.getPrice())
-                    .selected(true)
-                    .build();
-            cart.addItem(newItem);
-        }
-
-        cartRepository.save(cart);
-        invalidateCartCache(userId);
-    }
-
-    @Override
-    public void removeFromCart(String productId) {
-        User currentUser = securityUtils.getCurrentUser();
-        String userId = currentUser.getId();
-
-        Cart cart = findOrCreateCart(currentUser);
-        cart.getItems().removeIf(item -> item.getProduct().getId().equals(productId));
-
-        cartRepository.save(cart);
-        invalidateCartCache(userId);
-    }
-
-    @Override
-    public void clearCart(List<String> productIds) {
-        User currentUser = securityUtils.getCurrentUser();
-        String userId = currentUser.getId();
-
-        Cart cart = findOrCreateCart(currentUser);
-        cart.getItems().removeIf(item -> productIds.contains(item.getProduct().getId()));
-
-        cartRepository.save(cart);
-        invalidateCartCache(userId);
-    }
-
-    @Override
-    public List<CartItemDto> getCartItems() {
-        User currentUser = securityUtils.getCurrentUser();
-        Cart cart = findOrCreateCart(currentUser);
-
-        return cart.getItems().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    private Cart findOrCreateCart(User user) {
-        return cartRepository.findByUserId(user.getId())
-                .orElseGet(() -> {
-                    Cart newCart = Cart.builder()
-                            .user(user)
-                            .build();
-                    return cartRepository.save(newCart);
-                });
-    }
-
-    private CartItemDto convertToDto(CartItem cartItem) {
-        return CartItemDto.builder()
-                .id(cartItem.getId())
-                .productId(cartItem.getProduct().getId())
-                .quantity(cartItem.getQuantity())
-                .price(cartItem.getPrice())
-                .selected(cartItem.isSelected())
-                .build();
-    }
-
-    private void invalidateCartCache(String userId) {
-        String key = String.format(PREFIX_CART, userId);
-        redisService.deleteValue(key);
-    }
+//    private void invalidateCartCache(String userId) {
+//        String key = String.format(PREFIX_CART, userId);
+//        redisService.deleteValue(key);
+//    }
 }
