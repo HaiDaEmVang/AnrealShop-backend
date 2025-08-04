@@ -15,7 +15,7 @@ public interface ProductGeneralAttributeRepository extends JpaRepository<Product
             "pga.attributeValue.attributeKey.displayName, " +
             "pga.attributeValue.value) " +
             "FROM ProductGeneralAttribute pga WHERE pga.product.id = ?1")
-    List<ProductAttributeSingleValueDto> findProductAttributeByIdProduct(String id);
+    List<ProductAttributeSingleValueDto> findProductAttributeSingleValueDtoByProductId(String id);
 
     @Query("SELECT pga FROM ProductGeneralAttribute pga LEFT JOIN FETCH pga.attributeValue WHERE pga.product.id = ?1")
     List<ProductGeneralAttribute> findProductGeneralAttributesByProductId(String id);

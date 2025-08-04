@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
+import com.haiemdavang.AnrealShop.dto.enums.SortEnum;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.elasticsearch.service.ProductIndexerService;
@@ -40,6 +41,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,10 +73,98 @@ public class ProductServiceImp implements IProductService {
         }else {
             Product product = productRepository.findBaseInfoById(id);
             List<ProductSku> skuForProduct = productSkuRepository.findWithAttributeByProductId(id);
-            List<ProductAttributeSingleValueDto> attributeValues = productGeneralAttributeRepository.findProductAttributeByIdProduct(id);
+            List<ProductAttributeSingleValueDto> attributeValues = productGeneralAttributeRepository.findProductAttributeSingleValueDtoByProductId(id);
 
             return productMapper.toBaseProductRequest(product, skuForProduct, attributeValues);
         }
+    }
+
+    @Override
+    public MyShopProductListResponse getMyShopProductsForAdmin(int page, int limit, String status, String search, LocalDate startDate, LocalDate endDate) {
+
+        RestrictStatus restrictStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                restrictStatus = RestrictStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("RESTRICT_STATUS_INVALID");
+            }
+        }
+        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
+        LocalDateTime enDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
+
+        Specification<Product> spec = ProductSpecification.adminFilter(search, restrictStatus, startDateTime, enDateTime);
+        Pageable pageable = PageRequest.of(page, limit, SortEnum.UPDATE_AT_DESC.getSort());
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        return MyShopProductListResponse.builder()
+                .products(productPage.getContent().stream().map(productMapper::toAdminProductDto).toList())
+                .currentPage(productPage.getPageable().getPageNumber() + 1)
+                .totalPages(productPage.getTotalPages())
+                .totalCount(productPage.getTotalElements())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void rejectProduct(String id, String reason) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+
+        product.setRestricted(true);
+        product.setRestrictedReason(reason);
+        product.setRestrictStatus(RestrictStatus.VIOLATION);
+        product.setVisible(false);
+
+        productRepository.save(product);
+
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .isVisible(false)
+                .id(id)
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+    }
+
+    @Override
+    @Transactional
+    public void approveProduct(String id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+
+        product.setRestricted(false);
+        product.setRestrictedReason("Xac nhan san pham thanh cong");
+        if (product.getRestrictStatus() == RestrictStatus.PENDING || product.getRestrictStatus() == RestrictStatus.VIOLATION) {
+            product.setRestrictStatus(RestrictStatus.ACTIVE);
+            product.setVisible(true);
+        }
+        productRepository.save(product);
+
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .isVisible(true)
+                .id(id)
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
+    }
+
+    @Override
+    public List<ProductStatusDto> getFilterMetaForAdmin(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
+        LocalDateTime enDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
+
+        Set<IProductStatus> dataResult = productRepository.getMetaSumByStatusForAdmin(startDateTime, enDateTime);
+        return convertToProductStatusDto(dataResult, RestrictStatus.getOrderForAdmin());
+    }
+
+    @Override
+    public ProductDetailDto getProductById(String id, boolean isReview) {
+//        isReview chua trien khai nghe haidev
+        Product p = productRepository.findFullInfoById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+        List<ProductAttributeSingleValueDto> productAttributes = productGeneralAttributeRepository.findProductAttributeSingleValueDtoByProductId(id);
+        return productMapper.toProductDetailDto(p, productAttributes);
     }
 
     @Override
@@ -167,13 +258,13 @@ public class ProductServiceImp implements IProductService {
             }
         }
 
-//        productRepository.save(product);
+        productRepository.save(product);
 
-//        ProductSyncMessage message = ProductSyncMessage.builder()
-//                .action(ProductSyncActionType.UPDATE)
-//                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
-//                .build();
-//        productKafkaProducer.sendProductSyncMessage(message);
+        ProductSyncMessage message = ProductSyncMessage.builder()
+                .action(ProductSyncActionType.UPDATE)
+                .product(productMapper.toEsProductDto(product, attributeMapper.formatAttributes(attributeList)))
+                .build();
+        productKafkaProducer.sendProductSyncMessage(message);
         return productMapper.toMyShopProductDto(product, product.getProductSkus());
     }
 
@@ -271,29 +362,7 @@ public class ProductServiceImp implements IProductService {
     public List<ProductStatusDto> getFilterMeta() {
         Shop currentUserShop = securityUtils.getCurrentUserShop();
         Set<IProductStatus> dataResult = productRepository.getMetaSumMyProductByStatus(currentUserShop.getId());
-
-        int totalCount = 0;
-        Map<String, Integer> keyExists = new HashMap<>();
-
-        for (IProductStatus dto : dataResult) {
-            keyExists.put(dto.getId(), dto.getCount());
-            totalCount += dto.getCount();
-        }
-
-        List<ProductStatusDto> result = new ArrayList<>();
-
-        for (RestrictStatus ex :  RestrictStatus.values()) {
-            if (RestrictStatus.ALL.equals(ex)) continue;
-            result.add(new ProductStatusDto(ex.getId(), ex.getName(), keyExists.getOrDefault(ex.getId(), 0), ex.getOrder()));
-        }
-
-        result.add(ProductStatusDto.builder()
-                .id("ALL")
-                .name("Tất cả")
-                .count(totalCount)
-                .build());
-        result.sort(Comparator.comparing(ProductStatusDto::getOrder));
-        return result;
+        return convertToProductStatusDto(dataResult, RestrictStatus.getOrderDefault());
     }
 
     @Override
@@ -542,5 +611,45 @@ public class ProductServiceImp implements IProductService {
             savedNewAttributeValues.forEach(av -> existingAttributeValuesMap.put(new AbstractMap.SimpleEntry<>(av.getAttributeKey().getDisplayName(), av.getValue()), av)); //
         }
         return existingAttributeValuesMap;
+    }
+
+    private List<ProductStatusDto> convertToProductStatusDto(Set<IProductStatus> dataResult, List<RestrictStatus> orderStatuses) {
+        int totalCount = dataResult.stream().mapToInt(IProductStatus::getCount).sum();
+
+        Map<RestrictStatus, IProductStatus> statusMap = dataResult.stream()
+                .collect(Collectors.toMap(
+                        dto -> RestrictStatus.valueOf(dto.getId()),
+                        dto -> dto,
+                        (existing, replacement) -> existing
+                ));
+
+        List<ProductStatusDto> result = new ArrayList<>();
+        result.add(ProductStatusDto.builder()
+                .id("ALL")
+                .name("Tất cả")
+                .count(totalCount)
+                .order(0)
+                .build());
+        for (RestrictStatus status : orderStatuses) {
+            IProductStatus dto = statusMap.get(status);
+            if (dto != null) {
+                result.add(
+                        ProductStatusDto.builder()
+                                .id(dto.getId())
+                                .name(status.getName())
+                                .count(dto.getCount())
+                                .build()
+                );
+            } else {
+                result.add(
+                        ProductStatusDto.builder()
+                                .id(status.getId())
+                                .name(status.getName())
+                                .count(0)
+                                .build()
+                );
+            }
+        }
+        return result;
     }
 }

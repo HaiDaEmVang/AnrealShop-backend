@@ -9,10 +9,7 @@ import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
@@ -133,4 +130,19 @@ public class AttributeMapper {
         return resutl;
     }
 
+    public String[] toListKey(Set<AttributeValue> attributes) {
+        return attributes.stream()
+                .map(attribute -> attribute.getAttributeKey().getKeyName())
+                .toArray(String[]::new);
+    }
+
+    public List<ProductAttributeSingleValueDto> toProductAttributeSingleValueDto(Set<AttributeValue> attributes) {
+        return attributes.stream()
+                .map(attribute -> ProductAttributeSingleValueDto.builder()
+                        .attributeKeyName(attribute.getAttributeKey().getKeyName())
+                        .attributeKeyDisplay(attribute.getAttributeKey().getDisplayName())
+                        .values(attribute.getValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

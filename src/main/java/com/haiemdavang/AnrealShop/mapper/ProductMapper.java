@@ -4,6 +4,7 @@ import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
+import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
@@ -145,6 +146,7 @@ public class ProductMapper {
                 .build();
     }
 // myshop product mânager
+
     public MyShopProductSkuDto toMyShopProductSkuDto(ProductSku productSku) {
         if (productSku == null) {
             return null;
@@ -157,8 +159,11 @@ public class ProductMapper {
                 .quantity(productSku.getQuantity())
                 .sold(productSku.getSold())
                 .createdAt(productSku.getCreatedAt() != null ? productSku.getCreatedAt().toString() : null)
+                .keyAttributes(attributeMapper.toListKey(productSku.getAttributes()))
+                .attributeForSku(attributeMapper.toProductAttributeSingleValueDto(productSku.getAttributes()))
                 .build();
     }
+
     public MyShopProductDto toMyShopProductDto(Product product, Set<ProductSku> productSkus) {
         if (product == null) {
             return null;
@@ -250,9 +255,77 @@ public class ProductMapper {
                 .build();
     }
 
-//    update
+    //  admin product manager
+    public MyShopProductDto toAdminProductDto(Product product) {
+        if (product == null) {
+            return null;
+        }
+        MyShopProductDto myShopProductDto = toMyShopProductDto(product, new HashSet<>());
+        myShopProductDto.setRestricted(product.isRestricted());
+        myShopProductDto.setRestrictedReason(product.getRestrictedReason());
+        myShopProductDto.setCategoryPath(product.getCategory().getUrlPath());
+        myShopProductDto.setBaseShopDto(shopMapper.toBaseShopDto(product.getShop()));
+        return myShopProductDto;
+    }
 
+    public ProductDetailDto toProductDetailDto(Product product, List<ProductAttributeSingleValueDto> attributeValues) {
+        if (product == null) {
+            return null;
+        }
 
+        List<ProductAttributeDto> attributes = new ArrayList<>();
+        if (attributeValues != null && !attributeValues.isEmpty()) {
+            attributes = attributeMapper.toProductAttributeDto(attributeValues);
+        }
 
+        List<ProductMediaDto> mediaList = product.getMediaList() != null ?
+                product.getMediaList().stream()
+                        .map(media -> ProductMediaDto.builder()
+                                .id(media.getId())
+                                .url(media.getUrl())
+                                .thumbnailUrl(media.getUrl())
+                                .type(media.getType().name())
+                                .build())
+                        .toList() :
+                new ArrayList<>();
 
+        List<MyShopProductSkuDto> skuDtos = new ArrayList<>();
+        if (product.getProductSkus() != null && !product.getProductSkus().isEmpty()) {
+            skuDtos = product.getProductSkus().stream()
+                    .map(this::toMyShopProductSkuDto)
+                    .toList();
+        }
+
+        return ProductDetailDto.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .thumbnailUrl(product.getThumbnailUrl())
+                .urlSlug(product.getUrlSlug())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .categoryPath(product.getCategory() != null ? product.getCategory().getUrlPath() : null)
+                .description(product.getDescription())
+                .sortDescription(product.getSortDescription())
+                .price(product.getPrice())
+                .discountPrice(product.getDiscountPrice())
+                .quantity(product.getQuantity())
+                .sold(product.getSold())
+                .status(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
+                .visible(product.isVisible())
+                .createdAt(product.getCreatedAt() != null ? product.getCreatedAt().toString() : null)
+                .updatedAt(product.getUpdatedAt() != null ? product.getUpdatedAt().toString() : null)
+                .restrictedReason(product.getRestrictedReason())
+                .isRestricted(product.isRestricted())
+                .restrictStatus(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
+                .averageRating(product.getAverageRating())
+                .totalReviews(product.getTotalReviews())
+                .weight(product.getWeight())
+                .width(product.getWidth())
+                .height(product.getHeight())
+                .length(product.getLength())
+                .baseShopDto(shopMapper.toBaseShopDto(product.getShop()))
+                .medias(mediaList)
+                .attributes(attributes)
+                .productSkus(skuDtos)
+                .build();
+    }
 }

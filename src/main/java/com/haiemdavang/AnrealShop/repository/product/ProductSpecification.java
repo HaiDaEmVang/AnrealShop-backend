@@ -21,7 +21,16 @@ public class ProductSpecification {
             String shopId,
             RestrictStatus restrictStatus
     ){
-        return filter(search, categoryId, shopId, restrictStatus, null, null, null, null, null);
+        return filter(search, categoryId, shopId, restrictStatus, true, null, null, null, null, null);
+    }
+
+    public static Specification<Product> adminFilter(
+            String search,
+            RestrictStatus restrictStatus,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    ) {
+        return filter(search, null, null, restrictStatus, false, null, null, null, startDate, endDate);
     }
 
     public static Specification<Product> filter(
@@ -29,6 +38,7 @@ public class ProductSpecification {
             String categoryId,
             String shopId,
             RestrictStatus restrictStatus,
+            boolean isFullRestricted,
             Boolean visible,
             Long priceFrom,
             Long priceTo,
@@ -50,8 +60,19 @@ public class ProductSpecification {
                 predicates.add(cb.equal(root.get("shop").get("id"), shopId));
             }
 
-            if (restrictStatus != null && restrictStatus != RestrictStatus.ALL) {
-                predicates.add(cb.equal(root.get("restrictStatus"), restrictStatus));
+            if (isFullRestricted) {
+                if (restrictStatus != null && restrictStatus != RestrictStatus.ALL) {
+                    predicates.add(cb.equal(root.get("restrictStatus"), restrictStatus));
+                }
+            } else {
+                if (restrictStatus == RestrictStatus.ACTIVE) {
+                    predicates.add(cb.notEqual(root.get("restrictStatus"), RestrictStatus.VIOLATION));
+                    predicates.add(cb.isNotNull(root.get("restrictedReason"))) ;
+                } else if (restrictStatus == RestrictStatus.PENDING) {
+                    predicates.add(cb.isNull(root.get("restrictedReason"))) ;
+                } else if (restrictStatus == RestrictStatus.VIOLATION) {
+                    predicates.add(cb.equal(root.get("restrictStatus"), RestrictStatus.VIOLATION));
+                }
             }
 
             if (visible != null) {
