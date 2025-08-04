@@ -2,22 +2,31 @@ package com.haiemdavang.AnrealShop.modal.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
 public enum RestrictStatus {
-    ALL("ALL", "Tất cả", 0),
-    ACTIVE("ACTIVE", "Hoạt động", 1),
-    VIOLATION("VIOLATION", "Vi phạm", 3),
-    PENDING("PENDING", "Đang chờ duyệt", 2),
-    HIDDEN("HIDDEN", "Bị ẩn", 4);
+    ALL("ALL", "Tất cả"),
+    ACTIVE("ACTIVE", "Hoạt động" ),
+    VIOLATION("VIOLATION", "Vi phạm" ),
+    PENDING("PENDING", "Đang chờ duyệt" ),
+    HIDDEN("HIDDEN", "Bị ẩn" );
 
     private final String id;
     private final String name;
-    private final int order;
 
-    RestrictStatus(String id, String name, int order) {
+    RestrictStatus(String id, String name ) {
         this.id = id;
         this.name = name;
-        this.order = order;
+    }
+
+    public static List<RestrictStatus> getOrderDefault() {
+        return Arrays.asList(ACTIVE, PENDING, VIOLATION, HIDDEN);
+    }
+
+    public static List<RestrictStatus> getOrderForAdmin() {
+        return Arrays.asList(PENDING,  ACTIVE, VIOLATION);
     }
 
 }

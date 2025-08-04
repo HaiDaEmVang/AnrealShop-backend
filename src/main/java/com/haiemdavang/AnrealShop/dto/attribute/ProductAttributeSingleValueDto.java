@@ -12,5 +12,5 @@ import lombok.experimental.SuperBuilder;
 public class ProductAttributeSingleValueDto {
     private String attributeKeyName;
     private String attributeKeyDisplay;
-    private String values;
+    private String values; // dat ten bien ngu!! - haidev
 }

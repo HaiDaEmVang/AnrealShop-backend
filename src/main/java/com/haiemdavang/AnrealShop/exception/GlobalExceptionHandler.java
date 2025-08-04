@@ -11,7 +11,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -61,6 +63,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body(buildErrorResponse(HttpStatus.BAD_REQUEST, errorMessage, details));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.error("Type mismatch error: {}", ex.getMessage());
+
+        String message = "Giá trị không hợp lệ cho tham số '" + ex.getName() + "'";
+        if (ex.getRequiredType() == LocalDate.class) {
+            message = "Sai định dạng ngày cho tham số '" + ex.getName() + "'. Định dạng đúng là yyyy-MM-dd.";
+        }
+
+        List<ItemError> details = List.of(new ItemError(ex.getName(), message));
+        return ResponseEntity
+                .badRequest()
+                .body(buildErrorResponse(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ", details));
     }
 
     @ExceptionHandler(BadCredentialsException.class)

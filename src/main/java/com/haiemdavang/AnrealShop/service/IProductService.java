@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.service;
 import com.haiemdavang.AnrealShop.dto.product.*;
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +25,16 @@ public interface IProductService {
     void updateProductVisible(Set<String> ids, boolean visible);
 
     BaseProductRequest getMyShopProductById(String id);
+
+    MyShopProductListResponse getMyShopProductsForAdmin(int page, int limit, String status, String search, LocalDate startDate, LocalDate endDate);
+
+    void rejectProduct(String id, String reason);
+
+    void approveProduct(String id);
+
+    List<ProductStatusDto> getFilterMetaForAdmin(LocalDate startDate, LocalDate endDate);
+
+    ProductDetailDto getProductById(String id, boolean isReview);
 
     List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy);
 }
