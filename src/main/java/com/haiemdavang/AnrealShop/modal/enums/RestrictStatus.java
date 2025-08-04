@@ -22,11 +22,11 @@ public enum RestrictStatus {
     }
 
     public static List<RestrictStatus> getOrderDefault() {
-        return Arrays.asList(ALL, ACTIVE, PENDING, VIOLATION, HIDDEN);
+        return Arrays.asList(ACTIVE, PENDING, VIOLATION, HIDDEN);
     }
 
     public static List<RestrictStatus> getOrderForAdmin() {
-        return Arrays.asList(ALL, PENDING,  ACTIVE, VIOLATION);
+        return Arrays.asList(PENDING,  ACTIVE, VIOLATION);
     }
 
 }

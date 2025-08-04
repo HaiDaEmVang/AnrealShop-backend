@@ -73,7 +73,7 @@ public class ProductServiceImp implements IProductService {
         }else {
             Product product = productRepository.findBaseInfoById(id);
             List<ProductSku> skuForProduct = productSkuRepository.findWithAttributeByProductId(id);
-            List<ProductAttributeSingleValueDto> attributeValues = productGeneralAttributeRepository.findProductAttributeByIdProduct(id);
+            List<ProductAttributeSingleValueDto> attributeValues = productGeneralAttributeRepository.findProductAttributeSingleValueDtoByProductId(id);
 
             return productMapper.toBaseProductRequest(product, skuForProduct, attributeValues);
         }
@@ -156,6 +156,15 @@ public class ProductServiceImp implements IProductService {
 
         Set<IProductStatus> dataResult = productRepository.getMetaSumByStatusForAdmin(startDateTime, enDateTime);
         return convertToProductStatusDto(dataResult, RestrictStatus.getOrderForAdmin());
+    }
+
+    @Override
+    public ProductDetailDto getProductById(String id, boolean isReview) {
+//        isReview chua trien khai nghe haidev
+        Product p = productRepository.findFullInfoById(id)
+                .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
+        List<ProductAttributeSingleValueDto> productAttributes = productGeneralAttributeRepository.findProductAttributeSingleValueDtoByProductId(id);
+        return productMapper.toProductDetailDto(p, productAttributes);
     }
 
     @Override

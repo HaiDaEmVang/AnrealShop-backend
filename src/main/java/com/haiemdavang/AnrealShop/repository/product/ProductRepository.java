@@ -37,6 +37,16 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findWithCategoryAndMediaAndGeneralAttributeById(String id);
 
+    @EntityGraph(attributePaths = {
+            "category",
+            "shop",
+            "mediaList",
+            "generalAttributes",
+            "productSkus"
+    })
+    @Query("SELECT p FROM Product p WHERE p.id = :id")
+    Optional<Product> findFullInfoById(String id);
+
     @Modifying
     @Query("UPDATE Product p SET p.deleted = true, p.visible = false WHERE p.id = :id")
     void softDelById(String id);

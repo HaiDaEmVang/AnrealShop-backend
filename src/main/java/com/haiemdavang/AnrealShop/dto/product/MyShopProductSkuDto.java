@@ -1,9 +1,12 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
+import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -17,4 +20,6 @@ public class MyShopProductSkuDto {
     private Integer quantity;
     private Integer sold;
     private String createdAt;
+    private String[] keyAttributes; // nullable = true
+    private List<ProductAttributeSingleValueDto> attributeForSku; // nullable = true
 }
