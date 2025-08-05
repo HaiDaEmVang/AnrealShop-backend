@@ -7,6 +7,7 @@ import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
 import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductReview;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
@@ -86,7 +87,69 @@ public class ProductMapper {
                 .build();
     }
 
+    public ProductDetailDto toProductDetailDto(Product product, List<ProductAttributeSingleValueDto> attributeValues) {
+        if (product == null) {
+            return null;
+        }
 
+        List<ProductAttributeDto> attributes = new ArrayList<>();
+        if (attributeValues != null && !attributeValues.isEmpty()) {
+            attributes = attributeMapper.toProductAttributeDto(attributeValues);
+        }
+
+        List<ProductMediaDto> mediaList = product.getMediaList() != null ?
+                product.getMediaList().stream()
+                        .map(media -> ProductMediaDto.builder()
+                                .id(media.getId())
+                                .url(media.getUrl())
+                                .thumbnailUrl(media.getUrl())
+                                .type(media.getType().name())
+                                .build())
+                        .toList() :
+                new ArrayList<>();
+
+        List<MyShopProductSkuDto> skuDtos = new ArrayList<>();
+        if (product.getProductSkus() != null && !product.getProductSkus().isEmpty()) {
+            skuDtos = product.getProductSkus().stream()
+                    .map(this::toMyShopProductSkuDto)
+                    .toList();
+        }
+
+        return ProductDetailDto.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .thumbnailUrl(product.getThumbnailUrl())
+                .urlSlug(product.getUrlSlug())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .categoryPath(product.getCategory() != null ? product.getCategory().getUrlPath() : null)
+                .description(product.getDescription())
+                .sortDescription(product.getSortDescription())
+                .price(product.getPrice())
+                .discountPrice(product.getDiscountPrice())
+                .quantity(product.getQuantity())
+                .sold(product.getSold())
+                .status(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
+                .visible(product.isVisible())
+                .createdAt(product.getCreatedAt() != null ? product.getCreatedAt().toString() : null)
+                .updatedAt(product.getUpdatedAt() != null ? product.getUpdatedAt().toString() : null)
+                .restrictedReason(product.getRestrictedReason())
+                .isRestricted(product.isRestricted())
+                .restrictStatus(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
+                .averageRating(product.getAverageRating())
+                .totalReviews(product.getTotalReviews())
+                .weight(product.getWeight())
+                .width(product.getWidth())
+                .height(product.getHeight())
+                .length(product.getLength())
+                .baseShopDto(shopMapper.toBaseShopDto(product.getShop()))
+                .medias(mediaList)
+                .attributes(attributes)
+                .productSkus(skuDtos)
+                .build();
+    }
+
+
+    // EsproductDto
     public EsProductDto toEsProductDto(Product product, List<ProductAttributeDto> attributeValues) {
         if (product == null) {
             return null;
@@ -116,7 +179,6 @@ public class ProductMapper {
                 .attributes(attributeValues)
                 .build();
     }
-
     public EsProductDto toEsProductDto(EsProduct esProduct, EsCategory esCategory) {
         if (esProduct == null) {
             return null;
@@ -173,7 +235,8 @@ public class ProductMapper {
                 .attributes(attributeMapper.toEsAttributes(esProductDto.getAttributes()))
                 .build();
     }
-// myshop product mânager
+
+    // myshop product mânager
     public MyShopProductSkuDto toMyShopProductSkuDto(ProductSku productSku) {
         if (productSku == null) {
             return null;
@@ -292,68 +355,6 @@ public class ProductMapper {
         myShopProductDto.setBaseShopDto(shopMapper.toBaseShopDto(product.getShop()));
         return myShopProductDto;
     }
-
-
-    public ProductDetailDto toProductDetailDto(Product product, List<ProductAttributeSingleValueDto> attributeValues) {
-        if (product == null) {
-            return null;
-        }
-
-        List<ProductAttributeDto> attributes = new ArrayList<>();
-        if (attributeValues != null && !attributeValues.isEmpty()) {
-            attributes = attributeMapper.toProductAttributeDto(attributeValues);
-        }
-
-        List<ProductMediaDto> mediaList = product.getMediaList() != null ?
-                product.getMediaList().stream()
-                        .map(media -> ProductMediaDto.builder()
-                                .id(media.getId())
-                                .url(media.getUrl())
-                                .thumbnailUrl(media.getUrl())
-                                .type(media.getType().name())
-                                .build())
-                        .toList() :
-                new ArrayList<>();
-
-        List<MyShopProductSkuDto> skuDtos = new ArrayList<>();
-        if (product.getProductSkus() != null && !product.getProductSkus().isEmpty()) {
-            skuDtos = product.getProductSkus().stream()
-                    .map(this::toMyShopProductSkuDto)
-                    .toList();
-        }
-
-        return ProductDetailDto.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .thumbnailUrl(product.getThumbnailUrl())
-                .urlSlug(product.getUrlSlug())
-                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
-                .categoryPath(product.getCategory() != null ? product.getCategory().getUrlPath() : null)
-                .description(product.getDescription())
-                .sortDescription(product.getSortDescription())
-                .price(product.getPrice())
-                .discountPrice(product.getDiscountPrice())
-                .quantity(product.getQuantity())
-                .sold(product.getSold())
-                .status(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
-                .visible(product.isVisible())
-                .createdAt(product.getCreatedAt() != null ? product.getCreatedAt().toString() : null)
-                .updatedAt(product.getUpdatedAt() != null ? product.getUpdatedAt().toString() : null)
-                .restrictedReason(product.getRestrictedReason())
-                .isRestricted(product.isRestricted())
-                .restrictStatus(product.getRestrictStatus() != null ? product.getRestrictStatus().getId() : null)
-                .averageRating(product.getAverageRating())
-                .totalReviews(product.getTotalReviews())
-                .weight(product.getWeight())
-                .width(product.getWidth())
-                .height(product.getHeight())
-                .length(product.getLength())
-                .baseShopDto(shopMapper.toBaseShopDto(product.getShop()))
-                .medias(mediaList)
-                .attributes(attributes)
-                .productSkus(skuDtos)
-                .build();
-    }
     //    home
     public UserProductDto toUserProductDto(EsProductDto esProduct) {
         if (esProduct == null) {
@@ -379,7 +380,6 @@ public class ProductMapper {
                 .shopThumbnailUrl(esProduct.getThumbnailUrl())
                 .build();
     }
-
     public List<UserProductDto> toUserProductDtos(List<EsProductDto> esProducts) {
         if (esProducts == null || esProducts.isEmpty()) {
             return new ArrayList<>();
@@ -388,5 +388,44 @@ public class ProductMapper {
         return esProducts.stream()
                 .map(this::toUserProductDto)
                 .toList();
+    }
+
+    //  product review
+    public ProductReviewDto toProductReviewDto(ProductReview productReview) {
+        if (productReview == null) {
+            return null;
+        }
+
+        List<ProductMediaDto> mediaList = new ArrayList<>();
+        if (productReview.getMediaList() != null && !productReview.getMediaList().isEmpty()) {
+            mediaList = productReview.getMediaList().stream()
+                    .map(media -> ProductMediaDto.builder()
+                            .id(media.getId())
+                            .url(media.getMediaUrl())
+                            .thumbnailUrl(media.getMediaUrl())
+                            .type(media.getMediaType().name())
+                            .build())
+                    .toList();
+        }
+
+        return ProductReviewDto.builder()
+                .id(productReview.getId())
+                .userId(productReview.getUser() != null ? productReview.getUser().getId() : null)
+                .userName(productReview.getUser() != null ? productReview.getUser().getFullName() : null)
+                .userAvatarUrl(productReview.getUser() != null ? productReview.getUser().getAvatarUrl() : null)
+                .orderItemId(productReview.getOrderItem() != null ? productReview.getOrderItem().getId() : null)
+                .rating(productReview.getRating())
+                .comment(productReview.getComment())
+                .createdAt(productReview.getCreatedAt())
+                .mediaList(mediaList)
+                .build();
+    }
+    public ProductReviewDto toProductReviewDtoFull(ProductReview productReview) {
+        ProductReviewDto productReviewDto = toProductReviewDto(productReview);
+        productReviewDto.setProductId(productReview.getProduct() != null ? productReview.getProduct().getId() : null);
+        productReviewDto.setProductName(productReview.getProduct() != null ? productReview.getProduct().getName() : null);
+        productReviewDto.setUpdatedAt(productReview.getUpdatedAt());
+
+        return productReviewDto;
     }
 }
