@@ -15,7 +15,7 @@ public class PublicProductController {
     private final IProductService productService;
 
 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<List<UserProductDto>> getProducts(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int limit,
@@ -25,6 +25,14 @@ public class PublicProductController {
 
         List<UserProductDto> response = productService.getProducts(page, limit, search, categoryId, sortBy);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDetailDto> getProductById(
+            @PathVariable String id,
+            @RequestParam(required = false, defaultValue = "false") boolean isReview) {
+        ProductDetailDto productDto = productService.getProductById(id, isReview);
+        return ResponseEntity.ok(productDto);
     }
 
 }

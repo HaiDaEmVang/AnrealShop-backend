@@ -37,14 +37,6 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductDetailDto> getProductById(
-            @PathVariable String id,
-            @RequestParam(required = false, defaultValue = "false") boolean isReview) {
-        ProductDetailDto productDto = productService.getProductById(id, isReview);
-        return ResponseEntity.ok(productDto);
-    }
-
     @GetMapping("/admin")
     public ResponseEntity<MyShopProductListResponse> getProductsForAdmin(
             @RequestParam(required = false, defaultValue = "0") int page,

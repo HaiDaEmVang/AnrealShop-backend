@@ -44,8 +44,8 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
             "generalAttributes",
             "productSkus",
     })
-    @Query("SELECT p FROM Product p WHERE p.id = :id")
-    Optional<Product> findFullInfoById(String id);
+    @Query("SELECT p FROM Product p WHERE p.id = :id or p.urlSlug = :id")
+    Optional<Product> findFullInfoByIdOrSlug(String id);
 
     @Modifying
     @Query("UPDATE Product p SET p.deleted = true, p.visible = false WHERE p.id = :id")

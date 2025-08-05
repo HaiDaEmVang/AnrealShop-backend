@@ -163,7 +163,7 @@ public class ProductServiceImp implements IProductService {
     @Override
     public ProductDetailDto getProductById(String id, boolean isReview) {
 //        isReview chua trien khai nghe haidev
-        Product p = productRepository.findFullInfoById(id)
+        Product p = productRepository.findFullInfoByIdOrSlug(id)
                 .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
         List<ProductAttributeSingleValueDto> productAttributes = productGeneralAttributeRepository.findProductAttributeSingleValueDtoByProductId(id);
         return productMapper.toProductDetailDto(p, productAttributes);
