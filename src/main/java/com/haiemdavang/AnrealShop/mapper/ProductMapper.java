@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -249,6 +250,8 @@ public class ProductMapper {
                 .quantity(productSku.getQuantity())
                 .sold(productSku.getSold())
                 .createdAt(productSku.getCreatedAt() != null ? productSku.getCreatedAt().toString() : null)
+                .keyAttributes(productSku.getAttributes().stream().map(t -> t.getAttributeKey().getKeyName()).toArray(String[]::new))
+                .attributeForSku(attributeMapper.toProductAttributeSingleValueDto(productSku.getAttributes()))
                 .build();
     }
     public MyShopProductDto toMyShopProductDto(Product product, Set<ProductSku> productSkus) {
