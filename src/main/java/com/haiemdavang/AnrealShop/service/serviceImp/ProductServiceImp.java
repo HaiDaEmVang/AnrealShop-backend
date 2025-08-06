@@ -120,8 +120,9 @@ public class ProductServiceImp implements IProductService {
         productRepository.save(product);
 
         ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .action(ProductSyncActionType.PRODUCT_UPDATED_STATUS)
                 .isVisible(false)
+                .status(RestrictStatus.VIOLATION)
                 .id(id)
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
@@ -142,8 +143,9 @@ public class ProductServiceImp implements IProductService {
         productRepository.save(product);
 
         ProductSyncMessage message = ProductSyncMessage.builder()
-                .action(ProductSyncActionType.PRODUCT_UPDATED_VISIBILITY)
+                .action(ProductSyncActionType.PRODUCT_UPDATED_STATUS)
                 .isVisible(true)
+                .status(product.getRestrictStatus())
                 .id(id)
                 .build();
         productKafkaProducer.sendProductSyncMessage(message);
@@ -161,7 +163,7 @@ public class ProductServiceImp implements IProductService {
     @Override
     public ProductDetailDto getProductById(String id, boolean isReview) {
 //        isReview chua trien khai nghe haidev
-        Product p = productRepository.findFullInfoById(id)
+        Product p = productRepository.findFullInfoByIdOrSlug(id)
                 .orElseThrow(() -> new BadRequestException("PRODUCT_NOT_FOUND"));
         List<ProductAttributeSingleValueDto> productAttributes = productGeneralAttributeRepository.findProductAttributeSingleValueDtoByProductId(id);
         return productMapper.toProductDetailDto(p, productAttributes);
@@ -398,6 +400,12 @@ public class ProductServiceImp implements IProductService {
                 .totalPages(productPage.getTotalPages())
                 .totalCount(productPage.getTotalElements())
                 .build();
+    }
+
+    @Override
+    public List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy) {
+        List<EsProductDto> esProducts = productIndexerService.searchProducts(page, limit, search, categoryId, sortBy);
+        return productMapper.toUserProductDtos(esProducts);
     }
 
     private void updateAttributeForProduct(List<ProductGeneralAttribute> oldAttributeForProduct,

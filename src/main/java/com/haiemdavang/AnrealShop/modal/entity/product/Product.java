@@ -142,4 +142,5 @@
             this.mediaList.add(productMedia);
             productMedia.setProduct(this);
         }
+
     }

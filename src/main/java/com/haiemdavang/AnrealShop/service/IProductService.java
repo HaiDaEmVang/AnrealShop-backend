@@ -35,4 +35,6 @@ public interface IProductService {
     List<ProductStatusDto> getFilterMetaForAdmin(LocalDate startDate, LocalDate endDate);
 
     ProductDetailDto getProductById(String id, boolean isReview);
+
+    List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy);
 }

@@ -19,6 +19,17 @@ public class ShopMapper {
                 .build();
     }
 
+    public BaseShopDto toBaseShopDto(EsShop shop) {
+        if (shop == null) {
+            return null;
+        }
+
+        return BaseShopDto.builder()
+                .id(shop.getId())
+                .name(shop.getName())
+                .build();
+    }
+
     public EsShop toEsShop(BaseShopDto shop) {
         if (shop == null) {
             return null;

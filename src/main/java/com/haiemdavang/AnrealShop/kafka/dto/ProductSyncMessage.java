@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.kafka.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.haiemdavang.AnrealShop.dto.product.EsProductDto;
+import com.haiemdavang.AnrealShop.modal.enums.RestrictStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +21,5 @@ public class ProductSyncMessage {
     private Set<String> ids;
     private EsProductDto product;
     private boolean isVisible;
+    private RestrictStatus status;
 }

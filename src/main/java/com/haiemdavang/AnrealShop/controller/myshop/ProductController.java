@@ -1,7 +1,6 @@
 package com.haiemdavang.AnrealShop.controller.myshop;
 
 import com.haiemdavang.AnrealShop.dto.product.*;
-import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.service.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +35,6 @@ public class ProductController {
 
         MyShopProductListResponse response = productService.getMyShopProducts(page, limit, status, search, categoryId, sortBy);
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductDetailDto> getProductById(
-            @PathVariable String id,
-            @RequestParam(required = false, defaultValue = "false") boolean isReview) {
-        ProductDetailDto productDto = productService.getProductById(id, isReview);
-        return ResponseEntity.ok(productDto);
     }
 
     @GetMapping("/admin")
