@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.modal.entity.cart;
 
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"cart", "product", "selectedAttributes"})
+@ToString(exclude = {"cart", "productSku"})
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "cart_items")
@@ -28,8 +29,8 @@ public class CartItem {
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @JoinColumn(name = "product_sku_id", nullable = false)
+    private ProductSku productSku;
 
     @Column(nullable = false)
     private Long price;
@@ -41,11 +42,4 @@ public class CartItem {
     private boolean selected = true;
 
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "cart_item_attributes",
-            joinColumns = @JoinColumn(name = "cart_item_id"),
-            inverseJoinColumns = @JoinColumn(name = "attribute_value_id")
-    )
-    private Set<AttributeValue> selectedAttributes;
 }
