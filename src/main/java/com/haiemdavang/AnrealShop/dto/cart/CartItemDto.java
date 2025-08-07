@@ -13,6 +13,7 @@ import lombok.Data;
 public class CartItemDto {
     private String id;
     private String productId;
+    private String urlSlug;
     private String productSkuId;
     private String thumbnailUrl; // tu product sku
     @Min(value = 1, message = "QUANTITY_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1")

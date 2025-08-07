@@ -24,6 +24,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
     @EntityGraph(attributePaths = "productSku")
     @Query("select ci from CartItem ci " +
             "join fetch ci.productSku ps " +
-            "where ci.id = :cartItemId")
+            "where ci.id = :s")
     Optional<CartItem> findWithProductSkuById(String s);
 }

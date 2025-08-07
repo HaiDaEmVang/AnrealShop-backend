@@ -2,7 +2,6 @@ package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.cart.CartItemDto;
 import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
-import com.haiemdavang.AnrealShop.modal.entity.cart.Cart;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +23,8 @@ public class CartMapper {
 
         return CartItemDto.builder()
                 .id(cartItem.getId())
+                .urlSlug(cartItem.getProductSku() != null && cartItem.getProductSku().getProduct() != null ?
+                        cartItem.getProductSku().getProduct().getUrlSlug() : null)
                 .productId(cartItem.getProductSku() != null && cartItem.getProductSku().getProduct() != null ?
                         cartItem.getProductSku().getProduct().getId() : null)
                 .productSkuId(cartItem.getProductSku() != null ? cartItem.getProductSku().getId() : null)

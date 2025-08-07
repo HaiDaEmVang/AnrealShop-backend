@@ -20,10 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,14 +84,15 @@ public class CartServiceImp implements ICartService {
     @Override
     @Transactional
     public void removeFromCart(String cartItemId) {
+
         User currentUser = securityUtils.getCurrentUser();
         String userId = currentUser.getId();
 
         Cart cart = findOrCreateCart(currentUser);
-        if (cart.getItems().stream().anyMatch(item -> item.getId().equals(cartItemId)))
+        boolean removed = cart.getItems().removeIf(item -> item.getId().equals(cartItemId));
+        if (!removed) {
             throw new BadRequestException("CART_ITEM_NOT_FOUND");
-        else
-            cart.getItems().removeIf(item -> item.getId().equals(cartItemId));
+        }
 
         cartRepository.save(cart);
         invalidateCartCache(userId);
@@ -102,15 +100,20 @@ public class CartServiceImp implements ICartService {
 
     @Override
     @Transactional
-    public void clearCart(Set<String> productIds) {
+    public int clearCart(List<String> productIds) {
         User currentUser = securityUtils.getCurrentUser();
         String userId = currentUser.getId();
 
         Cart cart = findOrCreateCart(currentUser);
-        cart.getItems().removeIf(item -> productIds.contains(item.getId()));
+        Set<CartItem> itemsToRemove = cart.getItems().stream()
+                .filter(item -> productIds.contains(item.getId()))
+                .collect(Collectors.toSet());
+
+        cart.getItems().removeAll(itemsToRemove);
 
         cartRepository.save(cart);
         invalidateCartCache(userId);
+        return itemsToRemove.size();
     }
 
     @Override
@@ -141,14 +144,14 @@ public class CartServiceImp implements ICartService {
 
     @Override
     @Transactional
-    public void updateQuantity(CartItemDto cartItemDto) {
-        CartItem cartItem = cartItemRepository.findWithProductSkuById(cartItemDto.getId())
+    public void updateQuantity(String cartItemId, int quantity) {
+        CartItem cartItem = cartItemRepository.findWithProductSkuById(cartItemId)
                 .orElseThrow(() -> new BadRequestException("CART_ITEM_NOT_FOUND"));
 
-        if (cartItemDto.getQuantity() > cartItem.getProductSku().getQuantity())
+        if (quantity > cartItem.getProductSku().getQuantity())
             throw new BadRequestException("QUANTITY_EXCEED_PRODUCT_SKU_STOCK");
 
-        cartItem.setQuantity(cartItemDto.getQuantity());
+        cartItem.setQuantity(quantity);
 
         cartItemRepository.save(cartItem);
     }

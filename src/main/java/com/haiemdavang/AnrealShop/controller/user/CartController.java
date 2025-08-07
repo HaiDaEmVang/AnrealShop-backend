@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,8 +25,8 @@ public class CartController {
     }
 
     @PutMapping("/update-quantity")
-    public ResponseEntity<?> updateQuantity(@RequestBody CartItemDto cartItemDto) {
-        cartService.updateQuantity(cartItemDto);
+    public ResponseEntity<?> updateQuantity(@RequestParam String cartItemId, @RequestParam int quantity) {
+        cartService.updateQuantity(cartItemId, quantity);
         return ResponseEntity.ok(Map.of("message","Quantity is update to cart"));
     }
 
@@ -36,9 +37,8 @@ public class CartController {
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<?> clearCart(@RequestBody Set<String> cartItemIds) {
-        cartService.clearCart(cartItemIds);
-        return ResponseEntity.ok(Map.of("message","Product list is remove to cart" ));
+    public ResponseEntity<?> clearCart(@RequestBody List<String> cartItemIds) {
+        return ResponseEntity.ok(Map.of("countDelete", cartService.clearCart(cartItemIds)));
     }
 
     @GetMapping
