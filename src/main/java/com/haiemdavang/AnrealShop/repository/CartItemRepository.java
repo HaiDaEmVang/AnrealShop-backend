@@ -1,10 +1,12 @@
 package com.haiemdavang.AnrealShop.repository;
 
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -18,4 +20,10 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
             "JOIN FETCH ps.attributes at " +
             "WHERE u.id = :userId")
     Set<CartItem> findCartItemsByUserId(String userId);
+
+    @EntityGraph(attributePaths = "productSku")
+    @Query("select ci from CartItem ci " +
+            "join fetch ci.productSku ps " +
+            "where ci.id = :cartItemId")
+    Optional<CartItem> findWithProductSkuById(String s);
 }

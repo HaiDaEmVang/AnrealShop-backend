@@ -7,8 +7,9 @@ import java.util.Set;
 
 public interface ICartService {
     int countByUserId(String userId);
-    void addToCart(CartItemDto cartItemDto);
+    boolean addToCart(CartItemDto cartItemDto);
     void removeFromCart(String cartItemId);
     void clearCart(Set<String> cartItemIds);
     Set<CartDto> getCartItems();
+    void updateQuantity(CartItemDto cartItemDto);
 }

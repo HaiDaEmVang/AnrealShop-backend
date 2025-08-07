@@ -18,6 +18,7 @@ import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -48,7 +49,8 @@ public class CartServiceImp implements ICartService {
     }
 
     @Override
-    public void addToCart(CartItemDto cartItemDto) {
+    @Transactional
+    public boolean addToCart(CartItemDto cartItemDto) {
 //        check neu la sp cua chinh user thi throw forbiden
         User currentUser = securityUtils.getCurrentUser();
         String userId = currentUser.getId();
@@ -61,6 +63,7 @@ public class CartServiceImp implements ICartService {
                 .filter(item -> item.getProductSku().getId().equals(cartItemDto.getProductSkuId()))
                 .findFirst();
 
+        boolean isNew = existingItem.isEmpty();
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setPrice(item.getPrice());
@@ -78,9 +81,11 @@ public class CartServiceImp implements ICartService {
 
         cartRepository.save(cart);
         invalidateCartCache(userId);
+        return isNew;
     }
 
     @Override
+    @Transactional
     public void removeFromCart(String cartItemId) {
         User currentUser = securityUtils.getCurrentUser();
         String userId = currentUser.getId();
@@ -96,6 +101,7 @@ public class CartServiceImp implements ICartService {
     }
 
     @Override
+    @Transactional
     public void clearCart(Set<String> productIds) {
         User currentUser = securityUtils.getCurrentUser();
         String userId = currentUser.getId();
@@ -131,6 +137,20 @@ public class CartServiceImp implements ICartService {
 
 
         return cartsDto;
+    }
+
+    @Override
+    @Transactional
+    public void updateQuantity(CartItemDto cartItemDto) {
+        CartItem cartItem = cartItemRepository.findWithProductSkuById(cartItemDto.getId())
+                .orElseThrow(() -> new BadRequestException("CART_ITEM_NOT_FOUND"));
+
+        if (cartItemDto.getQuantity() > cartItem.getProductSku().getQuantity())
+            throw new BadRequestException("QUANTITY_EXCEED_PRODUCT_SKU_STOCK");
+
+        cartItem.setQuantity(cartItemDto.getQuantity());
+
+        cartItemRepository.save(cartItem);
     }
 
     private Cart findOrCreateCart(User user) {

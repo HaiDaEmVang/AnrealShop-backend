@@ -2,6 +2,8 @@ package com.haiemdavang.AnrealShop.dto.cart;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,6 +14,7 @@ public class CartItemDto {
     private String id;
     private String productSkuId;
     private String thumbnailUrl; // tu product sku
+    @Min(value = 1, message = "QUANTITY_MUST_BE_GREATER_THAN_OR_EQUAL_TO_1")
     private int quantity; // tu cart item
     private Long price; // tu cart item
     private String name; // tu product sku -> product -> name
