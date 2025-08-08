@@ -7,16 +7,11 @@ import lombok.Data;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AddressDto {
+public class AddressRequestDto {
     private String id;
     private String receiverOrSenderName;
     private String phoneNumber;
     private String detailAddress;
-    private String ProvinceId;
-    private String DistrictId;
     private String WardId;
-    private String ProvinceName;
-    private String DistrictName;
-    private String WardName;
     private boolean isPrimary;
 }
