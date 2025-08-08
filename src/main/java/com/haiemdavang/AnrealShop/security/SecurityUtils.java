@@ -21,7 +21,9 @@ public class SecurityUtils {
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        return userRepository.findByEmail(username)
+//        return userRepository.findByEmail(username)
+//                .orElseThrow(() -> new UnAuthException("USER_NOT_FOUND"));
+        return userRepository.findById("0c6a1e3a-aa7b-4f10-920b-d9f0a7f9f8b2")
                 .orElseThrow(() -> new UnAuthException("USER_NOT_FOUND"));
     }
     

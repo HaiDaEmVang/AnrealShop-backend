@@ -7,7 +7,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -34,11 +37,11 @@ public class Cart {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<CartItem> items = new ArrayList<>();
+    private Set<CartItem> items = new HashSet<>();
 
     public void addItem(CartItem item) {
         if (items == null) {
-            items = new ArrayList<>();
+            items = new HashSet<>();
         }
         items.add(item);
         item.setCart(this);
