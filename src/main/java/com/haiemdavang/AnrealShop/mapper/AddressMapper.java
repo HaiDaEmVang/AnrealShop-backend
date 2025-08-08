@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.address.AddressRequestDto;
+import com.haiemdavang.AnrealShop.dto.address.BaseAddressDto;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import org.springframework.stereotype.Service;
@@ -100,4 +101,25 @@ public class AddressMapper {
 
     }
 
+    public BaseAddressDto toBaseAddressDto(ShopAddress shopAddress) {
+        if (shopAddress == null) {
+            return null;
+        }
+        return BaseAddressDto.builder()
+                .idDistrict(Integer.parseInt(shopAddress.getDistrict().getId()))
+                .idProvince(Integer.parseInt(shopAddress.getProvince().getId()))
+                .idWard(shopAddress.getWard().getId())
+                .build();
+    }
+
+    public BaseAddressDto toBaseAddressDto(UserAddress userAddress) {
+        if (userAddress == null) {
+            return null;
+        }
+        return BaseAddressDto.builder()
+                .idDistrict(Integer.parseInt(userAddress.getDistrict().getId()))
+                .idProvince(Integer.parseInt(userAddress.getProvince().getId()))
+                .idWard(userAddress.getWard().getId())
+                .build();
+    }
 }

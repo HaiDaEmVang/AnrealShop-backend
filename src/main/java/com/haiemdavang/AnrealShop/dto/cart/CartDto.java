@@ -9,6 +9,6 @@ import java.util.Set;
 @Data
 @Builder
 public class CartDto {
-    private BaseShopDto shop; // product -> shop
+    private BaseShopDto shop;
     private Set<CartItemDto> items;
 }
