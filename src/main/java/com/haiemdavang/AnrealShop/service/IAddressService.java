@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.address.AddressRequestDto;
+import com.haiemdavang.AnrealShop.dto.address.BaseAddressDto;
 import com.haiemdavang.AnrealShop.dto.address.SingleAddressDto;
 
 import java.util.List;
@@ -31,4 +32,6 @@ public interface IAddressService {
     void deleteUserAddress(String id);
 
     void deleteShopAddress(String id);
+
+    BaseAddressDto getShopAddress(String id);
 }
