@@ -93,7 +93,7 @@ public class UserServiceImp implements IUserService {
     @Override
     public UserDto findDtoByEmail(String username) {
         UserDto userDto =  userMapper.toUserDto(findByEmail(username));
-        userDto.setAddress(addressServiceImp.findAddressPrimaryByUserId(userDto.getId()));
+//        userDto.setAddress(addressServiceImp.findAddressPrimaryByUserId(userDto.getId()));
         userDto.setCartCount(cartServiceImp.countByUserId(userDto.getId()));
         return userDto;
     }

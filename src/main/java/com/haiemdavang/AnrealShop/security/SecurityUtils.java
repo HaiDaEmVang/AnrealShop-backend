@@ -27,7 +27,6 @@ public class SecurityUtils {
     
     public Shop getCurrentUserShop() {
 //        User currentUser = getCurrentUser();
-
         return shopRepository.findById("shop-0c6a-1e3a-aa7b-4f10920bd9f0")
                 .orElseThrow(() -> new BadRequestException("SHOP_NOT_FOUND"));
 //        return shopRepository.findByUser(currentUser)

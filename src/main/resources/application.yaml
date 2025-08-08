@@ -1,3 +1,4 @@
+
 spring:
   jackson:
     time-zone: Asia/Ho_Chi_Minh
@@ -41,6 +42,9 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: true
+
+  messages:
+    encoding: UTF-8
 
 logging:
   level:
