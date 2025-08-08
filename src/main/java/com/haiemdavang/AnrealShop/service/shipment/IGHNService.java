@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.service;
+package com.haiemdavang.AnrealShop.service.shipment;
 
 import com.haiemdavang.AnrealShop.dto.shipping.InfoShipment;
 import com.haiemdavang.AnrealShop.dto.shipping.InfoShippingOrder;

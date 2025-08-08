@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,4 +27,14 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
             "join fetch ci.productSku ps " +
             "where ci.id = :s")
     Optional<CartItem> findWithProductSkuById(String s);
+
+    @Query("SELECT DISTINCT ci FROM CartItem ci " +
+            "JOIN FETCH ci.cart c " +
+            "JOIN FETCH c.user u " +
+            "JOIN FETCH ci.productSku ps " +
+            "JOIN FETCH ps.product p " +
+            "JOIN FETCH p.shop s " +
+            "JOIN FETCH ps.attributes at " +
+            "WHERE ci.id in :userId")
+    Set<CartItem> findAllByIdIn(Collection<String> ids);
 }

@@ -1,9 +1,6 @@
 package com.haiemdavang.AnrealShop.dto.cart;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
-import com.haiemdavang.AnrealShop.dto.shipping.InfoShippingOrder;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +20,4 @@ public class CartItemDto {
     private Long price;
     private String name;
     private String attributeString;
-
-//    shipping
-    private InfoShippingOrder infoShippingOrder;
 }

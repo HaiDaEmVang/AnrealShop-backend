@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.dto.shipping;
 
-import com.haiemdavang.AnrealShop.dto.address.BaseAddressDto;
+import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InfoShipment {
-    public BaseAddressDto from;
-    public BaseAddressDto to;
+    public AddressDto from;
+    public AddressDto to;
     public int weight;
-    public int height;
-    public int width;
-    public int length;
 }

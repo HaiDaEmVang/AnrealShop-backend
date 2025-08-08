@@ -3,7 +3,6 @@ package com.haiemdavang.AnrealShop.service.serviceImp;
 import com.haiemdavang.AnrealShop.dto.cart.CartDto;
 import com.haiemdavang.AnrealShop.dto.cart.CartItemDto;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
-import com.haiemdavang.AnrealShop.mapper.AddressMapper;
 import com.haiemdavang.AnrealShop.mapper.CartMapper;
 import com.haiemdavang.AnrealShop.mapper.ShopMapper;
 import com.haiemdavang.AnrealShop.modal.entity.cart.Cart;
@@ -34,7 +33,6 @@ public class CartServiceImp implements ICartService {
     private final SecurityUtils securityUtils;
     private final CartMapper cartMapper;
     private final ShopMapper shopMapper;
-    private final AddressMapper addressMapper;
     private final String PREFIX_CART = "user:%s:cart";
 
     @Override
@@ -130,7 +128,6 @@ public class CartServiceImp implements ICartService {
                 )
         );
         Set<CartDto> cartsDto = new HashSet<>();
-        Map<String, InfoShi>
 
         cartMap.forEach((s, set) -> {
             CartDto cart = CartDto.builder()
@@ -140,6 +137,18 @@ public class CartServiceImp implements ICartService {
             cartsDto.add(cart);
         });
         return cartsDto;
+    }
+
+    @Override
+    public Map<Shop, Set<CartItem>> getCartItemsByIdIn(List<String> cartItemIds) {
+        Set<CartItem> cartItems = cartItemRepository.findAllByIdIn(cartItemIds);
+
+        return cartItems.stream().collect(
+                Collectors.groupingBy(
+                        item -> item.getProductSku().getProduct().getShop(),
+                        Collectors.toSet()
+                )
+        );
     }
 
     @Override
