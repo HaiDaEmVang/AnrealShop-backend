@@ -20,4 +20,6 @@ public class CartItemDto {
     private Long price;
     private String name;
     private String attributeString;
+
+    private boolean isSelected;
 }

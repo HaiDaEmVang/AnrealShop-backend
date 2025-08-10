@@ -256,7 +256,7 @@ public class AddressServiceImp implements IAddressService {
     @Override
     public Map<String, AddressDto> getShopAddressByIdIn(Set<String> shopIds) {
         Set<ShopAddress> shopAddressSet = shopAddressRepository.findByShopIdInAndPrimaryAddressTrue(shopIds);
-        return shopAddressSet.stream().collect(Collectors.toMap(ShopAddress::getId, mapper::toAddressDto));
+        return shopAddressSet.stream().collect(Collectors.toMap(it -> it.getShop().getId(), mapper::toAddressDto));
     }
 
 }

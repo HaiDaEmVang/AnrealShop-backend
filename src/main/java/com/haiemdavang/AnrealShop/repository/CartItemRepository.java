@@ -35,6 +35,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
             "JOIN FETCH ps.product p " +
             "JOIN FETCH p.shop s " +
             "JOIN FETCH ps.attributes at " +
-            "WHERE ci.id in :userId")
+            "WHERE ci.id in :ids")
     Set<CartItem> findAllByIdIn(Collection<String> ids);
 }

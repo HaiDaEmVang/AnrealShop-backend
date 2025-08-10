@@ -1,13 +1,10 @@
-﻿package com.haiemdavang.AnrealShop.controller.user;
+package com.haiemdavang.AnrealShop.controller.user;
 
 import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,7 +14,7 @@ import java.util.List;
 public class ShippingController {
     private final IShipmentService shipmentService;
 
-    @GetMapping("get-fee-for-cart")
+    @PostMapping("fee-for-cart")
     public ResponseEntity<List<CartShippingFee>> getFeeForCart(@RequestBody List<String> cartItemIds) {
         List<CartShippingFee> cartShippingFee = shipmentService.getShippingFeeForCart(cartItemIds);
         return ResponseEntity.ok(cartShippingFee);

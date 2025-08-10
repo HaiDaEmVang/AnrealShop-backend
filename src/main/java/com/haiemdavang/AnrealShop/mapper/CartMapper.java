@@ -32,6 +32,7 @@ public class CartMapper {
                 .quantity(cartItem.getQuantity())
                 .maxQuantity(cartItem.getProductSku() != null ? cartItem.getProductSku().getQuantity() : 0)
                 .price(cartItem.getPrice())
+                .isSelected(cartItem.isSelected())
                 .name(cartItem.getProductSku() != null && cartItem.getProductSku().getProduct() != null ?
                         cartItem.getProductSku().getProduct().getName() : null)
                 .attributeString(attributeString)

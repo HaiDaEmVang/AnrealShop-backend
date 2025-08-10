@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.controller.user;
 
 import com.haiemdavang.AnrealShop.dto.cart.CartItemDto;
+import com.haiemdavang.AnrealShop.dto.cart.CartSelectedUpdateDto;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,12 @@ public class CartController {
     public ResponseEntity<?> addToCart(@RequestBody @Valid CartItemDto cartItemDto) {
         boolean isNew = cartService.addToCart(cartItemDto);
         return ResponseEntity.ok(Map.of("message","Product is added to cart", "isNew", isNew ));
+    }
+
+    @PutMapping("/update-selected")
+    public ResponseEntity<?> updateSelectedItem(@RequestBody @Valid CartSelectedUpdateDto cartSelectedUpdateDto) {
+        cartService.updateSelected(cartSelectedUpdateDto);
+        return ResponseEntity.ok(Map.of("message","Product is update selected to cart"));
     }
 
     @PutMapping("/update-quantity")
