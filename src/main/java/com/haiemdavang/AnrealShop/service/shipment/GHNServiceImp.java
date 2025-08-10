@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haiemdavang.AnrealShop.dto.shipping.*;
-import com.haiemdavang.AnrealShop.service.IGHNService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GHNService implements IGHNService {
+public class GHNServiceImp implements IGHNService {
 
     @Value("${ghn.shop_id}")
     private String shopId;
@@ -42,16 +41,18 @@ public class GHNService implements IGHNService {
 
     @Override
     public InfoShippingOrder getShippingOrderInfo(InfoShipment infoShipment) {
-        List<ShipService> serviceIds = getServiceIdList(infoShipment.from.getIdDistrict(), infoShipment.to.getIdDistrict());
+        List<ShipService> serviceIds = getServiceIdList(
+                Integer.parseInt(infoShipment.from.getDistrictId()),
+                Integer.parseInt(infoShipment.to.getDistrictId()));
 
         int serviceId = infoShipment.getWeight() <= 20000 ? serviceIds.get(0).getService_id() : serviceIds.get(1).getService_type_id();
         int fee = getFee(serviceId,
-                infoShipment.from.getIdDistrict(), infoShipment.to.getIdDistrict(),
-                infoShipment.from.getIdWard(), infoShipment.to.getIdWard(),
-                infoShipment.getWeight(), infoShipment.getLength(), infoShipment.getWidth(), infoShipment.getHeight());
+                Integer.parseInt(infoShipment.from.getDistrictId()), Integer.parseInt(infoShipment.to.getDistrictId()),
+                infoShipment.from.getWardId(), infoShipment.to.getWardId(),
+                infoShipment.getWeight());
         LocalDate expectedDeliveryDate = getExpectedDeliveryDate(serviceId,
-                infoShipment.from.getIdDistrict(), infoShipment.to.getIdDistrict(),
-                infoShipment.from.getIdWard(), infoShipment.to.getIdWard());
+                Integer.parseInt(infoShipment.from.getDistrictId()), Integer.parseInt(infoShipment.to.getDistrictId()),
+                infoShipment.from.getWardId(), infoShipment.to.getWardId());
         return InfoShippingOrder.builder()
                 .fee(fee)
                 .leadTime(expectedDeliveryDate)
@@ -67,7 +68,7 @@ public class GHNService implements IGHNService {
     }
 
     private int getFee(int serviceId, int fromDistrictId, int toDistrictId,
-                       String fromWardCode, String toWardCode, int weight, int length, int width, int height) {
+                       String fromWardCode, String toWardCode, int weight) {
         Map<String, Object> body = new HashMap<>();
         body.put("service_id", serviceId);
         body.put("from_district_id", fromDistrictId);
@@ -75,9 +76,6 @@ public class GHNService implements IGHNService {
         body.put("from_ward_code", fromWardCode);
         body.put("to_ward_code", toWardCode);
         body.put("weight", weight);
-        body.put("length", length);
-        body.put("width", width);
-        body.put("height", height);
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, initHeader());
         ResponseEntity<String> response = restTemplate.postForEntity(calculateFeeApi,

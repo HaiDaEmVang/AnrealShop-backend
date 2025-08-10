@@ -105,12 +105,23 @@ public class AddressMapper {
         if (shopAddress == null) {
             return null;
         }
-
         return BaseAddressDto.builder()
-                .idProvince(Integer.parseInt(shopAddress.getProvince().getId()))
                 .idDistrict(Integer.parseInt(shopAddress.getDistrict().getId()))
+                .idProvince(Integer.parseInt(shopAddress.getProvince().getId()))
                 .idWard(shopAddress.getWard().getId())
                 .build();
     }
+
+    public BaseAddressDto toBaseAddressDto(UserAddress userAddress) {
+        if (userAddress == null) {
+            return null;
+        }
+        return BaseAddressDto.builder()
+                .idDistrict(Integer.parseInt(userAddress.getDistrict().getId()))
+                .idProvince(Integer.parseInt(userAddress.getProvince().getId()))
+                .idWard(userAddress.getWard().getId())
+                .build();
+    }
+
 
 }

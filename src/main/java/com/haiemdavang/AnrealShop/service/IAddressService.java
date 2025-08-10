@@ -6,6 +6,7 @@ import com.haiemdavang.AnrealShop.dto.address.BaseAddressDto;
 import com.haiemdavang.AnrealShop.dto.address.SingleAddressDto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface IAddressService {
@@ -33,5 +34,5 @@ public interface IAddressService {
 
     void deleteShopAddress(String id);
 
-    BaseAddressDto getShopAddress(String id);
+    Map<String, AddressDto> getShopAddressByIdIn(Set<String> shopIds);
 }

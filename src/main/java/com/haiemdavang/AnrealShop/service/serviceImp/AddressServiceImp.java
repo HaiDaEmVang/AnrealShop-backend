@@ -13,10 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -257,10 +254,9 @@ public class AddressServiceImp implements IAddressService {
     }
 
     @Override
-    public BaseAddressDto getShopAddress(String id) {
-        ShopAddress shopAddress = shopAddressRepository.findByShopIdAndPrimaryAddressTrue(id)
-                .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
-        return mapper.toBaseAddressDto(shopAddress);
+    public Map<String, AddressDto> getShopAddressByIdIn(Set<String> shopIds) {
+        Set<ShopAddress> shopAddressSet = shopAddressRepository.findByShopIdInAndPrimaryAddressTrue(shopIds);
+        return shopAddressSet.stream().collect(Collectors.toMap(it -> it.getShop().getId(), mapper::toAddressDto));
     }
 
 }

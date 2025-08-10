@@ -4,11 +4,11 @@ import com.haiemdavang.AnrealShop.dto.shop.BaseShopDto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 @Data
 @Builder
 public class CartDto {
-    private BaseShopDto shop; // product -> shop
-    private Set<CartItemDto> items;
+    private BaseShopDto shop;
+    private List<CartItemDto> items;
 }

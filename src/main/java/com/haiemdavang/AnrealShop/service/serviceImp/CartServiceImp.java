@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.cart.CartDto;
 import com.haiemdavang.AnrealShop.dto.cart.CartItemDto;
+import com.haiemdavang.AnrealShop.dto.cart.CartSelectedUpdateDto;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.CartMapper;
 import com.haiemdavang.AnrealShop.mapper.ShopMapper;
@@ -117,29 +118,45 @@ public class CartServiceImp implements ICartService {
     }
 
     @Override
-    public Set<CartDto> getCartItems() {
+    public List<CartDto> getCartItems() {
         User currentUser = securityUtils.getCurrentUser();
-        Set<CartItem> cartItem = cartItemRepository.findCartItemsByUserId(currentUser.getId());
+        Set<CartItem> cartItems = cartItemRepository.findCartItemsByUserId(currentUser.getId());
 
-        Map<Shop, Set<CartItem>> cartMap = cartItem.stream().collect(
+        Map<Shop, List<CartItem>> cartMap = cartItems.stream()
+                .collect(Collectors.groupingBy(
+                        item -> item.getProductSku().getProduct().getShop(),
+                        Collectors.toList()
+                ));
+
+        return cartMap.entrySet().stream()
+                .map(entry -> {
+                    Shop shop = entry.getKey();
+                    List<CartItemDto> sortedItems = entry.getValue().stream()
+                            .map(cartMapper::toCartItemDto)
+                            .sorted(Comparator.comparing(CartItemDto::isSelected).reversed())
+                            .toList();
+
+                    return CartDto.builder()
+                            .shop(shopMapper.toBaseShopDto(shop))
+                            .items(sortedItems)
+                            .build();
+                })
+                .sorted(Comparator.comparing(
+                        (CartDto cart) -> cart.getItems().stream().anyMatch(CartItemDto::isSelected)
+                ).reversed())
+                .toList();
+    }
+
+    @Override
+    public Map<Shop, Set<CartItem>> getCartItemsByIdIn(List<String> cartItemIds) {
+        Set<CartItem> cartItems = cartItemRepository.findAllByIdIn(cartItemIds);
+
+        return cartItems.stream().collect(
                 Collectors.groupingBy(
                         item -> item.getProductSku().getProduct().getShop(),
                         Collectors.toSet()
                 )
         );
-        Set<CartDto> cartsDto = new HashSet<>();
-
-        cartMap.forEach((s, set) -> {
-            CartDto cart = CartDto.builder()
-                    .shop(shopMapper.toBaseShopDto(s))
-                    .items(set.stream().map(cartMapper::toCartItemDto).collect(Collectors.toSet()))
-                    .build();
-            cartsDto.add(cart);
-        });
-
-
-
-        return cartsDto;
     }
 
     @Override
@@ -154,6 +171,16 @@ public class CartServiceImp implements ICartService {
         cartItem.setQuantity(quantity);
 
         cartItemRepository.save(cartItem);
+    }
+
+    @Override
+    public void updateSelected(CartSelectedUpdateDto cartSelectedUpdateDto) {
+        Set<CartItem> cartItems = cartItemRepository.findAllByIdIn(cartSelectedUpdateDto.getItemIds());
+        if (cartItems.isEmpty()) {
+            throw new BadRequestException("CART_ITEM_NOT_FOUND");
+        }
+        cartItems.forEach(cartItem -> cartItem.setSelected(cartSelectedUpdateDto.isSelected()));
+        cartItemRepository.saveAll(cartItems);
     }
 
     private Cart findOrCreateCart(User user) {
