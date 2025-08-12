@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -24,14 +25,14 @@ public class AddressController {
     }
 
     @GetMapping("/get-district-list")
-    public ResponseEntity<Set<SingleAddressDto>> getDistrictList(@RequestParam int provinceId,
+    public ResponseEntity<Set<SingleAddressDto>> getDistrictList(@RequestParam String provinceId,
                                                                  @RequestParam(required = false) String keyword) {
         Set<SingleAddressDto> districts = addressService.getDistrictList(provinceId, keyword);
         return ResponseEntity.ok(districts);
     }
 
     @GetMapping("/get-ward-list")
-    public ResponseEntity<Set<SingleAddressDto>> getWardList(@RequestParam int districtId,
+    public ResponseEntity<Set<SingleAddressDto>> getWardList(@RequestParam String districtId,
                                                               @RequestParam(required = false) String keyword) {
         Set<SingleAddressDto> wards = addressService.getWardList(districtId, keyword);
         return ResponseEntity.ok(wards);
@@ -86,14 +87,14 @@ public class AddressController {
     }
 
     @DeleteMapping("/user-address/{id}")
-    public ResponseEntity<Void> deleteUserAddress(@PathVariable String id) {
+    public ResponseEntity<?> deleteUserAddress(@PathVariable String id) {
         addressService.deleteUserAddress(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Delete success"));
     }
 
     @DeleteMapping("/shop-address/{id}")
-    public ResponseEntity<Void> deleteShopAddress(@PathVariable String id) {
+    public ResponseEntity<?> deleteShopAddress(@PathVariable String id) {
         addressService.deleteShopAddress(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Delete success"));
     }
 }

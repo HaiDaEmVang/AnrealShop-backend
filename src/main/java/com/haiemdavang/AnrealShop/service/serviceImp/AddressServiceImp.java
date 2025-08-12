@@ -40,7 +40,7 @@ public class AddressServiceImp implements IAddressService {
     @Override
     public List<AddressDto> findAll() {
         User currentUser = securityUtils.getCurrentUser();
-        return userAddressRepository.findAllByUserId(currentUser.getId()).stream().map(mapper::toAddressDto).toList();
+        return userAddressRepository.findAllByUserIdOrderByPrimaryAddressDesc(currentUser.getId()).stream().map(mapper::toAddressDto).toList();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class AddressServiceImp implements IAddressService {
     @Override
     public List<AddressDto> findShopAll() {
         Shop currentUserShop = securityUtils.getCurrentUserShop();
-        return shopAddressRepository.findAllByShopId(currentUserShop.getId()).stream().map(mapper::toAddressDto).toList();
+        return shopAddressRepository.findAllByShopIdOrderByPrimaryAddressDesc(currentUserShop.getId()).stream().map(mapper::toAddressDto).toList();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class AddressServiceImp implements IAddressService {
 
 
     @Override
-    public Set<SingleAddressDto> getDistrictList(int provinceId, String keyword) {
+    public Set<SingleAddressDto> getDistrictList(String provinceId, String keyword) {
         List<District> districts;
         if (keyword != null && !keyword.trim().isEmpty()) {
             districts = districtRepository.findByProvinceIdAndNameContainingIgnoreCase(String.valueOf(provinceId), keyword.trim());
@@ -93,7 +93,7 @@ public class AddressServiceImp implements IAddressService {
     }
 
     @Override
-    public Set<SingleAddressDto> getWardList(int districtId, String keyword) {
+    public Set<SingleAddressDto> getWardList(String districtId, String keyword) {
         List<Ward> wards;
         if (keyword != null && !keyword.trim().isEmpty()) {
             wards = wardRepository.findByDistrictIdAndNameContainingIgnoreCase(String.valueOf(districtId), keyword.trim());
@@ -166,13 +166,14 @@ public class AddressServiceImp implements IAddressService {
         UserAddress userAddress = userAddressRepository.findByIdAndUserId(id, currentUser.getId())
                 .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
 
-        if (userAddress.isPrimaryAddress()) {
+        if (addressDto.isPrimary()) {
             userAddressRepository.findByUserIdAndPrimaryAddressTrue(currentUser.getId())
                     .ifPresent(existingDefault -> {
                         existingDefault.setPrimaryAddress(false);
                         userAddressRepository.save(existingDefault);
                     });
         }
+
         if (!Objects.equals(addressDto.getWardId(), userAddress.getWard().getId())) {
             IBaseAddressDto baseAddressDto = wardRepository.findProvinceAndDistrictAndWardByWardId(addressDto.getWardId())
                     .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND_BY_WARD_ID"));
@@ -193,7 +194,7 @@ public class AddressServiceImp implements IAddressService {
         ShopAddress shopAddress = shopAddressRepository.findByIdAndShopId(id, currentShop.getId())
                 .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
 
-        if (shopAddress.isPrimaryAddress()) {
+        if (addressDto.isPrimary()) {
             Optional<ShopAddress> existingDefault = shopAddressRepository.findByShopIdAndPrimaryAddressTrue(currentShop.getId());
             if (existingDefault.isPresent()) {
                 existingDefault.get().setPrimaryAddress(false);

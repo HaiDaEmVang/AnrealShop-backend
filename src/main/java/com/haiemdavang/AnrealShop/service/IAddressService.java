@@ -18,9 +18,9 @@ public interface IAddressService {
 
     Set<SingleAddressDto> getProvinceList(String keyword);
 
-    Set<SingleAddressDto> getDistrictList(int provinceId, String keyword);
+    Set<SingleAddressDto> getDistrictList(String provinceId, String keyword);
 
-    Set<SingleAddressDto> getWardList(int districtId, String keyword);
+    Set<SingleAddressDto> getWardList(String districtId, String keyword);
 
     AddressDto createUserAddress(AddressRequestDto addressDto);
 
