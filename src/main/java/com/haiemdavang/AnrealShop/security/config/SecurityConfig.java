@@ -31,12 +31,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     public final static List<String> PUBLIC_URLS = List.of(
+            "/",
+            "/IPN",
             "/api/public/**",
-            "/api/auth/**",
+            "/api/logout",
             "/api/login",
             "/api/register",
             "/api/forgot-password",
-            "/api/otp/**");
+            "/api/otp/**",
+            "/swagger-ui/index.html");
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;
@@ -65,7 +68,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("http://localhost:5173", "https://anreal-shop.vercel.app"));
+        cors.setAllowedOrigins(List.of("http://localhost:5173", "https://anreal-shop.vercel.app", "https://shop.haiemdavang.id.vn"));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("authorization", "content-type", "x-requested-with", "x-auth-token"));
         cors.setAllowCredentials(true);

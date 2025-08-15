@@ -12,7 +12,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -52,7 +54,8 @@ public class Order {
 
      @Enumerated(EnumType.STRING)
      @Column(name = "status", nullable = false)
-     private OrderStatus status;
+     @Builder.Default
+     private OrderStatus status = OrderStatus.PROCESSING;
 
      @Column(name = "sub_total_amount")
      private Long subTotalAmount;
@@ -65,16 +68,16 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private Set<OrderItem> orderItems = new HashSet<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<ShopOrder> shopOrders = new ArrayList<>();
+    private Set<ShopOrder> shopOrders = new HashSet<>();
 
 
     public void addOrderItem(OrderItem item) {
         if (orderItems == null) {
-            orderItems = new ArrayList<>();
+            orderItems = new HashSet<>();
         }
         orderItems.add(item);
         item.setOrder(this);
@@ -88,7 +91,7 @@ public class Order {
     }
     public void addShopOrder(ShopOrder shopOrder) {
         if (shopOrders == null) {
-            shopOrders = new ArrayList<>();
+            shopOrders = new HashSet<>();
         }
         shopOrders.add(shopOrder);
         shopOrder.setOrder(this);

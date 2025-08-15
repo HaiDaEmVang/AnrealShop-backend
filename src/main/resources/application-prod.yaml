@@ -40,12 +40,13 @@ cloudinary:
 payment:
   vnPay:
     url: ${VNP_URL}
-    returnUrl: http://localhost:8080/api/vnpay/payment-callback
+    returnUrl: https://api.haiemdavang.id.vn/api/public/vnpay/payment-callback
     tmnCode: ${VNP_TMCODE}
     secretKey: ${VNP_SECRET_KEY}
     version: ${VNP_VER}
     command: ${VNP_COMD}
     orderType: ${VNP_TYPE}
+    timeExpire: ${VNP_MAX_TIME}
 gemini:
   api-key: ${GEMINI_API_KEY}
 jwt:

@@ -1,6 +1,9 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
-import com.haiemdavang.AnrealShop.dto.address.*;
+import com.haiemdavang.AnrealShop.dto.address.AddressDto;
+import com.haiemdavang.AnrealShop.dto.address.AddressRequestDto;
+import com.haiemdavang.AnrealShop.dto.address.IBaseAddressDto;
+import com.haiemdavang.AnrealShop.dto.address.SingleAddressDto;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.AddressMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.*;
@@ -258,6 +261,19 @@ public class AddressServiceImp implements IAddressService {
     public Map<String, AddressDto> getShopAddressByIdIn(Set<String> shopIds) {
         Set<ShopAddress> shopAddressSet = shopAddressRepository.findByShopIdInAndPrimaryAddressTrue(shopIds);
         return shopAddressSet.stream().collect(Collectors.toMap(it -> it.getShop().getId(), mapper::toAddressDto));
+    }
+
+    @Override
+    public UserAddress getCurrentUserAddressById(String addressId) {
+        User currentUser = securityUtils.getCurrentUser();
+        return userAddressRepository.findByIdAndUserId(addressId, currentUser.getId())
+                .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
+    }
+
+    @Override
+    public ShopAddress getShopAddressById(String id) {
+        return shopAddressRepository.findByShopIdAndPrimaryAddressTrue(id)
+                .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
     }
 
 }

@@ -2,9 +2,11 @@ package com.haiemdavang.AnrealShop.modal.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 
 public enum PaymentGateway {
-    VNPAY("vnpay");
+    VNPAY("vnpay"),
+    CASH_ON_DELIVERY("cash_on_delivery");
 
     private final String value;
 
@@ -24,6 +26,6 @@ public enum PaymentGateway {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Invalid payment gateway: " + value);
+        throw new BadRequestException("INVALID_PAYMENT_GATEWAY");
     }
 }

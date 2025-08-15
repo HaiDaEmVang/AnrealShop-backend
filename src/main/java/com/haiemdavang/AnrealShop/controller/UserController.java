@@ -3,8 +3,6 @@ package com.haiemdavang.AnrealShop.controller;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
-import com.haiemdavang.AnrealShop.mapper.UserMapper;
-import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecu;
 import com.haiemdavang.AnrealShop.service.IUserService;
 import jakarta.validation.Valid;
@@ -22,7 +20,6 @@ import java.util.Map;
 @RequestMapping("/api/user")
 public class UserController {
     private final IUserService userService;
-    private final UserMapper userMapper;
 
     @PostMapping("/register")
     @Transactional
@@ -33,8 +30,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal UserDetailSecu userDetails) {
-        User user = userService.findByEmail(userDetails.getUsername());
-        return ResponseEntity.ok(userMapper.toUserDto(user));
+        return ResponseEntity.ok(userService.findDtoByEmail(userDetails.getUsername()));
     }
 
 

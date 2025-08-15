@@ -11,7 +11,7 @@ import java.util.Set;
 
 public interface ShopAddressRepository extends JpaRepository<ShopAddress, String> {
 
-    @EntityGraph(attributePaths = {"province", "district", "ward"})
+    @EntityGraph(attributePaths = {"province", "district", "ward", "shop"})
     Optional<ShopAddress> findByShopIdAndPrimaryAddressTrue(String userId);
     @EntityGraph(attributePaths = {"province", "district", "ward"})
     List<ShopAddress> findAllByShopIdOrderByPrimaryAddressDesc(String userId);

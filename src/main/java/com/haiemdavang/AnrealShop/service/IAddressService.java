@@ -4,6 +4,10 @@ import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.address.AddressRequestDto;
 import com.haiemdavang.AnrealShop.dto.address.BaseAddressDto;
 import com.haiemdavang.AnrealShop.dto.address.SingleAddressDto;
+import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
+import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -35,4 +39,8 @@ public interface IAddressService {
     void deleteShopAddress(String id);
 
     Map<String, AddressDto> getShopAddressByIdIn(Set<String> shopIds);
+
+    UserAddress getCurrentUserAddressById(@NotNull @NotBlank(message = "ADDRESS_ID_NOT_BLANK") String addressId);
+
+    ShopAddress getShopAddressById(String id);
 }

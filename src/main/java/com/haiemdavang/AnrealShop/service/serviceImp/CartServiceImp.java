@@ -12,9 +12,9 @@ import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.redis.service.IRedisService;
-import com.haiemdavang.AnrealShop.repository.CartItemRepository;
-import com.haiemdavang.AnrealShop.repository.CartRepository;
-import com.haiemdavang.AnrealShop.repository.ProductSkuRepository;
+import com.haiemdavang.AnrealShop.repository.cart.CartItemRepository;
+import com.haiemdavang.AnrealShop.repository.cart.CartRepository;
+import com.haiemdavang.AnrealShop.repository.product.ProductSkuRepository;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import lombok.RequiredArgsConstructor;
@@ -146,6 +146,19 @@ public class CartServiceImp implements ICartService {
                 ).reversed())
                 .toList();
     }
+
+//    @Override
+//    public Map<Shop, Set<CartItem>> getMapCartItems() {
+//        User user = securityUtils.getCurrentUser();
+//        Set<CartItem> cartItems = cartItemRepository.findCartItemsByUserId(user.getId());
+//
+//        return cartItems.stream().collect(
+//                Collectors.groupingBy(
+//                        item -> item.getProductSku().getProduct().getShop(),
+//                        Collectors.toSet()
+//                )
+//        );
+//    }
 
     @Override
     public Map<Shop, Set<CartItem>> getCartItemsByIdIn(List<String> cartItemIds) {

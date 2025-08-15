@@ -1,11 +1,9 @@
 package com.haiemdavang.AnrealShop.service.auth;
 
-import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
-import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +24,6 @@ public class AuthServiceImp implements IAuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtInit jwtInit;
     private final IUserService userService;
-    private final IAddressService addressService;
 
     public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
@@ -41,8 +38,6 @@ public class AuthServiceImp implements IAuthService {
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
         UserDto user = userService.findDtoByEmail(loginRequest.getUsername());
-        AddressDto addressDto = addressService.findAddressPrimary();
-        user.setAddress(addressDto);
 
         return new LoginResponse(accessTokenCookie.getValue(), user);
     }

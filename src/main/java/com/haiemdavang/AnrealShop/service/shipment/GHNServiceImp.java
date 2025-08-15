@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haiemdavang.AnrealShop.dto.shipping.*;
+import com.haiemdavang.AnrealShop.exception.AnrealShopException;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,9 +31,9 @@ public class GHNServiceImp implements IGHNService {
     @Value("${ghn.token}")
     private String token;
 
-    private final String getServiceApi = "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/available-services";
-    private final String calculateFeeApi = "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee";
-    private final String getExpectedDeliveryDateApi = "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/leadtime";
+    private final String getServiceApi = "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/available-services";
+    private final String calculateFeeApi = "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee";
+    private final String getExpectedDeliveryDateApi = "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/leadtime";
 //    private String getProvinceListApi = "https://online-gateway.ghn.vn/shiip/public-api/master-data/province";
 //    private String getDistrictListApi = "https://online-gateway.ghn.vn/shiip/public-api/master-data/district";
 //    private String getWardListApi = "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward";
@@ -45,6 +47,9 @@ public class GHNServiceImp implements IGHNService {
                 Integer.parseInt(infoShipment.from.getDistrictId()),
                 Integer.parseInt(infoShipment.to.getDistrictId()));
 
+        if (serviceIds.isEmpty() || serviceIds.size() < 2) {
+            return InfoShippingOrder.createFailedInfoShippingOrder();
+        }
         int serviceId = infoShipment.getWeight() <= 20000 ? serviceIds.get(0).getService_id() : serviceIds.get(1).getService_type_id();
         int fee = getFee(serviceId,
                 Integer.parseInt(infoShipment.from.getDistrictId()), Integer.parseInt(infoShipment.to.getDistrictId()),
@@ -53,10 +58,8 @@ public class GHNServiceImp implements IGHNService {
         LocalDate expectedDeliveryDate = getExpectedDeliveryDate(serviceId,
                 Integer.parseInt(infoShipment.from.getDistrictId()), Integer.parseInt(infoShipment.to.getDistrictId()),
                 infoShipment.from.getWardId(), infoShipment.to.getWardId());
-        return InfoShippingOrder.builder()
-                .fee(fee)
-                .leadTime(expectedDeliveryDate)
-                .build();
+
+        return InfoShippingOrder.createSuccessInfoShippingOrder(fee, expectedDeliveryDate, serviceIds.get(0).getShort_name());
     }
 
     private HttpHeaders initHeader() {
@@ -105,21 +108,26 @@ public class GHNServiceImp implements IGHNService {
         body.put("from_ward_code", fromWardCode);
         body.put("to_ward_code", toWardCode);
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, initHeader());
-        ResponseEntity<String> response = restTemplate.postForEntity(getExpectedDeliveryDateApi,
-                requestEntity,
-                String.class);
-        if (response.getStatusCode() == HttpStatus.OK) {
-            try {
-                GHNResponse<LeadTime> data = objectMapper.readValue(response.getBody(), new TypeReference<GHNResponse<LeadTime>>() {
-                });
-                return Instant.ofEpochSecond(data.getData().getLeadtime())
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate();
-            } catch (JsonProcessingException e) {
-                log.error("Can't convert object from get lead time api ghn to dto");
-                return LocalDate.now();
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(getExpectedDeliveryDateApi,
+                    requestEntity,
+                    String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                try {
+                    GHNResponse<LeadTime> data = objectMapper.readValue(response.getBody(), new TypeReference<GHNResponse<LeadTime>>() {
+                    });
+                    return Instant.ofEpochSecond(data.getData().getLeadtime())
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
+                } catch (JsonProcessingException e) {
+                    log.error("Can't convert object from get lead time api ghn to dto");
+                    return LocalDate.now();
+                }
             }
+        }catch (Exception e) {
+            throw new AnrealShopException("GHN_NOT_RESPONSE");
         }
+
         log.error("Can't fetch data api lead time");
         return LocalDate.now();
     }
@@ -130,20 +138,23 @@ public class GHNServiceImp implements IGHNService {
         body.put("from_district", fromDistrict);
         body.put("to_district", toDistrict);
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, initHeader());
-        ResponseEntity<String> response = restTemplate.postForEntity(getServiceApi,
-                requestEntity,
-                String.class);
-
-        if (response.getStatusCode() == HttpStatus.OK) {
-            try {
-                GHNResponse<List<ShipService>> data = objectMapper.readValue(response.getBody(), new TypeReference<GHNResponse<List<ShipService>>>() {
-                });
-                return data.getData();
-            } catch (JsonProcessingException e) {
-                log.error("Can't convert object from get list service ghn to dto");
-                return new ArrayList<>();
+        try {
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, initHeader());
+            ResponseEntity<String> response = restTemplate.postForEntity(getServiceApi,
+                    requestEntity,
+                    String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                try {
+                    GHNResponse<List<ShipService>> data = objectMapper.readValue(response.getBody(), new TypeReference<GHNResponse<List<ShipService>>>() {
+                    });
+                    return data.getData();
+                } catch (JsonProcessingException e) {
+                    log.error("Can't convert object from get list service ghn to dto");
+                    return new ArrayList<>();
+                }
             }
+        }catch (Exception e) {
+            throw new AnrealShopException("GHN_NOT_RESPONSE");
         }
         log.error("Can't fetch data get list service");
         return new ArrayList<>();
