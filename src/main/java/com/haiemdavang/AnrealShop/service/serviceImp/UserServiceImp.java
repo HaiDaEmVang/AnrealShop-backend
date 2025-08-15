@@ -6,7 +6,6 @@ import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.exception.ConflictException;
-import com.haiemdavang.AnrealShop.mapper.AddressMapper;
 import com.haiemdavang.AnrealShop.mapper.UserMapper;
 import com.haiemdavang.AnrealShop.modal.entity.user.Role;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
@@ -93,7 +92,7 @@ public class UserServiceImp implements IUserService {
     @Override
     public UserDto findDtoByEmail(String username) {
         UserDto userDto =  userMapper.toUserDto(findByEmail(username));
-//        userDto.setAddress(addressServiceImp.findAddressPrimaryByUserId(userDto.getId()));
+        userDto.setAddress(addressServiceImp.findAddressPrimary());
         userDto.setCartCount(cartServiceImp.countByUserId(userDto.getId()));
         return userDto;
     }

@@ -27,7 +27,8 @@ public class ShopOrderTrack {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private OrderStatus status;
+    @Builder.Default
+    private OrderStatus status = OrderStatus.PROCESSING;
 
     public LocalDateTime getUpdatedAt() {
         return (this.id != null) ? this.id.getUpdatedAt() : null;
@@ -37,5 +38,11 @@ public class ShopOrderTrack {
         this.id = new ShopOrderTrackId(shopOrder.getId(), updatedAt);
         this.shopOrder = shopOrder;
         this.status = status;
+    }
+
+    public ShopOrderTrack(ShopOrder shopOrder) {
+        this.id = new ShopOrderTrackId(shopOrder.getId(), LocalDateTime.now());
+        this.shopOrder = shopOrder;
+        this.status = OrderStatus.PROCESSING;
     }
 }

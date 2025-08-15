@@ -1,6 +1,8 @@
 package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.product.*;
+import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import jakarta.validation.Valid;
 
 import java.time.LocalDate;
@@ -37,4 +39,8 @@ public interface IProductService {
     ProductDetailDto getProductById(String id, boolean isReview);
 
     List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy);
+
+    List<ProductSku> findByProductIdIn(Set<String> ids);
+
+    void decreaseProductSkuQuantity(Set<OrderItem> orderItems);
 }

@@ -2,7 +2,6 @@ package com.haiemdavang.AnrealShop.modal.entity.shop;
 
 
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
-import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
@@ -13,8 +12,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -22,7 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString(exclude = {"user", "order", "shop", "trackingHistory", "orderItems"}) // Đổi tên items thành orderItems cho rõ
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = {"id", "user", "order", "shop"})
 @Entity
 @Table(name = "shop_orders")
 public class ShopOrder {
@@ -53,7 +52,8 @@ public class ShopOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private OrderStatus status;
+    @Builder.Default
+    private OrderStatus status = OrderStatus.PROCESSING;
 
     @Column(name = "cancel_reason", columnDefinition = "TEXT")
     private String cancelReason;
@@ -71,7 +71,7 @@ public class ShopOrder {
 
     @OneToMany(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<ShopOrderTrack> trackingHistory = new ArrayList<>();
+    private Set<ShopOrderTrack> trackingHistory = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -80,17 +80,16 @@ public class ShopOrder {
             inverseJoinColumns = @JoinColumn(name = "order_item_id")
     )
     @Builder.Default
-    private List<OrderItem> orderItems = new ArrayList<>(); // Đổi tên từ items để rõ ràng hơn
+    private Set<OrderItem> orderItems = new HashSet<>(); // Đổi tên từ items để rõ ràng hơn
 
-    // Helper methods for collections (Tùy chọn)
     public void addTrackingHistory(ShopOrderTrack track) {
-        if (trackingHistory == null) trackingHistory = new ArrayList<>();
+        if (trackingHistory == null) trackingHistory = new HashSet<>();
         trackingHistory.add(track);
         track.setShopOrder(this);
     }
 
     public void addOrderItem(OrderItem item) {
-        if (orderItems == null) orderItems = new ArrayList<>();
+        if (orderItems == null) orderItems = new HashSet<>();
         orderItems.add(item);
         // Nếu OrderItem có danh sách Set<ShopOrder> shopOrders (mappedBy="orderItems")
         // thì cần item.getShopOrders().add(this);

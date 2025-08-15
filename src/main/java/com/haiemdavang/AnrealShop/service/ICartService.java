@@ -17,6 +17,7 @@ public interface ICartService {
     void removeFromCart(String cartItemId);
     int clearCart(List<String> cartItemIds);
     List<CartDto> getCartItems();
+//    Map<Shop, Set<CartItem>> getMapCartItems();
     Map<Shop, Set<CartItem>> getCartItemsByIdIn(List<String> cartItemIds);
     void updateQuantity(String cartItemId, int quantity);
 

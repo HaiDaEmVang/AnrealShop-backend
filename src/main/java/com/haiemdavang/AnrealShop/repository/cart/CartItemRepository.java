@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.repository;
+package com.haiemdavang.AnrealShop.repository.cart;
 
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
 import org.springframework.data.jpa.repository.EntityGraph;

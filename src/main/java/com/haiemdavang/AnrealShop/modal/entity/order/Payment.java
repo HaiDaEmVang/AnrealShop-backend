@@ -42,6 +42,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "ENUM('PENDING', 'COD', 'COMPLETED', 'EXPIRED', 'CANCELLED', 'REFUNDED', 'FAILED') DEFAULT 'PENDING'")
+    @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(name = "expire_at")

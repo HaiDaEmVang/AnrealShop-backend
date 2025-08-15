@@ -4,22 +4,19 @@ import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.InfoShipment;
 import com.haiemdavang.AnrealShop.dto.shipping.InfoShippingOrder;
-import com.haiemdavang.AnrealShop.exception.AnrealShopException;
+import com.haiemdavang.AnrealShop.mapper.AddressMapper;
+import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
+import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
+import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-import com.haiemdavang.AnrealShop.modal.entity.user.User;
-import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
-import com.haiemdavang.AnrealShop.service.serviceImp.CartServiceImp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +25,11 @@ public class ShipmentServiceImp implements IShipmentService {
     private final IGHNService ighnService;
     private final ICartService cartService;
     private final IAddressService addressService;
-    private final SecurityUtils securityUtils;
+
+    private final AddressMapper addressMapper;
 
     @Override
     public List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds) {
-        User user = securityUtils.getCurrentUser();
         Map<Shop, Set<CartItem>> cartItemsByShop = cartService.getCartItemsByIdIn(cartItemIds);
         Set<String> ids = cartItemsByShop.keySet().stream().map(Shop::getId).collect(Collectors.toSet());
         Map<String, AddressDto> shopAddresses = addressService.getShopAddressByIdIn(ids);
@@ -52,9 +49,39 @@ public class ShipmentServiceImp implements IShipmentService {
                     .build();
             InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
             result.add(CartShippingFee.builder()
-                    .shopId(s.getId()).fee(infoOrder.getFee()).leadTime(infoOrder.getLeadTime()).build());
+                    .shopId(s.getId())
+                    .fee(infoOrder.getFee())
+                    .leadTime(infoOrder.getLeadTime())
+                    .isSuccess(infoOrder.isSuccess)
+                    .serviceName(infoOrder.getServiceName())
+                    .build());
         }
 
         return result;
     }
+
+    @Override
+    public Map<ShopAddress, Integer> getShippingFee(UserAddress userAddress, Map<Product, Integer> productSkus) {
+        Map<Shop, List<Product>> productSkusByShop = productSkus.keySet().stream()
+                .collect(Collectors.groupingBy(Product::getShop,
+                        Collectors.mapping(product -> product, Collectors.toList())));
+
+        Map<ShopAddress, Integer> mapResult = new HashMap<>();
+        for (Shop shop : productSkusByShop.keySet()) {
+            ShopAddress shopAddress = addressService.getShopAddressById(shop.getId());
+            int totalWeight = productSkusByShop.get(shop).stream()
+                    .mapToInt(product -> product.getWeight().intValue() * productSkus.get(product))
+                    .sum();
+            InfoShipment info = InfoShipment.builder()
+                    .from(addressMapper.toAddressDto(shopAddress))
+                    .to(addressMapper.toAddressDto(userAddress))
+                    .weight(totalWeight)
+                    .build();
+            int fetchFee = ighnService.getShippingOrderInfo(info).getFee();
+            mapResult.put(shopAddress, fetchFee);
+        }
+        return mapResult;
+
+    }
+
 }

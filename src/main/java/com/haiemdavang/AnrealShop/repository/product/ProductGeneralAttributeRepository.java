@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.repository;
+package com.haiemdavang.AnrealShop.repository.product;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductAttributeId;

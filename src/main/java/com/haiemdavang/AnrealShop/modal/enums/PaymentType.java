@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.modal.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 
 public enum PaymentType {
     COD("cash_on_delivery"),
@@ -25,6 +26,6 @@ public enum PaymentType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Invalid payment type: " + value);
+        throw new BadRequestException("INVALID_PAYMENT_TYPE");
     }
 }

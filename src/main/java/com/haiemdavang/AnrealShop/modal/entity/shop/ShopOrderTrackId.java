@@ -7,8 +7,8 @@ import lombok.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -19,5 +19,6 @@ public class ShopOrderTrackId implements Serializable {
     private String shopOrderId;
 
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }
