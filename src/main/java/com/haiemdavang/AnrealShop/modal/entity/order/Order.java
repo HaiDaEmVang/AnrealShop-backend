@@ -60,8 +60,8 @@ public class Order {
      @Column(name = "sub_total_amount")
      private Long subTotalAmount;
 
-     @Column(name = "shipping_fee")
-     private Long shippingFee;
+     @Column(name = "total_shipping_fee")
+     private Long totalShippingFee;
 
      @Column(name = "grand_total_amount", nullable = false)
      private Long grandTotalAmount;

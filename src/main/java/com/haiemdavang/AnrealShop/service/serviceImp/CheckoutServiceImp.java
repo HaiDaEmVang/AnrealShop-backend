@@ -60,7 +60,7 @@ public class CheckoutServiceImp implements ICheckoutService {
         Map<String, Integer> mapItems = items.stream()
                 .collect(Collectors.toMap(ItemProductCheckoutDto::getProductSkuId, ItemProductCheckoutDto::getQuantity));
 
-        List<ProductSku> productSkus = productService.findByProductIdIn(mapItems.keySet());
+        List<ProductSku> productSkus = productService.findByProductSkuIdIn(mapItems.keySet());
         boolean isValid = productSkus.stream()
                 .allMatch(productSku -> {
                     Integer quantity = mapItems.get(productSku.getId());
@@ -73,7 +73,7 @@ public class CheckoutServiceImp implements ICheckoutService {
     @Override
     public List<CheckoutInfoDto> getListCheckout(Map<String, Integer> idProductSkus) {
 
-        List<ProductSku> productSkus = productService.findByProductIdIn(idProductSkus.keySet());
+        List<ProductSku> productSkus = productService.findByProductSkuIdIn(idProductSkus.keySet());
         Map<Shop, Set<ProductSku>> shopSetMap = productSkus.stream().collect(
                 Collectors.groupingBy(t -> t.getProduct().getShop(), Collectors.toSet())
         );

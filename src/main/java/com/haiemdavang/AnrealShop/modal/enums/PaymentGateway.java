@@ -6,6 +6,7 @@ import com.haiemdavang.AnrealShop.exception.BadRequestException;
 
 public enum PaymentGateway {
     VNPAY("vnpay"),
+    MOMO("momo"),
     CASH_ON_DELIVERY("cash_on_delivery");
 
     private final String value;

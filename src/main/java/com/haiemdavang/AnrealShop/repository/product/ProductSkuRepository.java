@@ -14,7 +14,7 @@ public interface ProductSkuRepository extends JpaRepository<ProductSku, String> 
             "LEFT JOIN FETCH ps.product p " +
             "LEFT JOIN FETCH p.shop s " +
             "WHERE ps.id in :productSkuIds")
-    List<ProductSku> findByProductIdIn(Collection<String> productSkuIds);
+    List<ProductSku> findByProductSkuIdIn(Collection<String> productSkuIds);
 
     @Query("SELECT ps FROM ProductSku ps LEFT JOIN FETCH ps.attributes WHERE ps.product.id = :id")
     List<ProductSku> findWithAttributeByProductId(String id);

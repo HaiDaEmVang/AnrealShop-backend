@@ -40,7 +40,7 @@ public interface IProductService {
 
     List<UserProductDto> getProducts(int page, int limit, String search, String categoryId, String sortBy);
 
-    List<ProductSku> findByProductIdIn(Set<String> ids);
+    List<ProductSku> findByProductSkuIdIn(Set<String> ids);
 
     void decreaseProductSkuQuantity(Set<OrderItem> orderItems);
 }
