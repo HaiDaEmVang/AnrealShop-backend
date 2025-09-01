@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"shop", "province", "district", "ward"})
+@ToString(exclude = { "province", "district", "ward", "shop"})
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "shop_addresses")

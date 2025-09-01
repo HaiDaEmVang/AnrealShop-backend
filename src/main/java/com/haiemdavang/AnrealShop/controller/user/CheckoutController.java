@@ -20,7 +20,7 @@ public class CheckoutController {
     private final ICheckoutService checkoutService;
 
     @PostMapping("/items")
-        public ResponseEntity<List<CheckoutInfoDto>> getCart(@RequestBody Map<String, Integer> itemsCheckoutRequest) {
+        public ResponseEntity<List<CheckoutInfoDto>> getListCheckout(@RequestBody Map<String, Integer> itemsCheckoutRequest) {
         return ResponseEntity.ok(checkoutService.getListCheckout(itemsCheckoutRequest));
     }
 

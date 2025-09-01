@@ -394,7 +394,7 @@ public class ProductServiceImp implements IProductService {
                 .map(Product::getId)
                 .collect(Collectors.toList());
 
-        List<ProductSku> productSkus = productSkuRepository.findByProductIdIn(productIds);
+        List<ProductSku> productSkus = productSkuRepository.findByProductSkuIdIn(productIds);
 
         return MyShopProductListResponse.builder()
                 .products(productPage.getContent().stream().map(p -> productMapper.toMyShopProductDto(p, productSkus.stream().filter(ps -> ps.getProduct().equals(p)).collect(Collectors.toSet()))).toList())
@@ -411,8 +411,8 @@ public class ProductServiceImp implements IProductService {
     }
 
     @Override
-    public List<ProductSku> findByProductIdIn(Set<String> ids) {
-        return productSkuRepository.findByProductIdIn(ids);
+    public List<ProductSku> findByProductSkuIdIn(Set<String> ids) {
+        return productSkuRepository.findByProductSkuIdIn(ids);
     }
 
     @Override

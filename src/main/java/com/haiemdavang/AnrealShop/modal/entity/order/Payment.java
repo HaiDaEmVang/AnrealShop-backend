@@ -32,7 +32,7 @@ public class Payment {
     private Long amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('VNPAY', 'CASH_ON_DELIVERY')")
+    @Column(columnDefinition = "ENUM('VNPAY', 'CASH_ON_DELIVERY', 'MOMO')")
     private PaymentGateway gateway;
 
     @Enumerated(EnumType.STRING)

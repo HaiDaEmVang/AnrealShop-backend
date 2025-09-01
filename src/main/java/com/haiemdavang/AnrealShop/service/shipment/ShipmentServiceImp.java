@@ -9,6 +9,7 @@ import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
+import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
@@ -61,16 +62,16 @@ public class ShipmentServiceImp implements IShipmentService {
     }
 
     @Override
-    public Map<ShopAddress, Integer> getShippingFee(UserAddress userAddress, Map<Product, Integer> productSkus) {
-        Map<Shop, List<Product>> productSkusByShop = productSkus.keySet().stream()
-                .collect(Collectors.groupingBy(Product::getShop,
-                        Collectors.mapping(product -> product, Collectors.toList())));
+    public Map<ShopAddress, Integer> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus) {
+        Map<Shop, List<ProductSku>> productSkusByShop = productSkus.keySet().stream()
+                .collect(Collectors.groupingBy(pk -> pk.getProduct().getShop(),
+                        Collectors.mapping(pk -> pk, Collectors.toList())));
 
         Map<ShopAddress, Integer> mapResult = new HashMap<>();
         for (Shop shop : productSkusByShop.keySet()) {
             ShopAddress shopAddress = addressService.getShopAddressById(shop.getId());
             int totalWeight = productSkusByShop.get(shop).stream()
-                    .mapToInt(product -> product.getWeight().intValue() * productSkus.get(product))
+                    .mapToInt(pk -> pk.getProduct().getWeight().intValue() * productSkus.get(pk))
                     .sum();
             InfoShipment info = InfoShipment.builder()
                     .from(addressMapper.toAddressDto(shopAddress))

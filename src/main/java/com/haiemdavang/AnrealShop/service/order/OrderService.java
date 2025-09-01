@@ -19,10 +19,7 @@ import com.haiemdavang.AnrealShop.modal.enums.PaymentStatus;
 import com.haiemdavang.AnrealShop.modal.enums.PaymentType;
 import com.haiemdavang.AnrealShop.repository.order.OrderRepository;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
-import com.haiemdavang.AnrealShop.service.IOrderService;
-import com.haiemdavang.AnrealShop.service.IProductService;
-import com.haiemdavang.AnrealShop.service.IShipmentService;
-import com.haiemdavang.AnrealShop.service.IShopOrderService;
+import com.haiemdavang.AnrealShop.service.*;
 import com.haiemdavang.AnrealShop.service.payment.IPaymentService;
 import com.haiemdavang.AnrealShop.service.payment.VNPayService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +34,7 @@ import java.util.stream.Collectors;
 public class OrderService implements IOrderService {
     private final OrderRepository orderRepository;
     private final IShopOrderService shopOrderService;
+    private final IOrderItemService orderItemService;
     private final IPaymentService paymentService;
     private final IShipmentService shipmentService;
     private final IProductService productService;
@@ -105,33 +103,32 @@ public class OrderService implements IOrderService {
 
         Map<String, Integer> itemRequests = requestDto.getItems().stream().collect(
                 Collectors.toMap(ItemProductCheckoutDto::getProductSkuId, ItemProductCheckoutDto::getQuantity));
-        List<ProductSku> productSkus = productService.findByProductIdIn(itemRequests.keySet());
+        List<ProductSku> productSkus = productService.findByProductSkuIdIn(itemRequests.keySet());
+        Map<ProductSku, Integer> mapProductSkuWithQuantityOrder = productSkus.stream().collect(
+                Collectors.toMap(t -> t, t -> itemRequests.get(t.getId())));
 
         Order order = Order.builder()
                 .user(user)
                 .shippingAddress(userAddress)
                 .build();
 
-        Map<Product, Integer> mapProductWithQuantityOrder = new HashMap<>();
-        Set<OrderItem> orderItems = new HashSet<>();
+//        Set<OrderItem> orderItems = new HashSet<>();
         long subTotalAmount = 0L;
         for (ProductSku productSku : productSkus) {
             Product product = productSku.getProduct();
             Integer quantity = itemRequests.get(productSku.getId());
 
             subTotalAmount += product.getPrice() * quantity;
-            mapProductWithQuantityOrder.put(product, quantity);
             OrderItem orderItem = OrderItem.builder()
                     .productSku(productSku)
                     .quantity(quantity)
                     .price(product.getPrice())
                     .build();
-            orderItems.add(orderItem);
-
+//            orderItems.add(orderItem);
             order.addOrderItem(orderItem);
         }
 
-        Map<ShopAddress, Integer> mapFeeForShops = shipmentService.getShippingFee(userAddress, mapProductWithQuantityOrder);
+        Map<ShopAddress, Integer> mapFeeForShops = shipmentService.getShippingFee(userAddress, mapProductSkuWithQuantityOrder);
         long totalShippingFee = 0L;
 
         for (ShopAddress shopAddress : mapFeeForShops.keySet()) {
@@ -143,32 +140,33 @@ public class OrderService implements IOrderService {
 
             long totalForShop = 0L;
 
-            for (OrderItem orderItem : orderItems) {
+            for (OrderItem orderItem : order.getOrderItems()) {
                 if (orderItem.getProductSku().getProduct().getShop().equals(shopAddress.getShop())){
                     totalForShop += orderItem.getQuantity() * orderItem.getPrice();
-                    shopOrder.addOrderItem(orderItem);
+                    shopOrder.addOrderItems(orderItem);
                 }
             }
             totalShippingFee += shippingFee;
 
             shopOrder.setShippingFee(shippingFee);
-            shopOrder.setTotal(totalForShop);
+            shopOrder.setTotalAmount(totalForShop);
             shopOrder.setShippingAddress(shopAddress);
 
             order.addShopOrder(shopOrder);
         }
+
 
         long grandTotalAmount = subTotalAmount + totalShippingFee;
         Payment payment = paymentService.createPayment(grandTotalAmount, requestDto.getPaymentGateway(), paymentType);
 
         order.setPayment(payment);
         order.setSubTotalAmount(subTotalAmount);
-        order.setShippingFee(totalShippingFee);
+        order.setTotalShippingFee(totalShippingFee);
         order.setGrandTotalAmount(grandTotalAmount);
 
         Order newOrder = orderRepository.save(order);
         shopOrderService.insertShopOrderTrack(newOrder.getShopOrders(), newOrder);
-
+        orderItemService.insertOrderItemTrack(newOrder.getOrderItems(), newOrder);
 //        productService.decreaseProductSkuQuantity(orderItems);
         return newOrder;
     }

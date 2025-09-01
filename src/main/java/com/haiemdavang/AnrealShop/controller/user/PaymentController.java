@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.controller.user;
 
 
+import com.haiemdavang.AnrealShop.dto.ghn.GHNResponse;
 import com.haiemdavang.AnrealShop.dto.payment.PaymentResponseDto;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.service.IOrderService;
@@ -41,6 +42,11 @@ public class PaymentController {
             orderService.handleFailedPayment(orderId, responseCode);
             return "RspCode=" + responseCode;
         }
+    }
+
+    @PostMapping("/api/public/webhook")
+    public ResponseEntity<?> ghnWebhook(@RequestBody GHNResponse ghnResponse){
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/api/public/vnpay/payment-callback")
