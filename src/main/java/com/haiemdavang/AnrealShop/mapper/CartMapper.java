@@ -1,26 +1,22 @@
 package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.cart.CartItemDto;
-import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CartMapper {
+    private final AttributeMapper attributeMapper;
 
     public CartItemDto toCartItemDto(CartItem cartItem) {
         if (cartItem == null) {
             return null;
         }
 
-        String attributeString = "";
-        if (cartItem.getProductSku() != null && cartItem.getProductSku().getAttributes() != null) {
-            attributeString = cartItem.getProductSku().getAttributes().stream()
-                    .map(AttributeValue::getValue)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-        }
+        String attributeString = attributeMapper.getAttribteString(cartItem.getProductSku().getAttributes());
 
         return CartItemDto.builder()
                 .id(cartItem.getId())
@@ -45,13 +41,7 @@ public class CartMapper {
             return null;
         }
 
-        String attributeString = "";
-        if (productSku.getAttributes() != null) {
-            attributeString = productSku.getAttributes().stream()
-                    .map(AttributeValue::getValue)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-        }
+        String attributeString = attributeMapper.getAttribteString(productSku.getAttributes());
 
         return CartItemDto.builder()
                 .id(productSku.getId())
@@ -70,4 +60,6 @@ public class CartMapper {
                 .attributeString(attributeString)
                 .build();
     }
+
+
 }

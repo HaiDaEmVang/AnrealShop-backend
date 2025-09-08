@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.modal.entity.order;
 
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
+import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,6 +50,13 @@ public class OrderItem {
 
     @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean success = false;
+
+    @Column(name = "cancel_reason", columnDefinition = "TEXT")
+    private String cancelReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "canceled_by")
+    private CancelBy canceledBy;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

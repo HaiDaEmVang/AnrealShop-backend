@@ -8,7 +8,6 @@ import com.haiemdavang.AnrealShop.mapper.AddressMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
-import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.service.IAddressService;
@@ -62,12 +61,12 @@ public class ShipmentServiceImp implements IShipmentService {
     }
 
     @Override
-    public Map<ShopAddress, Integer> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus) {
+    public Map<ShopAddress, Long> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus) {
         Map<Shop, List<ProductSku>> productSkusByShop = productSkus.keySet().stream()
                 .collect(Collectors.groupingBy(pk -> pk.getProduct().getShop(),
                         Collectors.mapping(pk -> pk, Collectors.toList())));
 
-        Map<ShopAddress, Integer> mapResult = new HashMap<>();
+        Map<ShopAddress, Long> mapResult = new HashMap<>();
         for (Shop shop : productSkusByShop.keySet()) {
             ShopAddress shopAddress = addressService.getShopAddressById(shop.getId());
             int totalWeight = productSkusByShop.get(shop).stream()
@@ -79,7 +78,7 @@ public class ShipmentServiceImp implements IShipmentService {
                     .weight(totalWeight)
                     .build();
             int fetchFee = ighnService.getShippingOrderInfo(info).getFee();
-            mapResult.put(shopAddress, fetchFee);
+            mapResult.put(shopAddress, (long) fetchFee);
         }
         return mapResult;
 

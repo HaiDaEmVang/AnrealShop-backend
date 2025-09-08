@@ -11,5 +11,5 @@ import java.util.Map;
 public interface IShipmentService {
     List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds);
 
-    Map<ShopAddress, Integer> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus);
+    Map<ShopAddress, Long> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus);
 }
