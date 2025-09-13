@@ -1,6 +1,13 @@
 package com.haiemdavang.AnrealShop.service.order;
 
-import com.haiemdavang.AnrealShop.dto.order.*;
+import com.haiemdavang.AnrealShop.dto.order.MyShopOrderListResponse;
+import com.haiemdavang.AnrealShop.dto.order.OrderDetailDto;
+import com.haiemdavang.AnrealShop.dto.order.OrderItemDto;
+import com.haiemdavang.AnrealShop.dto.order.OrderStatusDto;
+import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
+import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
+import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
+import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.OrderMapper;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
@@ -47,10 +54,10 @@ public class ShopOrderServiceImp implements IShopOrderService {
     }
 
     @Override
-    public Set<OrderStatusDto> getShopFilterMetaData(String shopId, String orderCode, String customerName, String productName) {
+    public Set<OrderStatusDto> getShopFilterMetaData(String shopId, String search, SearchType searchType) {
         LocalDateTime now = LocalDate.now().atTime(23, 59, 59);
         shopId = securityUtils.getCurrentUserShop().getId();
-        Specification<ShopOrder> spec = ShopOrderSpecification.filter(shopId, now.minusMonths(2), now, orderCode, customerName, productName, null);
+        Specification<ShopOrder> spec = ShopOrderSpecification.filter(shopId, ModeType.HOME, now.minusMonths(2), now, search, searchType);
         List<ShopOrder> orders = shopOrderRepository.findAll(spec);
 
         Map<ShopOrderStatus, Integer> statusMap = orders.stream().collect(Collectors.toMap(
@@ -77,10 +84,10 @@ public class ShopOrderServiceImp implements IShopOrderService {
     }
 
     @Override
-    public MyShopOrderListResponse getListOrderItems(int page, int limit, String status, String orderCode, String customerName, String productName, String sortBy) {
+    public MyShopOrderListResponse getListOrderItems(int page, int limit, ModeType mode, String status, String search, SearchType searchType, LocalDateTime confirmSD, LocalDateTime confirmED, OrderCountType orderType, PreparingStatus preparingStatus, String sortBy) {
         LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
         String shopId = securityUtils.getCurrentUserShop().getId();
-        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shopId, now.minusMonths(2), now, orderCode, customerName, productName, status);
+        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shopId, mode, now.minusMonths(2), now, status, search, searchType, confirmSD, confirmED, orderType, preparingStatus);
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification, pageable);
@@ -89,7 +96,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
 
         Set<OrderItemDto> orderItemDtoSet = new HashSet<>();
 
-        List<OrderItem> orderItems = orderItemService.getListOrderItems(idShopOrders, productName, status);
+        List<OrderItem> orderItems = orderItemService.getListOrderItems(mode, idShopOrders, search, searchType, status, confirmSD, confirmED, orderType, preparingStatus);
         Map<String, Set<OrderItem>> mapOrderItems = orderItems.stream().collect(
                 Collectors.groupingBy(oi -> oi.getShopOrder().getId(), Collectors.toSet())
         ).entrySet().stream().collect(
@@ -111,6 +118,12 @@ public class ShopOrderServiceImp implements IShopOrderService {
                 .orderItemDtoSet(orderItemDtoSet)
                 .build();
     }
+
+
+//    @Override
+//    public MyShopOrderListResponse getListOrderItems(int page, int limit, String status, String orderCode, String customerName, String productName, String sortBy) {
+//
+//    }
 
     @Override
     public OrderDetailDto getShopOrder(String shopOrderId) {
@@ -153,10 +166,6 @@ public class ShopOrderServiceImp implements IShopOrderService {
             if (latestTrack.getStatus().equals(newStatus))
                 break;
 
-            ShopOrderTrack ShopOrderTrack = new ShopOrderTrack(item, newStatus, LocalDateTime.now());
-
-            item.addTrackingHistory(ShopOrderTrack);
-
             item.setStatus(newStatus);
 
             results.add(item);
@@ -189,6 +198,8 @@ public class ShopOrderServiceImp implements IShopOrderService {
         ShopOrder shopOrder = orderItemService.rejectOrderItemById(orderItemId, reason, cancelBy);
         handleMapStatus(shopOrder);
     }
+
+
 
     private  void handleMapStatus(ShopOrder shopOrder) {
         if (shopOrder.getOrderItems().stream().allMatch(ot -> ot.getStatus().equals(OrderTrackStatus.CANCELED))) {

@@ -20,6 +20,8 @@ public class ProductOrderItemDto {
     private Long price;
     private String orderStatus;
 
+    private String submitConfirmDate;
+
     private String cancelReason;
     private boolean isReviewed;
 }

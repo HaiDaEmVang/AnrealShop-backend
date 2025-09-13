@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 public class InfoShipment {
     public AddressDto from;
     public AddressDto to;
-    public int weight;
+    public long weight;
 }

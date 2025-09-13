@@ -1,6 +1,10 @@
 package com.haiemdavang.AnrealShop.service.order;
 
 import com.haiemdavang.AnrealShop.dto.order.OrderRejectRequest;
+import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
+import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
+import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
+import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
@@ -66,9 +70,6 @@ public class OrderItemServiceImp implements IOrderItemService {
             if (latestTrack.getStatus().equals(newStatus))
                 break;
 
-            OrderItemTrack orderItemTrack = new OrderItemTrack(item, newStatus, LocalDateTime.now());
-            item.addTrackingHistory(orderItemTrack);
-
             item.setStatus(newStatus);
 
             orderItemsSet.add(item);
@@ -78,8 +79,8 @@ public class OrderItemServiceImp implements IOrderItemService {
     }
 
     @Override
-    public List<OrderItem> getListOrderItems(Set<String> idShopOrders, String productName, String status) {
-        Specification<OrderItem> spec = OrderItemSpecification.filter(idShopOrders, productName, status);
+    public List<OrderItem> getListOrderItems(ModeType mode, Set<String> idShopOrders, String search, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType, PreparingStatus preparingStatus) {
+        Specification<OrderItem> spec = OrderItemSpecification.filter(mode, idShopOrders, search, searchType, status, orderType, preparingStatus);
         return orderItemRepository.findAll(spec);
     }
 
@@ -95,9 +96,6 @@ public class OrderItemServiceImp implements IOrderItemService {
             throw new BadRequestException("ID_NOT_MATCH");
 
         for (OrderItem orderItem : orderItems) {
-            OrderItemTrack orderItemTrack = new OrderItemTrack(orderItem, OrderTrackStatus.CANCELED, LocalDateTime.now());
-            orderItem.addTrackingHistory(orderItemTrack);
-
             orderItem.setStatus(OrderTrackStatus.CANCELED);
             orderItem.setCancelReason(orderRejectRequests.getReason());
             orderItem.setCanceledBy(cancelBy);
@@ -116,13 +114,18 @@ public class OrderItemServiceImp implements IOrderItemService {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
                 .orElseThrow(() -> new BadRequestException("ORDER_ITEM_NOT_FOUND"));
 
-        OrderItemTrack orderItemTrack = new OrderItemTrack(orderItem, OrderTrackStatus.CANCELED, LocalDateTime.now());
-        orderItem.addTrackingHistory(orderItemTrack);
-
         orderItem.setStatus(OrderTrackStatus.CANCELED);
         orderItem.setCancelReason(reason);
         orderItem.setCanceledBy(cancelBy);
         return orderItemRepository.save(orderItem).getShopOrder();
+    }
+
+    @Override
+    public List<OrderItem> getForShipment(List<String> shopOrderIds) {
+        List<OrderItem> orderItems = orderItemRepository.findByShopOrderIdInAndStatus(shopOrderIds, OrderTrackStatus.PREPARING);
+        if (orderItems.isEmpty())
+            throw new BadRequestException("SHOP_ORDER_ID_NOT_MATCH");
+        return orderItems;
     }
 
 

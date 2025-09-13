@@ -30,6 +30,7 @@ public class OrderMapper {
                 .price(orderItem.getPrice())
                 .orderStatus(orderItem.getStatus().name())
                 .cancelReason(orderItem.getCancelReason())
+                .submitConfirmDate(orderItem.getUpdatedAt() != null ? orderItem.getUpdatedAt().toString() : "")
                 .isReviewed(false)
                 .build();
     }

@@ -2,7 +2,6 @@ package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.address.AddressRequestDto;
-import com.haiemdavang.AnrealShop.dto.address.BaseAddressDto;
 import com.haiemdavang.AnrealShop.dto.address.SingleAddressDto;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
@@ -42,5 +41,7 @@ public interface IAddressService {
 
     UserAddress getCurrentUserAddressById(@NotNull @NotBlank(message = "ADDRESS_ID_NOT_BLANK") String addressId);
 
-    ShopAddress getShopAddressById(String id);
+    ShopAddress getShopAddressByIdShop(String id);
+
+    ShopAddress getShopAddressById(String shopId, String addressId);
 }

@@ -271,8 +271,14 @@ public class AddressServiceImp implements IAddressService {
     }
 
     @Override
-    public ShopAddress getShopAddressById(String id) {
-        return shopAddressRepository.findByShopIdAndPrimaryAddressTrue(id)
+    public ShopAddress getShopAddressByIdShop(String idShop) {
+        return shopAddressRepository.findByShopIdAndPrimaryAddressTrue(idShop)
+                .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
+    }
+
+    @Override
+    public ShopAddress getShopAddressById(String shopId, String addressId) {
+        return shopAddressRepository.findByIdAndShopId(addressId, shopId)
                 .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
     }
 

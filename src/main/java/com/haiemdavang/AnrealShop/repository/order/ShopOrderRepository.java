@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -51,4 +52,5 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "LEFT JOIN FETCH so.orderItems oi " +
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithOrderItemById(String shopOrderId);
+
 }

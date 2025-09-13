@@ -83,4 +83,10 @@ public class ShopOrder {
         orderItem.setShopOrder(this);
     }
 
+    public void setStatus(ShopOrderStatus status) {
+        this.status = status;
+        ShopOrderTrack shopOrderTrack = new ShopOrderTrack(this, status, LocalDateTime.now());
+        this.addTrackingHistory(shopOrderTrack);
+    }
+
 }

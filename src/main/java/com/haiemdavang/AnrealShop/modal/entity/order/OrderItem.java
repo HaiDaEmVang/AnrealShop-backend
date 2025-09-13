@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.modal.entity.order;
 
 
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
@@ -19,7 +20,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = { "productSku", "order", "shopOrder"})
+@ToString(exclude = { "productSku", "order", "shopOrder", "shippings", "trackingHistory"})
 @EqualsAndHashCode(of = {"id", "order", "productSku"})
 @Entity
 @Table(name = "order_items")
@@ -71,6 +72,10 @@ public class OrderItem {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @ManyToMany(mappedBy = "orderItems", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<Shipping> shippings = new HashSet<>();
+
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<OrderItemTrack> trackingHistory = new HashSet<>();
@@ -81,6 +86,12 @@ public class OrderItem {
         track.setOrderItem(this);
     }
 
-    // @ManyToMany(mappedBy = "orderItems", fetch = FetchType.LAZY)
-    // private Set<ShopOrder> shopOrders;
+
+    public void setStatus(OrderTrackStatus status) {
+        this.status = status;
+        OrderItemTrack shopOrderTrack = new OrderItemTrack(this, status, LocalDateTime.now());
+        this.addTrackingHistory(shopOrderTrack);
+    }
+
+
 }

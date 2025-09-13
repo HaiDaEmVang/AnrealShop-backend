@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haiemdavang.AnrealShop.dto.shipping.*;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
-import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +53,7 @@ public class GHNServiceImp implements IGHNService {
         int fee = getFee(serviceId,
                 Integer.parseInt(infoShipment.from.getDistrictId()), Integer.parseInt(infoShipment.to.getDistrictId()),
                 infoShipment.from.getWardId(), infoShipment.to.getWardId(),
-                infoShipment.getWeight());
+                (int) infoShipment.getWeight());
         LocalDate expectedDeliveryDate = getExpectedDeliveryDate(serviceId,
                 Integer.parseInt(infoShipment.from.getDistrictId()), Integer.parseInt(infoShipment.to.getDistrictId()),
                 infoShipment.from.getWardId(), infoShipment.to.getWardId());

@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
+import com.haiemdavang.AnrealShop.dto.shipping.CreateShipmentRequest;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
@@ -12,4 +13,6 @@ public interface IShipmentService {
     List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds);
 
     Map<ShopAddress, Long> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus);
+
+    void createShipment(CreateShipmentRequest createShipmentRequest);
 }
