@@ -1,19 +1,36 @@
-//package com.haiemdavang.AnrealShop.mapper;
-//
-//import com.haiemdavang.AnrealShop.dto.shipping.InfoShipment;
-//import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
-//import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
-//import com.haiemdavang.AnrealShop.modal.entity.product.Product;
-//import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
-//import com.haiemdavang.AnrealShop.modal.entity.user.User;
-//
-//public class ShipmentMapper {
-//    public InfoShipment toInfoShipment(ShopAddress shop, UserAddress user, Product product){
-//        if (shop == null || user == null || product == null) {
-//            return null;
-//        }
-//        InfoShipment infoShipment = InfoShipment.builder()
-//                .from(shop.)
-//                .build();
-//    }
-//}
+package com.haiemdavang.AnrealShop.mapper;
+
+import com.haiemdavang.AnrealShop.dto.shipping.ShippingItem;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
+import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class ShipmentMapper {
+
+
+    public ShippingItem toShippingItems(Shipping shipping, ShopOrder shop) {
+        return ShippingItem.builder()
+                .shippingId(shipping.getId())
+                .shippingStatus(shipping.getStatus().name())
+                .dayPickup(shipping.getDayPickup().toString())
+                .isPrinted(shipping.isPrinted())
+
+                .shopOrderId(shop.getId())
+                .countOrderItems(shipping.getOrderItems().size())
+                .createdAt(shop.getCreatedAt().toString())
+
+                .customerId(shop.getUser().getId())
+                .customerName(shop.getUser().getFullName())
+                .customerPhone(shop.getUser().getPhoneNumber())
+
+                .confirmationTime(shipping.getCreatedAt().toString())
+                .shippingMethod("GHN")
+
+                .build();
+
+
+    }
+}

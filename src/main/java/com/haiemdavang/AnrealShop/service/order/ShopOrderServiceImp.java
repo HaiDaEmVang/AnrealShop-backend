@@ -8,6 +8,7 @@ import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
+import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.OrderMapper;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
@@ -119,11 +120,12 @@ public class ShopOrderServiceImp implements IShopOrderService {
                 .build();
     }
 
+    @Override
+    public List<ShopOrder> getShopOrderByShippingIds(Set<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {
+        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
+        return shopOrderRepository.findAll(orderSpecification);
+    }
 
-//    @Override
-//    public MyShopOrderListResponse getListOrderItems(int page, int limit, String status, String orderCode, String customerName, String productName, String sortBy) {
-//
-//    }
 
     @Override
     public OrderDetailDto getShopOrder(String shopOrderId) {

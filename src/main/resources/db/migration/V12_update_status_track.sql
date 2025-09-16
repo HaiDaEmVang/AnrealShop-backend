@@ -80,6 +80,13 @@
 # alter table shippings
 # add column total_weight DECIMAL(10,2) default 0.00;
 
-alter table shippings
-    modify column total_weight BIGINT default 0;
+# alter table shippings
+#     modify column total_weight BIGINT default 0;
+
+
+# alter table shippings
+#     add  column note text,
+#     add column is_printed bit default false not null,
+#     add column day_pickup date,
+#     add column cancel_reason text;
 

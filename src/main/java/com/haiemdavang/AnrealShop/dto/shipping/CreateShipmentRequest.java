@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.dto.shipping;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -23,6 +25,7 @@ public class CreateShipmentRequest {
 
     private String note;
 
-    @NotBlank(message = "{SHIPMENT_PICKUP_DATE_NOT_BLANK}")
-    private String pickupDate;
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    @NotNull(message = "SHIPMENT_PICKUP_DATE_NOT_NULL")
+    private LocalDate pickupDate;
 }

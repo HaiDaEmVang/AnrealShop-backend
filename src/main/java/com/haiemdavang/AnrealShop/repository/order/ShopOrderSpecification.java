@@ -4,9 +4,11 @@ import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
+import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrderTrack;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
@@ -18,6 +20,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ShopOrderSpecification {
 
@@ -119,14 +122,43 @@ public class ShopOrderSpecification {
                 }
             }
 
-
-
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     public static Specification<ShopOrder> filter(String shopId, ModeType modeType, LocalDateTime localDateTime, LocalDateTime now, String search, SearchType searchType) {
         return ShopOrderSpecification.filter(shopId, modeType, localDateTime, now, null, search, searchType, null, null, null, null);
+    }
+
+    public static Specification<ShopOrder> filter(Set<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            assert query != null;
+            query.distinct(true);
+
+            Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);
+            Join<OrderItem, Shipping> shippingJoin = orderItemJoin.join("shippings", JoinType.INNER);
+
+            if (shippingIds != null && !shippingIds.isEmpty()) {
+                predicates.add(shippingJoin.get("id").in(shippingIds));
+            }
+
+            if (StringUtils.hasText(search)) {
+                String lowerCaseSearch = "%" + search.toLowerCase() + "%";
+                if (searchTypeShipping == SearchTypeShipping.ORDER_CODE) {
+                    predicates.add(cb.like(cb.lower(root.get("id")), lowerCaseSearch));
+                } else if (searchTypeShipping == SearchTypeShipping.CUSTOMER_NAME) {
+                    predicates.add(cb.like(cb.lower(root.get("user").get("fullName")), lowerCaseSearch));
+                } else if (searchTypeShipping == SearchTypeShipping.SHIPPING_CODE) {
+                    predicates.add(cb.like(cb.lower(shippingJoin.get("id").get("id")), lowerCaseSearch));
+                }
+            }
+
+            if (predicates.isEmpty()) {
+                return cb.conjunction();
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

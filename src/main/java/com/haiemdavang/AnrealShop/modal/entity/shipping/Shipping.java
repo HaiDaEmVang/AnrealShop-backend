@@ -4,13 +4,12 @@ package com.haiemdavang.AnrealShop.modal.entity.shipping;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
-import com.haiemdavang.AnrealShop.modal.entity.order.OrderItemTrack;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,6 +52,21 @@ public class Shipping {
 
     @Column(name = "fee", nullable = false)
     private Long fee;
+
+    @Builder.Default
+    @Column(name = "note")
+    private String note  = "";
+
+    @Builder.Default
+    @Column(name = "is_printed", nullable = false)
+    private boolean isPrinted  = false;
+
+    @Builder.Default
+    @Column(name = "day_pickup", nullable = false)
+    private LocalDate dayPickup  = LocalDate.now().plusDays(1);
+
+    @Column(name = "cancel_reason", length = 500)
+    private String cancelReason;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -8,6 +8,6 @@ public enum ShippingStatus {
     OUT_FOR_DELIVERY,    // Shipper đang trên đường giao cho khách
     DELIVERED,           // Hàng đã được giao thành công cho khách
     DELIVERY_FAILED,     // Giao hàng thất bại (khách không nhận, sai địa chỉ, hoặc sự cố khác)
-    RETURNED             // Hàng đã được hoàn trả về cho cửa hàng/kho
+    RETURNED           // Hàng đã được hoàn trả về cho cửa hàng/kho
 }
 
