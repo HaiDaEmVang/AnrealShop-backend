@@ -39,7 +39,8 @@ public class SecurityConfig {
             "/api/register",
             "/api/forgot-password",
             "/api/otp/**",
-            "/swagger-ui/index.html");
+            "/swagger-ui/**",
+            "/v3/api-docs/**");
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;

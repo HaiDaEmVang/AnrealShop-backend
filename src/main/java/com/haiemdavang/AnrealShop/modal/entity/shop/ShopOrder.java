@@ -5,8 +5,7 @@ import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
-import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
-import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress"}) // Đổi tên items thành orderItems cho rõ
+@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress"})
 @EqualsAndHashCode(of = {"id", "user", "order", "shop"})
 @Entity
 @Table(name = "shop_orders")
@@ -49,19 +48,13 @@ public class ShopOrder {
 
     @Column(name = "shipping_fee", nullable = false)
     @Builder.Default
-    private int shippingFee = 0;
+    private Long shippingFee = 0L;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     @Builder.Default
-    private OrderTrackStatus status = OrderTrackStatus.PROCESSING;
+    private ShopOrderStatus status = ShopOrderStatus.INIT_PROCESSING;
 
-    @Column(name = "cancel_reason", columnDefinition = "TEXT")
-    private String cancelReason;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "canceled_by")
-    private CancelBy canceledBy;
 
     @Column(nullable = false, name = "total_amount")
     private Long totalAmount;
@@ -88,6 +81,12 @@ public class ShopOrder {
         if (orderItems == null) orderItems = new HashSet<>();
         orderItems.add(orderItem);
         orderItem.setShopOrder(this);
+    }
+
+    public void setStatus(ShopOrderStatus status) {
+        this.status = status;
+        ShopOrderTrack shopOrderTrack = new ShopOrderTrack(this, status, LocalDateTime.now());
+        this.addTrackingHistory(shopOrderTrack);
     }
 
 }

@@ -1,8 +1,8 @@
 package com.haiemdavang.AnrealShop.service.order;
 
-import com.haiemdavang.AnrealShop.dto.checkout.ItemProductCheckoutDto;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutRequestDto;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutResponseDto;
+import com.haiemdavang.AnrealShop.dto.checkout.ItemProductCheckoutDto;
 import com.haiemdavang.AnrealShop.dto.payment.PaymentRequestDto;
 import com.haiemdavang.AnrealShop.dto.payment.PaymentResponseDto;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
@@ -15,23 +15,27 @@ import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
+import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import com.haiemdavang.AnrealShop.modal.enums.PaymentStatus;
 import com.haiemdavang.AnrealShop.modal.enums.PaymentType;
 import com.haiemdavang.AnrealShop.repository.order.OrderRepository;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
-import com.haiemdavang.AnrealShop.service.*;
+import com.haiemdavang.AnrealShop.service.IProductService;
+import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.payment.IPaymentService;
 import com.haiemdavang.AnrealShop.service.payment.VNPayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService implements IOrderService {
+public class UserOrderServiceImp implements IUserOrderService {
     private final OrderRepository orderRepository;
     private final IShopOrderService shopOrderService;
     private final IOrderItemService orderItemService;
@@ -58,7 +62,8 @@ public class OrderService implements IOrderService {
     @Override
     public CheckoutResponseDto createOrderCOD(CheckoutRequestDto requestDto, UserAddress userAddress) {
         Order newOrder = this.createNewOrder(requestDto, userAddress, PaymentType.COD);
-
+        orderItemService.confirmOrderItems(newOrder.getOrderItems(), OrderTrackStatus.PENDING_CONFIRMATION);
+        shopOrderService.confirmShopOrders(newOrder.getShopOrders(), ShopOrderStatus.PENDING_CONFIRMATION);
         return CheckoutResponseDto.createResponseForCashOnDelivery(newOrder.getId());
     }
 
@@ -68,15 +73,19 @@ public class OrderService implements IOrderService {
         Order order = orderRepository.findWithPaymentById(orderId)
                 .orElseThrow(() -> new BadRequestException("ORDER_NOT_FOUND"));
 
-        Payment payment = order.getPayment();
-        payment.setStatus(PaymentStatus.COMPLETED);
+        paymentService.updatePayment(order.getPayment(), PaymentStatus.COMPLETED);
 
-        paymentService.updatePayment(payment);
+        orderItemService.confirmOrderItems(order.getOrderItems(), OrderTrackStatus.PENDING_CONFIRMATION);
+        shopOrderService.confirmShopOrders(order.getShopOrders(), ShopOrderStatus.PENDING_CONFIRMATION);
     }
 
     @Override
     public void handleFailedPayment(String orderId, String responseCode) {
-//        phat trien len nghe hai
+
+        Order order = orderRepository.findWithPaymentById(orderId)
+                .orElseThrow(() -> new BadRequestException("ORDER_NOT_FOUND"));
+
+        paymentService.updatePayment(order.getPayment(), PaymentStatus.FAILED);
     }
 
     @Override
@@ -98,6 +107,8 @@ public class OrderService implements IOrderService {
                 .build();
     }
 
+
+
     private Order createNewOrder(CheckoutRequestDto requestDto, UserAddress userAddress, PaymentType paymentType) {
         User user = securityUtils.getCurrentUser();
 
@@ -112,7 +123,6 @@ public class OrderService implements IOrderService {
                 .shippingAddress(userAddress)
                 .build();
 
-//        Set<OrderItem> orderItems = new HashSet<>();
         long subTotalAmount = 0L;
         for (ProductSku productSku : productSkus) {
             Product product = productSku.getProduct();
@@ -124,11 +134,10 @@ public class OrderService implements IOrderService {
                     .quantity(quantity)
                     .price(product.getPrice())
                     .build();
-//            orderItems.add(orderItem);
             order.addOrderItem(orderItem);
         }
 
-        Map<ShopAddress, Integer> mapFeeForShops = shipmentService.getShippingFee(userAddress, mapProductSkuWithQuantityOrder);
+        Map<ShopAddress, Long> mapFeeForShops = shipmentService.getShippingFee(userAddress, mapProductSkuWithQuantityOrder);
         long totalShippingFee = 0L;
 
         for (ShopAddress shopAddress : mapFeeForShops.keySet()) {
@@ -136,7 +145,7 @@ public class OrderService implements IOrderService {
                     .shop(shopAddress.getShop())
                     .user(user).build();
 
-            Integer shippingFee = mapFeeForShops.get(shopAddress);
+            Long shippingFee = mapFeeForShops.get(shopAddress);
 
             long totalForShop = 0L;
 

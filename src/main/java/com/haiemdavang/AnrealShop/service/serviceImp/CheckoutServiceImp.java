@@ -17,8 +17,8 @@ import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.enums.PaymentType;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICheckoutService;
-import com.haiemdavang.AnrealShop.service.IOrderService;
 import com.haiemdavang.AnrealShop.service.IProductService;
+import com.haiemdavang.AnrealShop.service.order.IUserOrderService;
 import com.haiemdavang.AnrealShop.service.shipment.IGHNService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CheckoutServiceImp implements ICheckoutService {
-    private final IOrderService orderService;
+    private final IUserOrderService orderService;
     private final IAddressService addressService;
     private final IGHNService ighnService;
     private final IProductService productService;

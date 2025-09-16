@@ -11,6 +11,9 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, String> {
     @Query("select od from Order od " +
             "left join fetch od.payment p " +
+            "left join fetch od.orderItems " +
+            "feft join fetch od.shopOrders " +
             "where od.id = :id")
     Optional<Order> findWithPaymentById(String id);
+
 }

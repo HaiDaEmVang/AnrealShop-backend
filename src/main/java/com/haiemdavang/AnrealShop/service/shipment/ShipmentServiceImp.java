@@ -1,25 +1,48 @@
 package com.haiemdavang.AnrealShop.service.shipment;
 
 import com.haiemdavang.AnrealShop.dto.address.AddressDto;
-import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
-import com.haiemdavang.AnrealShop.dto.shipping.InfoShipment;
-import com.haiemdavang.AnrealShop.dto.shipping.InfoShippingOrder;
+import com.haiemdavang.AnrealShop.dto.shipping.*;
+import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
+import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
+import com.haiemdavang.AnrealShop.exception.AnrealShopException;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.AddressMapper;
+import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
-import com.haiemdavang.AnrealShop.modal.entity.product.Product;
+import com.haiemdavang.AnrealShop.modal.entity.order.Order;
+import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
+import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
+import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
+import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
+import com.haiemdavang.AnrealShop.repository.shipment.ShipSpecification;
+import com.haiemdavang.AnrealShop.repository.shipment.ShipmentRepository;
+import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
+import com.haiemdavang.AnrealShop.service.order.IOrderItemService;
+import com.haiemdavang.AnrealShop.service.order.IShopOrderService;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShipmentServiceImp implements IShipmentService {
@@ -28,6 +51,11 @@ public class ShipmentServiceImp implements IShipmentService {
     private final IAddressService addressService;
 
     private final AddressMapper addressMapper;
+    private final IOrderItemService orderItemService;
+    private final ShipmentRepository shipmentRepository;
+    private final SecurityUtils securityUtils;
+    private final ShipmentMapper shipmentMapper;
+    private final IShopOrderService shopOrderService;
 
     @Override
     public List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds) {
@@ -62,14 +90,14 @@ public class ShipmentServiceImp implements IShipmentService {
     }
 
     @Override
-    public Map<ShopAddress, Integer> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus) {
+    public Map<ShopAddress, Long> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus) {
         Map<Shop, List<ProductSku>> productSkusByShop = productSkus.keySet().stream()
                 .collect(Collectors.groupingBy(pk -> pk.getProduct().getShop(),
                         Collectors.mapping(pk -> pk, Collectors.toList())));
 
-        Map<ShopAddress, Integer> mapResult = new HashMap<>();
+        Map<ShopAddress, Long> mapResult = new HashMap<>();
         for (Shop shop : productSkusByShop.keySet()) {
-            ShopAddress shopAddress = addressService.getShopAddressById(shop.getId());
+            ShopAddress shopAddress = addressService.getShopAddressByIdShop(shop.getId());
             int totalWeight = productSkusByShop.get(shop).stream()
                     .mapToInt(pk -> pk.getProduct().getWeight().intValue() * productSkus.get(pk))
                     .sum();
@@ -79,10 +107,94 @@ public class ShipmentServiceImp implements IShipmentService {
                     .weight(totalWeight)
                     .build();
             int fetchFee = ighnService.getShippingOrderInfo(info).getFee();
-            mapResult.put(shopAddress, fetchFee);
+            mapResult.put(shopAddress, (long) fetchFee);
         }
         return mapResult;
 
+    }
+
+    @Override
+    @Transactional
+    public void createShipment(CreateShipmentRequest createShipmentRequest) {
+        List<OrderItem> orderItems = orderItemService.getForShipment(createShipmentRequest.getShopOrderIds());
+//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
+        Shop currentShop = securityUtils.getCurrentUserShop();
+        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
+
+        Map<Order, List<OrderItem>> orderListMap = orderItems.stream()
+                .collect(Collectors.groupingBy(OrderItem::getOrder));
+
+        for (Order shopOrder : orderListMap.keySet()) {
+            Set<OrderItem> items = new HashSet<>(orderListMap.get(shopOrder));
+            long totalWeight = items.stream()
+                    .mapToInt(item -> item.getProductSku().getProduct().getWeight().intValue() * item.getQuantity())
+                    .sum();
+            InfoShipment info = InfoShipment.builder()
+                    .from(addressMapper.toAddressDto(fromAddress))
+                    .to(addressMapper.toAddressDto(shopOrder.getShippingAddress()))
+                    .weight(totalWeight)
+                    .build();
+            InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
+            if (infoOrder.isSuccess) {
+//                ighnService.createShippingOrder(shopOrder, items, infoOrder, createShipmentRequest.getNote());
+                Shipping shipping = Shipping.builder()
+                        .addressFrom(fromAddress)
+                        .addressTo(shopOrder.getShippingAddress())
+                        .totalWeight(totalWeight)
+                        .fee((long) infoOrder.getFee())
+                        .note(createShipmentRequest.getNote())
+                        .dayPickup(createShipmentRequest.getPickupDate())
+                        .build();
+
+                shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
+                shipping.setOrderItems(items);
+                shipmentRepository.save(shipping);
+
+                orderItemService.confirmOrderItems(items, OrderTrackStatus.WAIT_SHIPMENT);
+            } else {
+                throw new AnrealShopException("SERVER_ERROR");
+            }
+        }
+    }
+
+    @Override
+    public MyShopShippingListResponse getListForShop(int page, int limit, String search, SearchTypeShipping searchTypeShipping, PreparingStatus preparingStatus, String sortBy) {
+       LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
+        String shopId = securityUtils.getCurrentUserShop().getId();
+        Specification<Shipping> shipSpecification = ShipSpecification.filter(shopId, now.minusMonths(2), now, search, searchTypeShipping, preparingStatus);
+        Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
+
+        Page<Shipping> shippingList = shipmentRepository.findAll(shipSpecification, pageable);
+
+        Set<String> shippingIds = shippingList.get().map(Shipping::getId).collect(Collectors.toSet());
+
+        MyShopShippingListResponse response = MyShopShippingListResponse.builder()
+                .currentPage(shippingList.getPageable().getPageNumber() + 1)
+                .totalPages(shippingList.getTotalPages())
+                .totalCount(shippingList.getTotalElements())
+                .build();
+        if (shippingIds.isEmpty()) {
+            response.setOrderItemDtoSet(new HashSet<>());
+        }else {
+            List<ShopOrder> shopOrders = shopOrderService.getShopOrderByShippingIds(shippingIds, search, searchTypeShipping);
+            if(shopOrders.size() != shippingIds.size())
+                throw new BadRequestException("ORDER_NOT_FOUND");
+            Set<ShippingItem> shippingItems = new HashSet<>();
+
+            for (Shipping shipping : shippingList.getContent()) {
+                Set<OrderItem> orderItems = shipping.getOrderItems();
+                if (orderItems == null || orderItems.isEmpty()) continue;
+                String shopOrderId = orderItems.stream().findFirst().get().getShopOrder().getId();
+                ShopOrder exists = shopOrders.stream().filter(so -> so.getId().equals(shopOrderId)).findFirst().orElseThrow(
+                        () -> new BadRequestException("ORDER_NOT_FOUND")
+                );
+
+                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
+                shippingItems.add(shippingItem);
+            }
+            response.setOrderItemDtoSet(shippingItems);
+        }
+        return response;
     }
 
 }

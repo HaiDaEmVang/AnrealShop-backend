@@ -130,10 +130,14 @@ public class AttributeMapper {
         return resutl;
     }
 
-    public String[] toListKey(Set<AttributeValue> attributes) {
-        return attributes.stream()
-                .map(attribute -> attribute.getAttributeKey().getKeyName())
-                .toArray(String[]::new);
+    public String getAttribteString(Set<AttributeValue> attributeValues) {
+        if (attributeValues != null) {
+            return attributeValues.stream()
+                    .map(AttributeValue::getValue)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+        }
+        return "";
     }
 
     public List<ProductAttributeSingleValueDto> toProductAttributeSingleValueDto(Set<AttributeValue> attributes) {

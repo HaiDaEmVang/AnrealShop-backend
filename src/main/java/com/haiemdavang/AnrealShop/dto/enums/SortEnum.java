@@ -13,6 +13,7 @@ public enum SortEnum {
     STOCK_ASC("stock-asc", Sort.by(Sort.Direction.ASC, "quantity")),
     STOCK_DESC("stock-desc", Sort.by(Sort.Direction.DESC, "quantity")),
     NEWEST("newest", Sort.by(Sort.Direction.DESC, "createdAt")),
+    OLDEST("oldest", Sort.by(Sort.Direction.ASC, "createdAt")),
     CREATED_AT_ASC("createdAt-asc", Sort.by(Sort.Direction.ASC, "createdAt")),
     CREATED_AT_DESC("createdAt-desc", Sort.by(Sort.Direction.DESC, "createdAt")),
     UPDATE_AT_DESC("updateAt-desc", Sort.by(Sort.Direction.DESC, "createdAt")),

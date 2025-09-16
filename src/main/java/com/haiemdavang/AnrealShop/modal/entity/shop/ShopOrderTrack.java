@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.modal.entity.shop;
 
-import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,13 +28,13 @@ public class ShopOrderTrack {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
-    private OrderTrackStatus status = OrderTrackStatus.PROCESSING;
+    private ShopOrderStatus status = ShopOrderStatus.INIT_PROCESSING;
 
     public LocalDateTime getUpdatedAt() {
         return (this.id != null) ? this.id.getUpdatedAt() : null;
     }
 
-    public ShopOrderTrack(ShopOrder shopOrder, OrderTrackStatus status, LocalDateTime updatedAt) {
+    public ShopOrderTrack(ShopOrder shopOrder, ShopOrderStatus status, LocalDateTime updatedAt) {
         this.id = new ShopOrderTrackId(shopOrder.getId(), updatedAt);
         this.shopOrder = shopOrder;
         this.status = status;
@@ -43,6 +43,6 @@ public class ShopOrderTrack {
     public ShopOrderTrack(ShopOrder shopOrder) {
         this.id = new ShopOrderTrackId(shopOrder.getId(), LocalDateTime.now());
         this.shopOrder = shopOrder;
-        this.status = OrderTrackStatus.PROCESSING;
+        this.status = ShopOrderStatus.INIT_PROCESSING;
     }
 }
