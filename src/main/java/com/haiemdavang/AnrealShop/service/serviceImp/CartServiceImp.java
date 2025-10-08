@@ -11,7 +11,7 @@ import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
-import com.haiemdavang.AnrealShop.redis.service.IRedisService;
+import com.haiemdavang.AnrealShop.tech.redis.service.IRedisService;
 import com.haiemdavang.AnrealShop.repository.cart.CartItemRepository;
 import com.haiemdavang.AnrealShop.repository.cart.CartRepository;
 import com.haiemdavang.AnrealShop.repository.product.ProductSkuRepository;

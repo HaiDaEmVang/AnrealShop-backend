@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.security.jwt;
 
 import com.haiemdavang.AnrealShop.exception.UnAuthException;
-import com.haiemdavang.AnrealShop.redis.service.IRedisService;
+import com.haiemdavang.AnrealShop.tech.redis.service.IRedisService;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecu;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

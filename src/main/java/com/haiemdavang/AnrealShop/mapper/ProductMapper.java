@@ -3,8 +3,8 @@ package com.haiemdavang.AnrealShop.mapper;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
 import com.haiemdavang.AnrealShop.dto.product.*;
-import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
-import com.haiemdavang.AnrealShop.elasticsearch.document.EsProduct;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsCategory;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsProduct;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductReview;
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

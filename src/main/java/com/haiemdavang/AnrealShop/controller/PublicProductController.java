@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.controller;
 
-import com.haiemdavang.AnrealShop.dto.product.*;
+import com.haiemdavang.AnrealShop.dto.product.ProductDetailDto;
+import com.haiemdavang.AnrealShop.dto.product.UserProductDto;
 import com.haiemdavang.AnrealShop.service.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

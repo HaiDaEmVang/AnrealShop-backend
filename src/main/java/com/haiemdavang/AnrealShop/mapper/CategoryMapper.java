@@ -2,7 +2,7 @@ package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.category.BaseCategoryDto;
 import com.haiemdavang.AnrealShop.dto.category.CategoryModalSelectedDto;
-import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsCategory;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;
 import org.springframework.stereotype.Service;
 
