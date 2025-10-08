@@ -55,9 +55,10 @@ logging:
       springframework:
         cache: DEBUG
         data.redis.serializer: debug
+        web.socket: DEBUG
+        messaging: debug
       elasticsearch:
         client: TRACE
-
 
 
 server:
@@ -70,6 +71,7 @@ server:
 
 
 fe_base_url: https://shop.haiemdavang.id.vn
+
 
 cloudinary:
   cloud-name: ${CLOUDINARY_NAME:xem_cc}

@@ -9,7 +9,7 @@ import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import jakarta.validation.Valid;
 
 public interface IUserService {
-    boolean isExitsts(String email);
+    boolean isExists(String email);
 
     void resetPassword(String email, String password);
 

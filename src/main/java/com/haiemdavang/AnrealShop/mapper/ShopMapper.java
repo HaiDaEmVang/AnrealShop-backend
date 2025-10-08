@@ -1,7 +1,7 @@
 package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.shop.BaseShopDto;
-import com.haiemdavang.AnrealShop.elasticsearch.document.EsShop;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsShop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import org.springframework.stereotype.Service;
 

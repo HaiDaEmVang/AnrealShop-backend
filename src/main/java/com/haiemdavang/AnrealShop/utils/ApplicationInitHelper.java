@@ -1,11 +1,13 @@
 package com.haiemdavang.AnrealShop.utils;
 
-import com.haiemdavang.AnrealShop.dto.enums.SortEnum;
+import com.haiemdavang.AnrealShop.dto.SortEnum;
 import org.springframework.data.domain.Sort;
 
 import java.text.Normalizer;
 
 public class ApplicationInitHelper {
+
+
 
     public static String toSlug(String combined) {
         String noDiacritics = Normalizer.normalize(combined, Normalizer.Form.NFD);

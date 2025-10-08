@@ -1,8 +1,7 @@
 package com.haiemdavang.AnrealShop.controller;
 
 import com.haiemdavang.AnrealShop.dto.auth.OtpRequest;
-import com.haiemdavang.AnrealShop.mail.MailType;
-import com.haiemdavang.AnrealShop.mail.service.IMailService;
+import com.haiemdavang.AnrealShop.tech.mail.service.IMailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

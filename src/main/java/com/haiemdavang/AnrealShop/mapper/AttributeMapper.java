@@ -3,7 +3,7 @@ package com.haiemdavang.AnrealShop.mapper;
 import com.haiemdavang.AnrealShop.dto.attribute.AttributeDtoDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeSingleValueDto;
-import com.haiemdavang.AnrealShop.elasticsearch.document.EsAttribute;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsAttribute;
 import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeKey;
 import com.haiemdavang.AnrealShop.modal.entity.attribute.AttributeValue;
 import lombok.RequiredArgsConstructor;

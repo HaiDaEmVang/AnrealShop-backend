@@ -28,7 +28,7 @@ public class UserServiceImp implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public boolean isExitsts(String email) {
+    public boolean isExists(String email) {
         return !userRepository.existsByEmail(email);
     }
 

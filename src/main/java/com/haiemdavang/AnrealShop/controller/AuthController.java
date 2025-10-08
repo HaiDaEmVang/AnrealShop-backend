@@ -3,7 +3,7 @@ package com.haiemdavang.AnrealShop.controller;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
 import com.haiemdavang.AnrealShop.dto.auth.ForgotPwRequest;
-import com.haiemdavang.AnrealShop.mail.service.IMailService;
+import com.haiemdavang.AnrealShop.tech.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
 import jakarta.servlet.http.HttpServletRequest;

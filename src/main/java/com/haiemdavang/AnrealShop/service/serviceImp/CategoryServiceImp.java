@@ -2,8 +2,8 @@ package com.haiemdavang.AnrealShop.service.serviceImp;
 
 import com.haiemdavang.AnrealShop.dto.category.BaseCategoryDto;
 import com.haiemdavang.AnrealShop.dto.category.CategoryModalSelectedDto;
-import com.haiemdavang.AnrealShop.elasticsearch.document.EsCategory;
-import com.haiemdavang.AnrealShop.elasticsearch.service.CategoryIndexerService;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsCategory;
+import com.haiemdavang.AnrealShop.tech.elasticsearch.service.CategoryIndexerService;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.CategoryMapper;
 import com.haiemdavang.AnrealShop.modal.entity.category.Category;

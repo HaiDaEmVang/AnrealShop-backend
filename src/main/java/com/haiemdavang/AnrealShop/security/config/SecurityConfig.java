@@ -41,6 +41,7 @@ public class SecurityConfig {
             "/api/otp/**",
             "/swagger-ui/**",
             "/v3/api-docs/**");
+    public final static List<String> PUBLIC_ORIGINS = List.of("http://localhost:5173", "https://anreal-shop.vercel.app", "https://shop.haiemdavang.id.vn");
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;
@@ -69,7 +70,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("http://localhost:5173", "https://anreal-shop.vercel.app", "https://shop.haiemdavang.id.vn"));
+        cors.setAllowedOrigins(PUBLIC_ORIGINS);
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("authorization", "content-type", "x-requested-with", "x-auth-token"));
         cors.setAllowCredentials(true);
