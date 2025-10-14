@@ -133,6 +133,24 @@ public class ShopOrderServiceImp implements IShopOrderService {
         return shopOrderRepository.findAll(orderSpecification, pageable);
     }
 
+    @Transactional
+    @Override
+    public void rejectOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
+        if (shopOrderId == null || shopOrderId.isEmpty() || !shopOrderRepository.existsById(shopOrderId)) {
+            throw new BadRequestException("ORDER_NOT_FOUND");
+        }
+
+        ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
+
+        shopOrder.setStatus(ShopOrderStatus.CLOSED);
+
+        shopOrder.getOrderItems().stream()
+                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
+                .forEach(ot -> orderItemService.rejectOrderItemById(ot.getId(), reason, cancelBy));
+
+        shopOrderRepository.save(shopOrder);
+    }
+
 
     @Override
     public OrderDetailDto getShopOrder(String shopOrderId) {

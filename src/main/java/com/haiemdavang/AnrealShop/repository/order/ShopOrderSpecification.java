@@ -176,7 +176,7 @@ public class ShopOrderSpecification {
 
             ShopOrderStatus statusCompare;
             try {
-                if (status.equalsIgnoreCase("CANCELLED") || status.equalsIgnoreCase("REFUND")){
+                if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name()) || status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())){
                     statusCompare = ShopOrderStatus.CLOSED;
                 }else statusCompare = ShopOrderStatus.valueOf(status);
             } catch (Exception e){
@@ -186,12 +186,10 @@ public class ShopOrderSpecification {
             predicates.add(cb.equal(root.get("status"), statusCompare));
 
             if (statusCompare == ShopOrderStatus.CLOSED) {
-                if (status.equals("CANCELLED")) {
+                if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {
                     predicates.add(cb.equal(orderItemJoin.get("status"), OrderTrackStatus.CANCELED));
-                } else if (status.equals("REFUND")) {
+                } else if ( status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
                     predicates.add(cb.equal(orderItemJoin.get("status"), OrderTrackStatus.REFUND));
-                } else {
-                    throw new BadRequestException("INVALID_STATUS");
                 }
             }
 

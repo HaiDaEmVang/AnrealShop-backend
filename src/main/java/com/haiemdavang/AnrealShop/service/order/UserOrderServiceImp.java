@@ -156,7 +156,7 @@ public class UserOrderServiceImp implements IUserOrderService {
 
     @Override
     public void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
-
+        shopOrderService.rejectOrderById(shopOrderId, reason, cancelBy);
     }
 
 

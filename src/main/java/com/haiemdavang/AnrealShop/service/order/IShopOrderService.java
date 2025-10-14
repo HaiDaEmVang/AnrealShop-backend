@@ -40,4 +40,6 @@ public interface IShopOrderService {
     List<ShopOrder> getShopOrderByShippingIds(Set<String> shippingIds, String search, SearchTypeShipping searchType);
 
     Page<ShopOrder> gitListOrderForUser(Specification<ShopOrder> orderSpecification, Pageable pageable);
+
+    void rejectOrderById(String shopOrderId, String reason, CancelBy cancelBy);
 }
