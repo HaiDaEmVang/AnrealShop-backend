@@ -12,6 +12,9 @@ import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
 import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -35,4 +38,6 @@ public interface IShopOrderService {
     MyShopOrderListResponse getListOrderItems(int page, int limit, ModeType mode, String status, String search, SearchType searchType, LocalDateTime confirmSD, LocalDateTime confirmED, OrderCountType orderType, PreparingStatus preparingStatus, String sortBy);
 
     List<ShopOrder> getShopOrderByShippingIds(Set<String> shippingIds, String search, SearchTypeShipping searchType);
+
+    Page<ShopOrder> gitListOrderForUser(Specification<ShopOrder> orderSpecification, Pageable pageable);
 }

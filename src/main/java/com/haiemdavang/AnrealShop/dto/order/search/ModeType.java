@@ -3,7 +3,7 @@ package com.haiemdavang.AnrealShop.dto.order.search;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum ModeType {
-    HOME, SHIPPING;
+    HOME, SHIPPING, USER;
 
     @JsonCreator
     public static ModeType from(String value) {

@@ -128,5 +128,11 @@ public class OrderItemServiceImp implements IOrderItemService {
         return orderItems;
     }
 
+    @Override
+    public List<OrderItem> getListOrderItems(Set<String> idShopOrders, String search, SearchType searchType, String status) {
+        Specification<OrderItem> spec = OrderItemSpecification.filter(idShopOrders, search, searchType, status);
+        return orderItemRepository.findAll(spec);
+    }
+
 
 }

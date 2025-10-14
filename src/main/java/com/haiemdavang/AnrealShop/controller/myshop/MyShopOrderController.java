@@ -24,7 +24,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/my-shop/orders")
-public class ShopOrderController {
+public class MyShopOrderController {
 
     private final IShopOrderService orderService;
     private final IOrderItemService orderItemService;

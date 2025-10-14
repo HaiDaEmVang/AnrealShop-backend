@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"role", "shops", "userAddresses", "orders", "cart", "reviews", "notifications", "follows"})
+@ToString(exclude = {"role"})
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "users", indexes = {

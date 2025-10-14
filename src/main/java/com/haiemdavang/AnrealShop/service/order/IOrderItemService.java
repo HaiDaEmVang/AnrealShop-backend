@@ -34,4 +34,6 @@ public interface IOrderItemService {
     ShopOrder rejectOrderItemById(String orderItemId, String reason, CancelBy cancelBy);
 
     List<OrderItem> getForShipment(@NotEmpty(message = "{SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY}") List<String> shopOrderIds);
+
+    List<OrderItem> getListOrderItems(Set<String> idShopOrders, String search, SearchType searchType, String status);
 }

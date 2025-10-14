@@ -1,9 +1,6 @@
 package com.haiemdavang.AnrealShop.mapper;
 
-import com.haiemdavang.AnrealShop.dto.order.HistoryTrackDto;
-import com.haiemdavang.AnrealShop.dto.order.OrderDetailDto;
-import com.haiemdavang.AnrealShop.dto.order.OrderItemDto;
-import com.haiemdavang.AnrealShop.dto.order.ProductOrderItemDto;
+import com.haiemdavang.AnrealShop.dto.order.*;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrderTrack;
@@ -72,6 +69,38 @@ public class OrderMapper {
                 .shippingId("123456")
                 .productOrderItemDtoSet(productOrderItemSet)
                 .build();
+
+    }
+
+    public UserProductOrderItemDto toUserProductOrderItemDto(OrderItem orderItem) {
+        return UserProductOrderItemDto.builder()
+                .productId(orderItem.getProductSku().getProduct().getId())
+                .productSkuId(orderItem.getProductSku().getId())
+                .productName(orderItem.getProductSku().getProduct().getName())
+                .productImage(orderItem.getProductSku().getThumbnailUrl())
+                .variant(attributeMapper.getAttribteString(orderItem.getProductSku().getAttributes()))
+                .quantity(orderItem.getQuantity())
+                .price(orderItem.getPrice())
+                .orderStatus(orderItem.getStatus().name())
+                .cancelReason(orderItem.getCancelReason())
+                .isReviewed(false)
+                .build();
+    }
+
+    public UserOrderItemDto toUserOrderItemDto(ShopOrder shopOrder, Set<OrderItem> orderItemsOfShopOrder) {
+        if (shopOrder == null || orderItemsOfShopOrder.isEmpty()) return null;
+        Set<UserProductOrderItemDto> productOrderItemSet = orderItemsOfShopOrder.stream().map(this::toUserProductOrderItemDto).collect(Collectors.toSet());
+        Set<String> orderStatus = orderItemsOfShopOrder.stream().map(item -> item.getStatus().name()).collect(Collectors.toSet());
+        return UserOrderItemDto.builder()
+                .shopOrderId(shopOrder.getId())
+                .orderStatus(orderStatus)
+                .shopOrderName(shopOrder.getShop().getName())
+                .shopOrderImage(shopOrder.getShop().getAvatarUrl())
+                .productOrderItemDtoSet(productOrderItemSet)
+                .totalPrice(shopOrder.getTotalAmount())
+                .updateAt(shopOrder.getUpdatedAt())
+                .build();
+//        tehm update at
 
     }
 }

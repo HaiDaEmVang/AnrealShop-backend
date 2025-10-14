@@ -22,6 +22,23 @@ import java.util.Set;
 @Builder
 @ToString(exclude = { "productSku", "order", "shopOrder", "shippings", "trackingHistory"})
 @EqualsAndHashCode(of = {"id", "order", "productSku"})
+@NamedEntityGraph(
+        name = "OrderItem.graph.forShop",
+        attributeNodes = {
+                @NamedAttributeNode(value = "productSku", subgraph = "productSkuSubgraph"),
+                @NamedAttributeNode("trackingHistory"),
+                @NamedAttributeNode("shippings")
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "productSkuSubgraph",
+                        attributeNodes = {
+                                @NamedAttributeNode("product"),
+                                @NamedAttributeNode("attributes")
+                        }
+                )
+        }
+)
 @Entity
 @Table(name = "order_items")
 public class OrderItem {

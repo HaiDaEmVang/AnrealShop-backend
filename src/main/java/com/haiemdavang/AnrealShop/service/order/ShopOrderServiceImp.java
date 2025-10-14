@@ -23,6 +23,7 @@ import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShopOrderServiceImp implements IShopOrderService {
@@ -124,6 +126,11 @@ public class ShopOrderServiceImp implements IShopOrderService {
     public List<ShopOrder> getShopOrderByShippingIds(Set<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {
         Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
         return shopOrderRepository.findAll(orderSpecification);
+    }
+
+    @Override
+    public Page<ShopOrder> gitListOrderForUser(Specification<ShopOrder> orderSpecification, Pageable pageable) {
+        return shopOrderRepository.findAll(orderSpecification, pageable);
     }
 
 

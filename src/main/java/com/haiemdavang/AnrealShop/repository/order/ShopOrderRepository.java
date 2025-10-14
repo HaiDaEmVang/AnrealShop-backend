@@ -18,20 +18,16 @@ import java.util.List;
 @NonNullApi
 @Repository
 public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, JpaSpecificationExecutor<ShopOrder> {
-//    @Query(value = "SELECT so.status as status, sum(so.totalAmount) as totalAmount , count(oi.id) as count " +
-//            "FROM ShopOrder so " +
-//            "left join so.orderItems oi " +
-//            "where so.shop.id = :id " +
-//            "AND so.createdAt BETWEEN :fromDate AND :toDate " +
-//            "group by so.status")
-//    Set<IMetaDto> countOrderItemByStatus(String id, LocalDateTime toDate, LocalDateTime fromDate);
+
+    @EntityGraph(value = "ShopOrder.graph.forShop", type = EntityGraph.EntityGraphType.FETCH)
+    Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
 
     @EntityGraph(attributePaths = {
-            "order",
-            "order.payment",
             "user",
+            "orderItems",
+            "orderItems.productSku"
     })
-    Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
+    List<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification);
 
 
     @Query(value = "SELECT so FROM ShopOrder so " +
@@ -49,10 +45,5 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithOrderItemById(String shopOrderId);
 
-    @EntityGraph(attributePaths = {
-            "user",
-            "orderItems",
-            "orderItems.productSku"
-    })
-    List<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification);
+
 }
