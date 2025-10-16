@@ -41,7 +41,7 @@ public class OrderController {
 
     @GetMapping("/{shopOrderId}")
     public ResponseEntity<UserOrderDetailDto> getShopOrderById(@PathVariable String shopOrderId) {
-        return ResponseEntity.ok(shopOrderService.getShopOrderForUser(shopOrderId));
+        return ResponseEntity.ok(shopOrderService.getShopOrderForUser(shopOrderId) );
     }
 
 }
