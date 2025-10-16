@@ -75,6 +75,9 @@ public class ShopOrder {
     @Column(nullable = false, name = "total_amount")
     private Long totalAmount;
 
+    @Column(nullable = false, name = "total_weight")
+    private Long totalWeight;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;

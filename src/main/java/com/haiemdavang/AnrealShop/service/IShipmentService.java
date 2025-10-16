@@ -9,9 +9,11 @@ import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
+import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface IShipmentService {
     List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds);
@@ -23,4 +25,8 @@ public interface IShipmentService {
     MyShopShippingListResponse getListForShop(int page, int limit, String search, SearchTypeShipping searchTypeShipping, PreparingStatus preparingStatus, String sortBy);
 
     Shipping getShippingByShopOrderId(String shopOrderId);
+
+    void createShipmentForSchedule(Set<ShopOrder> shopOrder);
+
+    void createShipment(String shopOrderId);
 }

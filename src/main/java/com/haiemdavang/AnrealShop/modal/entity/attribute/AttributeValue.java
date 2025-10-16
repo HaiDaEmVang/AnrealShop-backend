@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"attributeKey", "shop", "productSkus"})
+@ToString(exclude = {"attributeKey", "productSkus"})
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "attribute_values",
@@ -33,7 +33,7 @@ public class AttributeValue {
     @JoinColumn(name = "attribute_key_id", nullable = false)
     private AttributeKey attributeKey;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String value;
 
     @Column(name = "display_order", columnDefinition = "INT DEFAULT 0")

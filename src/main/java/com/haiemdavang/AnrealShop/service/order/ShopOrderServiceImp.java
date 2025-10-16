@@ -174,7 +174,6 @@ public class ShopOrderServiceImp implements IShopOrderService {
         return orderDetailDto;
     }
 
-
     @Override
     public OrderDetailDto getShopOrder(String shopOrderId) {
         if (shopOrderId == null || shopOrderId.isEmpty() || !shopOrderRepository.existsById(shopOrderId)) {
@@ -231,14 +230,8 @@ public class ShopOrderServiceImp implements IShopOrderService {
         }
 
         ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
-
-        shopOrder.setStatus(ShopOrderStatus.PREPARING);
-
-        shopOrder.getOrderItems().stream()
-                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
-                .forEach(ot -> ot.setStatus(OrderTrackStatus.PREPARING));
-
-        shopOrderRepository.save(shopOrder);
+        shipmentService.createShipment(shopOrderId);
+        shopOrderRepository.save(updateStatusShopOrder(shopOrder, ShopOrderStatus.PREPARING));
     }
 
     @Override
@@ -246,6 +239,15 @@ public class ShopOrderServiceImp implements IShopOrderService {
     public void rejectOrderItemById(String orderItemId, String reason, CancelBy cancelBy) {
         ShopOrder shopOrder = orderItemService.rejectOrderItemById(orderItemId, reason, cancelBy);
         handleMapStatus(shopOrder);
+    }
+
+    @Override
+    @Transactional
+    public void confirmShipmentOrders() {
+        Set<ShopOrder> shopOrder = shopOrderRepository.findAllByStatus(ShopOrderStatus.PREPARING);
+        shopOrder.stream().map(so -> updateStatusShopOrder(so, ShopOrderStatus.SHIPPING)).forEach(this::handleMapStatus);
+
+        shopOrderRepository.saveAll(shopOrder);
     }
 
 
@@ -262,5 +264,23 @@ public class ShopOrderServiceImp implements IShopOrderService {
         return shippingFee == 0L ? 0L : (long) (shippingFee * SHIPPING_FEE_RATE);
     }
 
+    private ShopOrder updateStatusShopOrder(ShopOrder shopOrder, ShopOrderStatus newStatus) {
+        shopOrder.setStatus(newStatus);
 
+        switch (newStatus) {
+            case PENDING_CONFIRMATION ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.PREPARING));
+            case PREPARING ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PREPARING))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.SHIPPING));
+            case SHIPPING ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.SHIPPING))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.DELIVERED));
+        }
+        return shopOrder;
+    }
 }

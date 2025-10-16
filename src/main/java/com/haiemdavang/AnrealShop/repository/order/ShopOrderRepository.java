@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.repository.order;
 
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import io.micrometer.common.lang.NonNullApi;
 import io.micrometer.common.lang.Nullable;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 @NonNullApi
@@ -50,5 +53,19 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithOrderItemById(String shopOrderId);
 
+    @EntityGraph(attributePaths = {
+            "order",
+            "order.shippingAddress",
+            "order.shippingAddress.province",
+            "order.shippingAddress.district",
+            "order.shippingAddress.ward",
+    })
+    Set<ShopOrder> findAllByStatus(ShopOrderStatus status);
 
+    @Override
+    @EntityGraph(attributePaths = {
+            "order",
+            "order.shippingAddress",
+    })
+    Optional<ShopOrder> findById(String s);
 }

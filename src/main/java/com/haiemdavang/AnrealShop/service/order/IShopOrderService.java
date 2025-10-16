@@ -41,4 +41,6 @@ public interface IShopOrderService {
     void rejectOrderById(String shopOrderId, String reason, CancelBy cancelBy);
 
     UserOrderDetailDto getShopOrderForUser(String shopOrderId);
+
+    void confirmShipmentOrders();
 }

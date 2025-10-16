@@ -203,10 +203,12 @@ public class UserOrderServiceImp implements IUserOrderService {
             Long shippingFee = mapFeeForShops.get(shopAddress);
 
             long totalForShop = 0L;
+            long totalWeightForShop = 0L;
 
             for (OrderItem orderItem : order.getOrderItems()) {
                 if (orderItem.getProductSku().getProduct().getShop().equals(shopAddress.getShop())){
                     totalForShop += orderItem.getQuantity() * orderItem.getPrice();
+                    totalWeightForShop += orderItem.getQuantity() * orderItem.getProductSku().getProduct().getWeight();
                     shopOrder.addOrderItems(orderItem);
                 }
             }
@@ -215,6 +217,7 @@ public class UserOrderServiceImp implements IUserOrderService {
             shopOrder.setShippingFee(shippingFee);
             shopOrder.setTotalAmount(totalForShop);
             shopOrder.setShippingAddress(shopAddress);
+            shopOrder.setTotalWeight(totalWeightForShop);
 
             order.addShopOrder(shopOrder);
         }

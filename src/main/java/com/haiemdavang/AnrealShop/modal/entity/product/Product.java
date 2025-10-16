@@ -7,14 +7,11 @@
     import jakarta.persistence.*;
     import lombok.*;
     import org.hibernate.annotations.CreationTimestamp;
-    import org.hibernate.annotations.SQLDelete;
     import org.hibernate.annotations.UpdateTimestamp;
     import org.hibernate.annotations.Where;
 
-    import java.math.BigDecimal;
     import java.time.LocalDateTime;
     import java.util.HashSet;
-    import java.util.List;
     import java.util.Set;
 
     @Entity
@@ -67,13 +64,13 @@
         private Category category;
     
         @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
-        private BigDecimal weight;
+        private Long weight;
         @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
-        private BigDecimal height;
+        private Long height;
         @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
-        private BigDecimal length;
+        private Long length;
         @Column(nullable = false, columnDefinition = "DECIMAL(10,2) default 0.00")
-        private BigDecimal width;
+        private Long width;
     
         @Column(nullable = false)
         private long revenue = 0;

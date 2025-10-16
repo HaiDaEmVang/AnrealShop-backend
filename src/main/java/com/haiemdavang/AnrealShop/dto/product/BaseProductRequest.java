@@ -1,13 +1,15 @@
 package com.haiemdavang.AnrealShop.dto.product;
 
 import com.haiemdavang.AnrealShop.dto.attribute.ProductAttributeDto;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -43,16 +45,16 @@ public class BaseProductRequest {
     private String categoryPath;
 
     @NotNull(message = "PRODUCT_WEIGHT_NOTNULL")
-    private BigDecimal weight;
+    private Long weight;
 
     @NotNull(message = "PRODUCT_HEIGHT_NOTNULL")
-    private BigDecimal height;
+    private Long height;
 
     @NotNull(message = "PRODUCT_LENGTH_NOTNULL")
-    private BigDecimal length;
+    private Long length;
 
     @NotNull(message = "PRODUCT_WIDTH_NOTNULL")
-    private BigDecimal width;
+    private Long width;
 
     private List<BaseProductSkuRequest> productSkus;
 

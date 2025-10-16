@@ -112,47 +112,73 @@ public class ShipmentServiceImp implements IShipmentService {
 
     }
 
+//    sua phuong thuc nay lai
     @Override
     @Transactional
     public void createShipment(CreateShipmentRequest createShipmentRequest) {
         List<OrderItem> orderItems = orderItemService.getForShipment(createShipmentRequest.getShopOrderIds());
 //        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
-        Shop currentShop = securityUtils.getCurrentUserShop();
-        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
+//        Shop currentShop = securityUtils.getCurrentUserShop();
+//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
+//
+//        Map<Order, List<OrderItem>> orderListMap = orderItems.stream()
+//                .collect(Collectors.groupingBy(OrderItem::getOrder));
+//
+//        for (Order shopOrder : orderListMap.keySet()) {
+//            Set<OrderItem> items = new HashSet<>(orderListMap.get(shopOrder));
+//            long totalWeight = items.stream()
+//                    .mapToInt(item -> item.getProductSku().getProduct().getWeight().intValue() * item.getQuantity())
+//                    .sum();
+//            InfoShipment info = InfoShipment.builder()
+//                    .from(addressMapper.toAddressDto(fromAddress))
+//                    .to(addressMapper.toAddressDto(shopOrder.getShippingAddress()))
+//                    .weight(totalWeight)
+//                    .build();
+//            InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
+//            if (infoOrder.isSuccess) {
+////                ighnService.createShippingOrder(shopOrder, items, infoOrder, createShipmentRequest.getNote());
+//                Shipping shipping = Shipping.builder()
+//                        .addressFrom(fromAddress)
+//                        .addressTo(shopOrder.getShippingAddress())
+//                        .totalWeight(totalWeight)
+//                        .fee((long) infoOrder.getFee())
+//                        .note(createShipmentRequest.getNote())
+//                        .dayPickup(createShipmentRequest.getPickupDate())
+//                        .build();
+//
+//                shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
+//                shipmentRepository.save(shipping);
+//
+//                orderItemService.confirmOrderItems(items, OrderTrackStatus.WAIT_SHIPMENT);
+//            } else {
+//                throw new AnrealShopException("SERVER_ERROR");
+//            }
+//        }
+    }
 
-        Map<Order, List<OrderItem>> orderListMap = orderItems.stream()
-                .collect(Collectors.groupingBy(OrderItem::getOrder));
+    @Override
+    @Transactional
+    public void createShipment(String shopOrderId) {
+//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
+//        Shop currentShop = securityUtils.getCurrentUserShop();
+//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
+        ShopOrder shopOrder = shopOrderRepository.findById(shopOrderId)
+                .orElseThrow(() -> new BadRequestException("SHOP_ORDER_NOT_FOUND"));
 
-        for (Order shopOrder : orderListMap.keySet()) {
-            Set<OrderItem> items = new HashSet<>(orderListMap.get(shopOrder));
-            long totalWeight = items.stream()
-                    .mapToInt(item -> item.getProductSku().getProduct().getWeight().intValue() * item.getQuantity())
-                    .sum();
-            InfoShipment info = InfoShipment.builder()
-                    .from(addressMapper.toAddressDto(fromAddress))
-                    .to(addressMapper.toAddressDto(shopOrder.getShippingAddress()))
-                    .weight(totalWeight)
-                    .build();
-            InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
-            if (infoOrder.isSuccess) {
-//                ighnService.createShippingOrder(shopOrder, items, infoOrder, createShipmentRequest.getNote());
-                Shipping shipping = Shipping.builder()
-                        .addressFrom(fromAddress)
-                        .addressTo(shopOrder.getShippingAddress())
-                        .totalWeight(totalWeight)
-                        .fee((long) infoOrder.getFee())
-                        .note(createShipmentRequest.getNote())
-                        .dayPickup(createShipmentRequest.getPickupDate())
-                        .build();
+        Shipping shipping = Shipping.builder()
+                .addressFrom(shopOrder.getShippingAddress())
+                .addressTo(shopOrder.getOrder().getShippingAddress())
+                .totalWeight(shopOrder.getTotalWeight())
+                .fee(shopOrder.getShippingFee())
+                .note("Tạo tự động")
+                .dayPickup(LocalDate.now())
+                .shopOrder(shopOrder)
+                .build();
+        shipping.setStatus(ShippingStatus.ORDER_CREATED);
 
-                shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
-                shipmentRepository.save(shipping);
-
-                orderItemService.confirmOrderItems(items, OrderTrackStatus.WAIT_SHIPMENT);
-            } else {
-                throw new AnrealShopException("SERVER_ERROR");
-            }
-        }
+        shipmentRepository.save(shipping);
+        shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
+        shipmentRepository.save(shipping);
     }
 
     @Override
@@ -200,5 +226,26 @@ public class ShipmentServiceImp implements IShipmentService {
     public Shipping getShippingByShopOrderId(String shopOrderId) {
         return shipmentRepository.findByShopOrderId(shopOrderId);
     }
+
+    @Override
+    @Transactional
+    public void createShipmentForSchedule(Set<ShopOrder> shopOrder) {
+//        List<Shipping> shippings = new ArrayList<>();
+//        shopOrder.stream().map(so -> {
+//            Shipping shipping = Shipping.builder()
+//                    .addressFrom(so.getShippingAddress())
+//                    .addressTo(so.getOrder().getShippingAddress())
+//                    .totalWeight(so.)
+//                    .fee(so.getShippingFee())
+//                    .note("Tạo tự động")
+//                    .dayPickup(LocalDate.now())
+//                    .status(ShippingStatus.WAITING_FOR_PICKUP)
+//                    .build();
+//            shippings.add(shipping);
+//            return shipping;
+//        })
+    }
+
+
 
 }
