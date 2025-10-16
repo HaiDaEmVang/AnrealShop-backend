@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.repository.shipment;
+package com.haiemdavang.AnrealShop.repository.shipping;
 
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;

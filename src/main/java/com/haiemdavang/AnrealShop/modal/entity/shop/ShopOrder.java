@@ -4,11 +4,13 @@ package com.haiemdavang.AnrealShop.modal.entity.shop;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -19,8 +21,22 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress"})
+@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress", "shipping"})
 @EqualsAndHashCode(of = {"id", "user", "order", "shop"})
+@NamedEntityGraph(
+        name = "ShopOrder.graph.forShop",
+        attributeNodes = {
+                @NamedAttributeNode(value = "order", subgraph = "orderSubgraph"),
+                @NamedAttributeNode("user"),
+                @NamedAttributeNode("shop")
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "orderSubgraph",
+                        attributeNodes = @NamedAttributeNode("payment")
+                )
+        }
+)
 @Entity
 @Table(name = "shop_orders")
 public class ShopOrder {
@@ -32,11 +48,11 @@ public class ShopOrder {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // Người dùng đặt đơn hàng chính
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order; // Đơn hàng chính (parent order)
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id", nullable = false)
@@ -63,9 +79,16 @@ public class ShopOrder {
     @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
+
     @OneToMany(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<ShopOrderTrack> trackingHistory = new HashSet<>();
+
+    @OneToOne(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Shipping shipping;
 
     public void addTrackingHistory(ShopOrderTrack track) {
         if (trackingHistory == null) trackingHistory = new HashSet<>();

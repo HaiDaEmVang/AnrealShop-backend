@@ -5,6 +5,7 @@ import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
@@ -40,7 +41,7 @@ public class ShopOrderSpecification {
             List<Predicate> predicates = new ArrayList<>();
             assert query != null;
             query.distinct(true);
-            Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);;
+            Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);
 
             if (StringUtils.hasText(shopId)) {
                 predicates.add(cb.like(cb.lower(root.get("shop").get("id")), "%" + shopId.toLowerCase() + "%"));
@@ -70,7 +71,7 @@ public class ShopOrderSpecification {
                     Subquery<LocalDateTime> subquery = query.subquery(LocalDateTime.class);
                     Root<ShopOrderTrack> trackRoot = subquery.from(ShopOrderTrack.class);
 
-                    subquery.select(cb.greatest(trackRoot.get("id").<LocalDateTime>get("updatedAt")))
+                    subquery.select(cb.greatest(trackRoot.get("id").<LocalDateTime>get("updatedAt")))  //.<LocalDateTime>get("id").get("updatedAt")))
                             .where(cb.equal(trackRoot.get("shopOrder").get("id"), root.get("id")));
 
                     Join<ShopOrder, ShopOrderTrack> trackJoin = root.join("trackingHistory");
@@ -108,19 +109,7 @@ public class ShopOrderSpecification {
                 }
 
             }
-            if(StringUtils.hasText(search)) {
-                if (searchType == SearchType.ORDER_CODE) {
-                    predicates.add(cb.like(cb.lower(root.get("id")), "%" + search.toLowerCase() + "%"));
-                } else if (searchType == SearchType.CUSTOMER_NAME) {
-                    predicates.add(cb.like(cb.lower(root.get("user").get("fullName")), "%" + search.toLowerCase() + "%"));
-                } else if (searchType == SearchType.PRODUCT_NAME) {
-                    if (orderItemJoin != null) {
-                        Join<OrderItem, ProductSku> orderItemProductSkuJoin = orderItemJoin.join("productSku", JoinType.INNER);
-                        Join<ProductSku, Product> productJoin = orderItemProductSkuJoin.join("product", JoinType.INNER);
-                        predicates.add(cb.like(cb.lower(productJoin.get("name")), "%" + search.toLowerCase() + "%"));
-                    }
-                }
-            }
+            ShopOrderSpecification.filterSearch(predicates, cb, root, search, searchType, orderItemJoin);
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -157,6 +146,58 @@ public class ShopOrderSpecification {
             if (predicates.isEmpty()) {
                 return cb.conjunction();
             }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static void filterSearch(List<Predicate> predicates, CriteriaBuilder cb, Root<ShopOrder> root, String search, SearchType searchType, Join<ShopOrder, OrderItem> orderItemJoin) {
+        if(StringUtils.hasText(search)) {
+            if (searchType == SearchType.ORDER_CODE) {
+                predicates.add(cb.like(cb.lower(root.get("id")), "%" + search.toLowerCase() + "%"));
+            } else if (searchType == SearchType.CUSTOMER_NAME) {
+                predicates.add(cb.like(cb.lower(root.get("user").get("fullName")), "%" + search.toLowerCase() + "%"));
+            } else if (searchType == SearchType.PRODUCT_NAME) {
+                if (orderItemJoin != null) {
+                    Join<OrderItem, ProductSku> orderItemProductSkuJoin = orderItemJoin.join("productSku", JoinType.INNER);
+                    Join<ProductSku, Product> productJoin = orderItemProductSkuJoin.join("product", JoinType.INNER);
+                    predicates.add(cb.like(cb.lower(productJoin.get("name")), "%" + search.toLowerCase() + "%"));
+                }
+            }
+        }
+    }
+
+    public static Specification<ShopOrder> filter(String userId, String status, String search, SearchType searchType) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            assert query != null;
+            query.distinct(true);
+            Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);
+
+            ShopOrderStatus statusCompare;
+            try {
+                if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name()) || status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())){
+                    statusCompare = ShopOrderStatus.CLOSED;
+                }else statusCompare = ShopOrderStatus.valueOf(status);
+            } catch (Exception e){
+                throw new BadRequestException("INVALID_STATUS");
+            }
+
+            predicates.add(cb.equal(root.get("status"), statusCompare));
+
+            if (statusCompare == ShopOrderStatus.CLOSED) {
+                if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {
+                    predicates.add(cb.equal(orderItemJoin.get("status"), OrderTrackStatus.CANCELED));
+                } else if ( status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
+                    predicates.add(cb.equal(orderItemJoin.get("status"), OrderTrackStatus.REFUND));
+                }
+            }
+
+            if (StringUtils.hasText(userId)) {
+                predicates.add(cb.like(cb.lower(root.get("order").get("user").get("id")), "%" + userId.toLowerCase() + "%"));
+            }
+
+            ShopOrderSpecification.filterSearch(predicates, cb, root, search, searchType, orderItemJoin);
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

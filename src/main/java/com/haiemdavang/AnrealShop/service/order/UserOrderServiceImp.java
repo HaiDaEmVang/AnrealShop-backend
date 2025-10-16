@@ -3,9 +3,13 @@ package com.haiemdavang.AnrealShop.service.order;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutRequestDto;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutResponseDto;
 import com.haiemdavang.AnrealShop.dto.checkout.ItemProductCheckoutDto;
+import com.haiemdavang.AnrealShop.dto.order.UserOrderItemDto;
+import com.haiemdavang.AnrealShop.dto.order.UserOrderListResponse;
+import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.dto.payment.PaymentRequestDto;
 import com.haiemdavang.AnrealShop.dto.payment.PaymentResponseDto;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
+import com.haiemdavang.AnrealShop.mapper.OrderMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
@@ -15,22 +19,30 @@ import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
-import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import com.haiemdavang.AnrealShop.modal.enums.PaymentStatus;
 import com.haiemdavang.AnrealShop.modal.enums.PaymentType;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.repository.order.OrderRepository;
+import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IProductService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.payment.IPaymentService;
 import com.haiemdavang.AnrealShop.service.payment.VNPayService;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +56,8 @@ public class UserOrderServiceImp implements IUserOrderService {
     private final IProductService productService;
     private final VNPayService vnPayService;
     private final SecurityUtils securityUtils;
+
+    private final OrderMapper orderMapper;
 
     @Override
     @Transactional
@@ -106,6 +120,47 @@ public class UserOrderServiceImp implements IUserOrderService {
                 .orderDateExpiration(payment.getExpireAt())
                 .build();
     }
+
+    @Override
+    public UserOrderListResponse getListOrderItems(int page, int limit, String status, String search, SearchType searchType, String sortBy) {
+        String userId = securityUtils.getCurrentUser().getId();
+
+        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(userId, status, search, searchType);
+        Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
+
+        Page<ShopOrder> shopOrders = shopOrderService.gitListOrderForUser(orderSpecification, pageable);
+        Set<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).collect(Collectors.toSet());
+        Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
+
+        Set<UserOrderItemDto> orderItemDtoSet = new HashSet<>();
+
+        List<OrderItem> orderItems = orderItemService.getListOrderItems(idShopOrders, search, searchType, status);
+        Map<String, Set<OrderItem>> mapOrderItems = orderItems.stream().collect(
+                Collectors.groupingBy(oi -> oi.getShopOrder().getId(), Collectors.toSet())
+        ).entrySet().stream().collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
+        );
+
+        for (String idShopOrder : mapOrderItems.keySet()){
+            ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
+            Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
+            if (shopOrder == null || orderItemsOfShopOrder == null) continue;
+            UserOrderItemDto orderItemDto = orderMapper.toUserOrderItemDto(shopOrder, orderItemsOfShopOrder);
+            orderItemDtoSet.add(orderItemDto);
+        }
+
+        return  UserOrderListResponse.builder()
+                .currentPage(shopOrders.getNumber())
+                .totalPages(shopOrders.getTotalPages())
+                .totalCount(shopOrders.getTotalElements())
+                .orderItemDtoSet(orderItemDtoSet)
+                .build();
+    }
+
+//    @Override
+//    public void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
+//        shopOrderService.rejectOrderById(shopOrderId, reason, cancelBy);
+//    }
 
 
 

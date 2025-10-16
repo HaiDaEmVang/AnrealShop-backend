@@ -19,13 +19,13 @@ public class SecurityUtils {
     private final ShopRepository shopRepository;
     
     public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        return userRepository.findByEmail(username)
-                .orElseThrow(() -> new UnAuthException("USER_NOT_FOUND"));
-//        0c6a1e3a-aa7b-4f10-920b-d9f0a7f9f8b2
-//        return userRepository.findById("f0759088-326b-4ab6-b140-6dfeff7dcb2b")
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String username = authentication.getName();
+//        return userRepository.findByEmail(username)
 //                .orElseThrow(() -> new UnAuthException("USER_NOT_FOUND"));
+//        0c6a1e3a-aa7b-4f10-920b-d9f0a7f9f8b2
+        return userRepository.findById("f0759088-326b-4ab6-b140-6dfeff7dcb2b")
+                .orElseThrow(() -> new UnAuthException("USER_NOT_FOUND"));
     }
     
     public Shop getCurrentUserShop() {

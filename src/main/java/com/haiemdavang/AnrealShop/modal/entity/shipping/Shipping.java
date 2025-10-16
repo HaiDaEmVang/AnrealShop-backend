@@ -3,7 +3,7 @@ package com.haiemdavang.AnrealShop.modal.entity.shipping;
 
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
-import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
+import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -76,13 +76,9 @@ public class Shipping {
     @Column(name = "status", nullable = false)
     private ShippingStatus status;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "shipping_items",
-            joinColumns = @JoinColumn(name = "shipping_id"),
-            inverseJoinColumns = @JoinColumn(name = "order_item_id")
-    )
-    private Set<OrderItem> orderItems = new HashSet<>();
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_order_id", referencedColumnName = "id", nullable = false, unique = true)
+    private ShopOrder shopOrder;
 
     @OneToMany(mappedBy = "shipping", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default

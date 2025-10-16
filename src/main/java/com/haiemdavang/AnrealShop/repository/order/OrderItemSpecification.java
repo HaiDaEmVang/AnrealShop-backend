@@ -43,6 +43,15 @@ public class OrderItemSpecification {
                 predicates.add(cb.like(cb.lower(productJoin.get("name")), "%" + productName.toLowerCase() + "%"));
             }
 
+            if (mode == ModeType.USER) {
+                if (StringUtils.hasText(status) && status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {
+                    predicates.add(root.get("status").in(OrderTrackStatus.CANCELED));
+                }
+                if (StringUtils.hasText(status) && status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
+                    predicates.add(root.get("status").in(OrderTrackStatus.REFUND));
+                }
+            }
+
             if (mode == ModeType.HOME) {
                 if (StringUtils.hasText(status) && !status.equalsIgnoreCase(ShopOrderStatus.CLOSED.name())) {
                     if (!status.equalsIgnoreCase("ALL")) {
@@ -89,5 +98,10 @@ public class OrderItemSpecification {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+
+    public static Specification<OrderItem> filter(Set<String> idShopOrders, String search, SearchType searchType, String status) {
+        return OrderItemSpecification.filter(ModeType.USER, idShopOrders, search, searchType, status, null, null);
     }
 }

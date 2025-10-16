@@ -18,27 +18,28 @@ import java.util.List;
 @NonNullApi
 @Repository
 public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, JpaSpecificationExecutor<ShopOrder> {
-//    @Query(value = "SELECT so.status as status, sum(so.totalAmount) as totalAmount , count(oi.id) as count " +
-//            "FROM ShopOrder so " +
-//            "left join so.orderItems oi " +
-//            "where so.shop.id = :id " +
-//            "AND so.createdAt BETWEEN :fromDate AND :toDate " +
-//            "group by so.status")
-//    Set<IMetaDto> countOrderItemByStatus(String id, LocalDateTime toDate, LocalDateTime fromDate);
+
+    @EntityGraph(value = "ShopOrder.graph.forShop", type = EntityGraph.EntityGraphType.FETCH)
+    Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
 
     @EntityGraph(attributePaths = {
-            "order",
-            "order.payment",
             "user",
+            "orderItems",
+            "orderItems.productSku"
     })
-    Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
+    List<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification);
 
 
     @Query(value = "SELECT so FROM ShopOrder so " +
+            "LEFT JOIN FETCH so.shop s " +
             "LEFT JOIN FETCH so.orderItems oi " +
             "LEFT JOIN FETCH oi.productSku sku " +
             "LEFT JOIN FETCH sku.product p " +
             "LEFT JOIN FETCH so.order o " +
+            "LEFT JOIN FETCH o.shippingAddress a " +
+            "LEFT JOIN FETCH a.province " +
+            "LEFT JOIN FETCH a.district " +
+            "LEFT JOIN FETCH a.ward " +
             "LEFT JOIN FETCH o.payment pay " +
             "LEFT JOIN FETCH so.trackingHistory " +
             "WHERE so.id = :shopOrderId")
@@ -49,10 +50,5 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithOrderItemById(String shopOrderId);
 
-    @EntityGraph(attributePaths = {
-            "user",
-            "orderItems",
-            "orderItems.productSku"
-    })
-    List<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification);
+
 }

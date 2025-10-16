@@ -1,18 +1,16 @@
 package com.haiemdavang.AnrealShop.service.order;
 
-import com.haiemdavang.AnrealShop.dto.order.MyShopOrderListResponse;
-import com.haiemdavang.AnrealShop.dto.order.OrderDetailDto;
-import com.haiemdavang.AnrealShop.dto.order.OrderItemDto;
-import com.haiemdavang.AnrealShop.dto.order.OrderStatusDto;
+import com.haiemdavang.AnrealShop.dto.order.*;
 import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
-import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.OrderMapper;
+import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrderTrack;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
@@ -21,8 +19,10 @@ import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
+import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShopOrderServiceImp implements IShopOrderService {
@@ -42,6 +43,10 @@ public class ShopOrderServiceImp implements IShopOrderService {
     private final SecurityUtils securityUtils;
     private final OrderMapper orderMapper;
     private final IOrderItemService orderItemService;
+    private final IShipmentService shipmentService;
+    private final ShipmentMapper shipmentMapper;
+
+    private final double SHIPPING_FEE_RATE = 0.2;
 
 
     @Override
@@ -121,9 +126,52 @@ public class ShopOrderServiceImp implements IShopOrderService {
     }
 
     @Override
-    public List<ShopOrder> getShopOrderByShippingIds(Set<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {
-        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
-        return shopOrderRepository.findAll(orderSpecification);
+    public Page<ShopOrder> gitListOrderForUser(Specification<ShopOrder> orderSpecification, Pageable pageable) {
+        return shopOrderRepository.findAll(orderSpecification, pageable);
+    }
+
+    @Transactional
+    @Override
+    public void rejectOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
+        if (shopOrderId == null || shopOrderId.isEmpty() || !shopOrderRepository.existsById(shopOrderId)) {
+            throw new BadRequestException("ORDER_NOT_FOUND");
+        }
+
+        ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
+
+        shopOrder.setStatus(ShopOrderStatus.CLOSED);
+
+        shopOrder.getOrderItems().stream()
+                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
+                .forEach(ot -> orderItemService.rejectOrderItemById(ot.getId(), reason, cancelBy));
+
+        shopOrderRepository.save(shopOrder);
+    }
+
+    @Override
+    public UserOrderDetailDto getShopOrderForUser(String shopOrderId) {
+        if (shopOrderId == null || shopOrderId.isEmpty() || !shopOrderRepository.existsById(shopOrderId)) {
+            throw new BadRequestException("ORDER_NOT_FOUND");
+        }
+
+        ShopOrder shopOrder = shopOrderRepository.findWithFullInfoById(shopOrderId);
+
+        UserOrderDetailDto orderDetailDto = orderMapper.toUserOrderDetailDto(shopOrder, shopOrder.getOrderItems(), shopOrder.getOrder().getShippingAddress());
+        Shipping shipping = shipmentService.getShippingByShopOrderId(shopOrderId);
+
+        long totalProductCost = shopOrder.getTotalAmount() + shopOrder.getShippingFee();
+
+        Long getDiscountShippingFee = getDiscountShippingFee(shopOrder.getShippingFee());
+        Long shippingFee = orderDetailDto.getShippingFee();
+
+        orderDetailDto.setTotalProductCost(totalProductCost);
+        orderDetailDto.setShippingDiscount(getDiscountShippingFee);
+        orderDetailDto.setTotalShippingCost(Math.max(0L, shippingFee - getDiscountShippingFee));
+        orderDetailDto.setTotalCost(totalProductCost + Math.max(0L, shippingFee - getDiscountShippingFee));
+        if (shipping != null)
+            orderDetailDto.setOrderHistory(shipmentMapper.toHistoryTrackDto(shipping.getTrackingHistory()));
+
+        return orderDetailDto;
     }
 
 
@@ -138,8 +186,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
         OrderDetailDto orderDetailDto = orderMapper.orderDetailDto(shopOrder);
 
         long totalProductCost = shopOrder.getTotalAmount() - shopOrder.getShippingFee();
-        double SHIPPING_FEE_RATE = 0.2;
-        Long shippingDiscount = shopOrder.getShippingFee() == 0L ? 0L : (long) (shopOrder.getShippingFee() * SHIPPING_FEE_RATE);
+        Long shippingDiscount = getDiscountShippingFee(shopOrder.getShippingFee());
         Long shippingFee = orderDetailDto.getShippingFee();
 
         orderDetailDto.setTotalProductCost(totalProductCost);
@@ -209,6 +256,10 @@ public class ShopOrderServiceImp implements IShopOrderService {
         }
 
         shopOrderRepository.save(shopOrder);
+    }
+
+    private Long getDiscountShippingFee(Long shippingFee) {
+        return shippingFee == 0L ? 0L : (long) (shippingFee * SHIPPING_FEE_RATE);
     }
 
 

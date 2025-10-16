@@ -8,6 +8,7 @@ import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 
 import java.util.List;
 import java.util.Map;
@@ -20,4 +21,6 @@ public interface IShipmentService {
     void createShipment(CreateShipmentRequest createShipmentRequest);
 
     MyShopShippingListResponse getListForShop(int page, int limit, String search, SearchTypeShipping searchTypeShipping, PreparingStatus preparingStatus, String sortBy);
+
+    Shipping getShippingByShopOrderId(String shopOrderId);
 }
