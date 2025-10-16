@@ -31,10 +31,15 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
 
 
     @Query(value = "SELECT so FROM ShopOrder so " +
+            "LEFT JOIN FETCH so.shop s " +
             "LEFT JOIN FETCH so.orderItems oi " +
             "LEFT JOIN FETCH oi.productSku sku " +
             "LEFT JOIN FETCH sku.product p " +
             "LEFT JOIN FETCH so.order o " +
+            "LEFT JOIN FETCH o.shippingAddress a " +
+            "LEFT JOIN FETCH a.province " +
+            "LEFT JOIN FETCH a.district " +
+            "LEFT JOIN FETCH a.ward " +
             "LEFT JOIN FETCH o.payment pay " +
             "LEFT JOIN FETCH so.trackingHistory " +
             "WHERE so.id = :shopOrderId")

@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.service.order;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutRequestDto;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutResponseDto;
 import com.haiemdavang.AnrealShop.dto.checkout.ItemProductCheckoutDto;
+import com.haiemdavang.AnrealShop.dto.order.OrderDetailDto;
 import com.haiemdavang.AnrealShop.dto.order.UserOrderItemDto;
 import com.haiemdavang.AnrealShop.dto.order.UserOrderListResponse;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
@@ -154,10 +155,11 @@ public class UserOrderServiceImp implements IUserOrderService {
                 .build();
     }
 
-    @Override
-    public void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
-        shopOrderService.rejectOrderById(shopOrderId, reason, cancelBy);
-    }
+//    @Override
+//    public void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
+//        shopOrderService.rejectOrderById(shopOrderId, reason, cancelBy);
+//    }
+
 
 
     private Order createNewOrder(CheckoutRequestDto requestDto, UserAddress userAddress, PaymentType paymentType) {

@@ -1,4 +1,4 @@
-package com.haiemdavang.AnrealShop.repository.shipment;
+package com.haiemdavang.AnrealShop.repository.shipping;
 
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import org.springframework.data.domain.Page;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipping, String> {
-
+// ham nay loi ha
     @EntityGraph(attributePaths = {
             "trackingHistory",
             "orderItems",
@@ -19,4 +19,9 @@ public interface ShipmentRepository extends JpaRepository<Shipping, String> {
             "orderItems.productSku"
     })
     Page<Shipping> findAll(Specification<Shipping> shipSpecification, Pageable pageable);
+
+    @EntityGraph(attributePaths = {
+            "trackingHistory",
+    })
+    Shipping findByShopOrderId(String shopOrderId);
 }

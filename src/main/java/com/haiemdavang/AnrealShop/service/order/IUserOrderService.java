@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.service.order;
 
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutRequestDto;
 import com.haiemdavang.AnrealShop.dto.checkout.CheckoutResponseDto;
+import com.haiemdavang.AnrealShop.dto.order.OrderDetailDto;
 import com.haiemdavang.AnrealShop.dto.order.UserOrderListResponse;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.dto.payment.PaymentResponseDto;
@@ -19,5 +20,7 @@ public interface IUserOrderService {
 
     UserOrderListResponse getListOrderItems(int page, int limit, String status, String search, SearchType searchType, String sortBy);
 
-    void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy);
+//    void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy);
+
+//    OrderDetailDto getShopOrder(String shopOrderId);
 }

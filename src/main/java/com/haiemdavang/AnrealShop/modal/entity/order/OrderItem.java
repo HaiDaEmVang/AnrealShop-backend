@@ -2,7 +2,6 @@ package com.haiemdavang.AnrealShop.modal.entity.order;
 
 
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
-import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
@@ -20,14 +19,13 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = { "productSku", "order", "shopOrder", "shippings", "trackingHistory"})
+@ToString(exclude = { "productSku", "order", "shopOrder", "trackingHistory"})
 @EqualsAndHashCode(of = {"id", "order", "productSku"})
 @NamedEntityGraph(
         name = "OrderItem.graph.forShop",
         attributeNodes = {
                 @NamedAttributeNode(value = "productSku", subgraph = "productSkuSubgraph"),
-                @NamedAttributeNode("trackingHistory"),
-                @NamedAttributeNode("shippings")
+                @NamedAttributeNode("trackingHistory")
         },
         subgraphs = {
                 @NamedSubgraph(
@@ -89,9 +87,6 @@ public class OrderItem {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToMany(mappedBy = "orderItems", fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<Shipping> shippings = new HashSet<>();
 
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default

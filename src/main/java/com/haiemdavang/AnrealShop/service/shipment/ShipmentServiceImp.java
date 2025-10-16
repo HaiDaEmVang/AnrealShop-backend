@@ -7,7 +7,6 @@ import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.AddressMapper;
-import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
@@ -19,14 +18,15 @@ import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
-import com.haiemdavang.AnrealShop.repository.shipment.ShipSpecification;
-import com.haiemdavang.AnrealShop.repository.shipment.ShipmentRepository;
+import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
+import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
+import com.haiemdavang.AnrealShop.repository.shipping.ShipSpecification;
+import com.haiemdavang.AnrealShop.repository.shipping.ShipmentRepository;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.order.IOrderItemService;
-import com.haiemdavang.AnrealShop.service.order.IShopOrderService;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,8 +54,7 @@ public class ShipmentServiceImp implements IShipmentService {
     private final IOrderItemService orderItemService;
     private final ShipmentRepository shipmentRepository;
     private final SecurityUtils securityUtils;
-    private final ShipmentMapper shipmentMapper;
-    private final IShopOrderService shopOrderService;
+    private final ShopOrderRepository shopOrderRepository;
 
     @Override
     public List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds) {
@@ -147,7 +146,6 @@ public class ShipmentServiceImp implements IShipmentService {
                         .build();
 
                 shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
-                shipping.setOrderItems(items);
                 shipmentRepository.save(shipping);
 
                 orderItemService.confirmOrderItems(items, OrderTrackStatus.WAIT_SHIPMENT);
@@ -176,25 +174,31 @@ public class ShipmentServiceImp implements IShipmentService {
         if (shippingIds.isEmpty()) {
             response.setOrderItemDtoSet(new HashSet<>());
         }else {
-            List<ShopOrder> shopOrders = shopOrderService.getShopOrderByShippingIds(shippingIds, search, searchTypeShipping);
+            Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
+            List<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification);
             if(shopOrders.size() != shippingIds.size())
                 throw new BadRequestException("ORDER_NOT_FOUND");
             Set<ShippingItem> shippingItems = new HashSet<>();
 
-            for (Shipping shipping : shippingList.getContent()) {
-                Set<OrderItem> orderItems = shipping.getOrderItems();
-                if (orderItems == null || orderItems.isEmpty()) continue;
-                String shopOrderId = orderItems.stream().findFirst().get().getShopOrder().getId();
-                ShopOrder exists = shopOrders.stream().filter(so -> so.getId().equals(shopOrderId)).findFirst().orElseThrow(
-                        () -> new BadRequestException("ORDER_NOT_FOUND")
-                );
-
-                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
-                shippingItems.add(shippingItem);
-            }
+//            for (Shipping shipping : shippingList.getContent()) {
+//                Set<OrderItem> orderItems = shipping.getOrderItems();
+//                if (orderItems == null || orderItems.isEmpty()) continue;
+//                String shopOrderId = orderItems.stream().findFirst().get().getShopOrder().getId();
+//                ShopOrder exists = shopOrders.stream().filter(so -> so.getId().equals(shopOrderId)).findFirst().orElseThrow(
+//                        () -> new BadRequestException("ORDER_NOT_FOUND")
+//                );
+//
+//                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
+//                shippingItems.add(shippingItem);
+//            }
             response.setOrderItemDtoSet(shippingItems);
         }
         return response;
+    }
+
+    @Override
+    public Shipping getShippingByShopOrderId(String shopOrderId) {
+        return shipmentRepository.findByShopOrderId(shopOrderId);
     }
 
 }

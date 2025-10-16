@@ -1,12 +1,14 @@
 package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.order.*;
+import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrderTrack;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderMapper {
     private final AttributeMapper attributeMapper;
+    private final AddressMapper addressMapper;
 
     public ProductOrderItemDto toOrderItemDto(OrderItem orderItem) {
         return ProductOrderItemDto.builder()
@@ -100,7 +103,26 @@ public class OrderMapper {
                 .totalPrice(shopOrder.getTotalAmount())
                 .updateAt(shopOrder.getUpdatedAt())
                 .build();
-//        tehm update at
+    }
 
+    public UserOrderDetailDto toUserOrderDetailDto(ShopOrder shopOrder, Set<OrderItem> orderItemsOfShopOrder, UserAddress userAddress) {
+        if (shopOrder == null || orderItemsOfShopOrder.isEmpty()) return null;
+
+        List<ProductOrderItemDto> productItems = orderItemsOfShopOrder.stream()
+                .map(this::toOrderItemDto)
+                .collect(Collectors.toList());
+
+        return UserOrderDetailDto.builder()
+                .shopOrderId(shopOrder.getId())
+                .shopOrderStatus(shopOrder.getStatus().name())
+                .shopId(shopOrder.getShop().getId())
+                .shopName(shopOrder.getShop().getName())
+                .shopImage(shopOrder.getShop().getAvatarUrl())
+                .productItems(productItems)
+                .shippingFee(shopOrder.getShippingFee())
+                .totalProductCost(shopOrder.getTotalAmount())
+                .isReviewed(false)
+                .address(addressMapper.toSimpleAddressDto(userAddress))
+                .build();
     }
 }
