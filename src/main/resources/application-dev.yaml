@@ -11,6 +11,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
 
   data:
     redis:
@@ -59,6 +63,7 @@ logging:
         messaging: debug
       elasticsearch:
         client: TRACE
+      hibernate.jdbc.BatchingBatch: TRACE
 
 
 server:

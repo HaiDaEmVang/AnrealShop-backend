@@ -8,3 +8,11 @@
 #  alter table shop_orders
 #      add column total_weight DECIMAL(10,2) default 0.00;
 
+#
+#  alter table shop_orders
+#      modify column status enum('INIT_PROCESSING', 'PENDING_CONFIRMATION', 'CONFIRMED', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CLOSED') not null;
+
+# alter table shop_order_tracks
+#     modify column status enum('INIT_PROCESSING', 'PENDING_CONFIRMATION', 'CONFIRMED', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CLOSED') not null;
+
+

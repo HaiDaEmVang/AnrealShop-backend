@@ -2,7 +2,7 @@ package com.haiemdavang.AnrealShop.modal.enums;
 
 public enum ShippingStatus {
     ORDER_CREATED,       // Đơn đã được tạo thành công (chờ xử lý tiếp)
-    WAITING_FOR_PICKUP,  // Đơn đang chờ shipper đến lấy hàng từ cửa hàng/kho
+    WAITING_FOR_PICKUP,  // Đơn đang chờ shipper đến lấy hàng từ cửa hàng/kho   ko su dung nua
     PICKED_UP,           // Shipper đã lấy hàng từ cửa hàng/kho
     IN_TRANSIT,          // Hàng đang được vận chuyển giữa các điểm trung chuyển/kho
     OUT_FOR_DELIVERY,    // Shipper đang trên đường giao cho khách

@@ -29,11 +29,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, String> , 
 
 
     @EntityGraph(attributePaths = {
-            "order",
-            "order.shippingAddress",
-            "order.shippingAddress.province",
-            "order.shippingAddress.district",
-            "order.shippingAddress.ward",
+            "shopOrder",
+            "shopOrder.order",
+            "shopOrder.order.shippingAddress",
             "productSku",
             "productSku.product",
     })

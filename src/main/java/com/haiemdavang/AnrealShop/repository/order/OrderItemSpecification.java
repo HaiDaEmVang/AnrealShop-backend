@@ -2,7 +2,6 @@ package com.haiemdavang.AnrealShop.repository.order;
 
 import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
-import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
@@ -25,10 +24,7 @@ public class OrderItemSpecification {
             String productName,
             SearchType searchType,
             String status,
-//            LocalDateTime confirmSD,
-//            LocalDateTime confirmED,
-            OrderCountType orderType,
-            PreparingStatus preparingStatus) {
+            OrderCountType orderType) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             assert query != null;
@@ -64,11 +60,6 @@ public class OrderItemSpecification {
 
 
             if (mode == ModeType.SHIPPING) {
-                List<OrderTrackStatus> orderItemStatuses = List.of(
-                        OrderTrackStatus.PREPARING,
-                        OrderTrackStatus.WAIT_SHIPMENT
-                );
-                predicates.add(root.get("status").in(orderItemStatuses));
 
                 if (orderType.equals(OrderCountType.ONE)){
                     Subquery<String> subquery = query.subquery(String.class);
@@ -89,19 +80,12 @@ public class OrderItemSpecification {
                 }
             }
 
-
-            if (preparingStatus == PreparingStatus.PREPARING) {
-                predicates.add(cb.equal(root.get("status"), OrderTrackStatus.PREPARING));
-            } else if (preparingStatus == PreparingStatus.WAIT_SHIPMENT) {
-                predicates.add(cb.equal(root.get("status"), OrderTrackStatus.WAIT_SHIPMENT));
-            }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
 
     public static Specification<OrderItem> filter(Set<String> idShopOrders, String search, SearchType searchType, String status) {
-        return OrderItemSpecification.filter(ModeType.USER, idShopOrders, search, searchType, status, null, null);
+        return OrderItemSpecification.filter(ModeType.USER, idShopOrders, search, searchType, status, null);
     }
 }

@@ -15,7 +15,7 @@ public class OrderItemDto {
     Set<ProductOrderItemDto> productOrderItemDtoSet;
 
     private String shopOrderId;
-    private Set<String> orderStatus;
+    private String orderStatus;
     private String paymentMethod;
     private String customerName;
     private String customerImage;

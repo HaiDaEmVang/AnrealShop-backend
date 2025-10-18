@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,7 +23,6 @@ import java.util.Set;
 @Repository
 public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, JpaSpecificationExecutor<ShopOrder> {
 
-    @EntityGraph(value = "ShopOrder.graph.forShop", type = EntityGraph.EntityGraphType.FETCH)
     Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
 
     @EntityGraph(attributePaths = {
@@ -68,4 +68,20 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "order.shippingAddress",
     })
     Optional<ShopOrder> findById(String s);
+
+    @EntityGraph(attributePaths = {
+            "orderItems",
+            "orderItems.trackingHistory",
+            "trackingHistory"
+    })
+    Set<ShopOrder> findByIdIn(Collection<String> ids);
+
+    @Query(value = "SELECT so FROM ShopOrder so " +
+            "LEFT JOIN FETCH so.order o " +
+            "LEFT JOIN FETCH so.orderItems oi " +
+            "LEFT JOIN FETCH oi.trackingHistory th " +
+            "LEFT JOIN FETCH oi.productSku sku " +
+            "LEFT JOIN FETCH so.trackingHistory sht " +
+            "WHERE so.id = :shopOrderId")
+    ShopOrder findWithFullOrderItemById(String shopOrderId);
 }

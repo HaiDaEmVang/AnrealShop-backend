@@ -1,11 +1,15 @@
 package com.haiemdavang.AnrealShop.controller;
 
+import com.haiemdavang.AnrealShop.dto.shipping.BaseCreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.CreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.MyShopShippingListResponse;
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
+import com.haiemdavang.AnrealShop.service.order.IShopOrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/shipping")
 public class ShippingController {
     private final IShipmentService shipmentService;
+    private final IShopOrderService orderService;
 
     @GetMapping("/my-shop")
     public ResponseEntity<MyShopShippingListResponse> getListForShop(
@@ -40,7 +45,14 @@ public class ShippingController {
 
     @PutMapping("/create-shipments")
     public ResponseEntity<?> create(@RequestBody CreateShipmentRequest createShipmentRequest) {
-        shipmentService.createShipment(createShipmentRequest);
+        shipmentService.createShipments(createShipmentRequest);
+        orderService.updateStatus(createShipmentRequest.getShopOrderIds(), ShopOrderStatus.PREPARING);
         return ResponseEntity.ok(Map.of("message", "Create shipping order successfully"));
+    }
+
+    @PutMapping("create-shipments/{shopOrderId}")
+    public ResponseEntity<?> availableForShip(@PathVariable String shopOrderId, @RequestBody @Valid BaseCreateShipmentRequest request) {
+        orderService.availableForShipById(shopOrderId, request);
+        return ResponseEntity.ok(Map.of("message", "approval order successfully!"));
     }
 }

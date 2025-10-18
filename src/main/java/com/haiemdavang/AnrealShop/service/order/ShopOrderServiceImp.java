@@ -5,6 +5,7 @@ import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
+import com.haiemdavang.AnrealShop.dto.shipping.BaseCreateShipmentRequest;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.OrderMapper;
 import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,28 +95,28 @@ public class ShopOrderServiceImp implements IShopOrderService {
     public MyShopOrderListResponse getListOrderItems(int page, int limit, ModeType mode, String status, String search, SearchType searchType, LocalDateTime confirmSD, LocalDateTime confirmED, OrderCountType orderType, PreparingStatus preparingStatus, String sortBy) {
         LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
         String shopId = securityUtils.getCurrentUserShop().getId();
-        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shopId, mode, now.minusMonths(2), now, status, search, searchType, confirmSD, confirmED, orderType, preparingStatus);
+        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shopId, mode, now.minusMonths(2), now, ApplicationInitHelper.getSortBy(sortBy), status, search, searchType, confirmSD, confirmED, orderType, preparingStatus);
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification, pageable);
         Set<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).collect(Collectors.toSet());
-        Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
-
         Set<OrderItemDto> orderItemDtoSet = new HashSet<>();
+        if (!idShopOrders.isEmpty()) {
+            Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
+            List<OrderItem> orderItems = orderItemService.getListOrderItems(mode, idShopOrders, search, searchType, status, confirmSD, confirmED, orderType);
+            Map<String, Set<OrderItem>> mapOrderItems = orderItems.stream().collect(
+                    Collectors.groupingBy(oi -> oi.getShopOrder().getId(), Collectors.toSet())
+            ).entrySet().stream().collect(
+                    Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
+            );
 
-        List<OrderItem> orderItems = orderItemService.getListOrderItems(mode, idShopOrders, search, searchType, status, confirmSD, confirmED, orderType, preparingStatus);
-        Map<String, Set<OrderItem>> mapOrderItems = orderItems.stream().collect(
-                Collectors.groupingBy(oi -> oi.getShopOrder().getId(), Collectors.toSet())
-        ).entrySet().stream().collect(
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
-        );
-
-        for (String idShopOrder : mapOrderItems.keySet()){
-            ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
-            Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
-            if (shopOrder == null || orderItemsOfShopOrder == null) continue;
-            OrderItemDto orderItemDto = orderMapper.toOrderItemDto(shopOrder, orderItemsOfShopOrder);
-            orderItemDtoSet.add(orderItemDto);
+            for (String idShopOrder : mapOrderItems.keySet()){
+                ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
+                Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
+                if (shopOrder == null || orderItemsOfShopOrder == null) continue;
+                OrderItemDto orderItemDto = orderMapper.toOrderItemDto(shopOrder, orderItemsOfShopOrder);
+                orderItemDtoSet.add(orderItemDto);
+            }
         }
 
         return  MyShopOrderListResponse.builder()
@@ -229,9 +231,8 @@ public class ShopOrderServiceImp implements IShopOrderService {
             throw new BadRequestException("ORDER_NOT_FOUND");
         }
 
-        ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
-        shipmentService.createShipment(shopOrderId);
-        shopOrderRepository.save(updateStatusShopOrder(shopOrder, ShopOrderStatus.PREPARING));
+        ShopOrder shopOrder = shopOrderRepository.findWithFullOrderItemById(shopOrderId);
+        shopOrderRepository.save(updateStatusShopOrder(shopOrder, ShopOrderStatus.CONFIRMED));
     }
 
     @Override
@@ -250,6 +251,28 @@ public class ShopOrderServiceImp implements IShopOrderService {
         shopOrderRepository.saveAll(shopOrder);
     }
 
+    @Override
+    @Transactional
+    public void availableForShipById(String shopOrderId, BaseCreateShipmentRequest request) {
+        if (shopOrderId == null || shopOrderId.isEmpty() || !shopOrderRepository.existsById(shopOrderId)) {
+            throw new BadRequestException("ORDER_NOT_FOUND");
+        }
+
+        ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
+        shipmentService.createShipments(shopOrderId, request);
+        shopOrderRepository.save(updateStatusShopOrder(shopOrder, ShopOrderStatus.PREPARING));
+    }
+
+    @Override
+    @Transactional
+    public void updateStatus(List<String> shopOrderIds, ShopOrderStatus preparing) {
+        Set<ShopOrder> shopOrders = shopOrderRepository.findByIdIn(shopOrderIds);
+        if (shopOrders.size() != shopOrderIds.size()) {
+            throw new BadRequestException("SOME_ORDER_NOT_FOUND");
+        }
+        shopOrders.forEach(so -> updateStatusShopOrder(so, preparing));
+        shopOrderRepository.saveAll(shopOrders);
+    }
 
 
     private  void handleMapStatus(ShopOrder shopOrder) {
@@ -268,7 +291,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
         shopOrder.setStatus(newStatus);
 
         switch (newStatus) {
-            case PENDING_CONFIRMATION ->
+            case CONFIRMED ->
                     shopOrder.getOrderItems().stream()
                             .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
                             .forEach(ot -> ot.setStatus(OrderTrackStatus.PREPARING));

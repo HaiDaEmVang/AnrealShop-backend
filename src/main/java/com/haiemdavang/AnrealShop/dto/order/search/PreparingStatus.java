@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 public enum PreparingStatus {
     ALL,
     PREPARING,
-    WAIT_SHIPMENT;
+    CONFIRMED;
 
     @JsonCreator
     public static PreparingStatus from(String value) {

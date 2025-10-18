@@ -28,7 +28,8 @@ import java.util.Set;
         attributeNodes = {
                 @NamedAttributeNode(value = "order", subgraph = "orderSubgraph"),
                 @NamedAttributeNode("user"),
-                @NamedAttributeNode("shop")
+                @NamedAttributeNode("shop"),
+                @NamedAttributeNode("shipping")
         },
         subgraphs = {
                 @NamedSubgraph(
@@ -90,7 +91,7 @@ public class ShopOrder {
     @Builder.Default
     private Set<ShopOrderTrack> trackingHistory = new HashSet<>();
 
-    @OneToOne(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "shopOrder", orphanRemoval = true)
     private Shipping shipping;
 
     public void addTrackingHistory(ShopOrderTrack track) {

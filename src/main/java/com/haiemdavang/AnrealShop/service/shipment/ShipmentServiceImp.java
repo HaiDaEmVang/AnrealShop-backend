@@ -10,13 +10,11 @@ import com.haiemdavang.AnrealShop.mapper.AddressMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
-import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
-import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
@@ -112,53 +110,51 @@ public class ShipmentServiceImp implements IShipmentService {
 
     }
 
-//    sua phuong thuc nay lai
     @Override
     @Transactional
-    public void createShipment(CreateShipmentRequest createShipmentRequest) {
+    public void createShipments(CreateShipmentRequest createShipmentRequest) {
         List<OrderItem> orderItems = orderItemService.getForShipment(createShipmentRequest.getShopOrderIds());
 //        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
-//        Shop currentShop = securityUtils.getCurrentUserShop();
-//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
-//
-//        Map<Order, List<OrderItem>> orderListMap = orderItems.stream()
-//                .collect(Collectors.groupingBy(OrderItem::getOrder));
-//
-//        for (Order shopOrder : orderListMap.keySet()) {
-//            Set<OrderItem> items = new HashSet<>(orderListMap.get(shopOrder));
-//            long totalWeight = items.stream()
-//                    .mapToInt(item -> item.getProductSku().getProduct().getWeight().intValue() * item.getQuantity())
-//                    .sum();
-//            InfoShipment info = InfoShipment.builder()
-//                    .from(addressMapper.toAddressDto(fromAddress))
-//                    .to(addressMapper.toAddressDto(shopOrder.getShippingAddress()))
-//                    .weight(totalWeight)
-//                    .build();
-//            InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
-//            if (infoOrder.isSuccess) {
-////                ighnService.createShippingOrder(shopOrder, items, infoOrder, createShipmentRequest.getNote());
-//                Shipping shipping = Shipping.builder()
-//                        .addressFrom(fromAddress)
-//                        .addressTo(shopOrder.getShippingAddress())
-//                        .totalWeight(totalWeight)
-//                        .fee((long) infoOrder.getFee())
-//                        .note(createShipmentRequest.getNote())
-//                        .dayPickup(createShipmentRequest.getPickupDate())
-//                        .build();
-//
-//                shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
-//                shipmentRepository.save(shipping);
-//
-//                orderItemService.confirmOrderItems(items, OrderTrackStatus.WAIT_SHIPMENT);
-//            } else {
-//                throw new AnrealShopException("SERVER_ERROR");
-//            }
-//        }
+        Shop currentShop = securityUtils.getCurrentUserShop();
+        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
+
+        Map<ShopOrder, List<OrderItem>> orderListMap = orderItems.stream()
+                .collect(Collectors.groupingBy(OrderItem::getShopOrder));
+
+        for (ShopOrder shopOrder : orderListMap.keySet()) {
+            Set<OrderItem> items = new HashSet<>(orderListMap.get(shopOrder));
+            long totalWeight = items.stream()
+                    .mapToInt(item -> item.getProductSku().getProduct().getWeight().intValue() * item.getQuantity())
+                    .sum();
+            InfoShipment info = InfoShipment.builder()
+                    .from(addressMapper.toAddressDto(fromAddress))
+                    .to(addressMapper.toAddressDto(shopOrder.getShippingAddress()))
+                    .weight(totalWeight)
+                    .build();
+            InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
+            if (infoOrder.isSuccess) {
+//                ighnService.createShippingOrder(shopOrder, items, infoOrder, createShipmentRequest.getNote());
+                Shipping shipping = Shipping.builder()
+                        .addressFrom(fromAddress)
+                        .addressTo(shopOrder.getOrder().getShippingAddress())
+                        .totalWeight(totalWeight)
+                        .fee((long) infoOrder.getFee())
+                        .note(createShipmentRequest.getNote())
+                        .dayPickup(createShipmentRequest.getPickupDate())
+                        .shopOrder(shopOrder)
+                        .build();
+
+                shipping.setStatus(ShippingStatus.ORDER_CREATED);
+                shipmentRepository.save(shipping);
+            } else {
+                throw new AnrealShopException("SERVER_ERROR");
+            }
+        }
     }
 
     @Override
     @Transactional
-    public void createShipment(String shopOrderId) {
+    public void createShipments(String shopOrderId, BaseCreateShipmentRequest request) {
 //        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
 //        Shop currentShop = securityUtils.getCurrentUserShop();
 //        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
@@ -170,14 +166,11 @@ public class ShipmentServiceImp implements IShipmentService {
                 .addressTo(shopOrder.getOrder().getShippingAddress())
                 .totalWeight(shopOrder.getTotalWeight())
                 .fee(shopOrder.getShippingFee())
-                .note("Tạo tự động")
-                .dayPickup(LocalDate.now())
+                .note(request.getNote())
+                .dayPickup(request.getPickupDate())
                 .shopOrder(shopOrder)
                 .build();
         shipping.setStatus(ShippingStatus.ORDER_CREATED);
-
-        shipmentRepository.save(shipping);
-        shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
         shipmentRepository.save(shipping);
     }
 

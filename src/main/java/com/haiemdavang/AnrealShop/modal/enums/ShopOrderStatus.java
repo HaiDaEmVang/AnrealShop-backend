@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum ShopOrderStatus {
     INIT_PROCESSING("Đang xử lý"),
     PENDING_CONFIRMATION("Chờ xác nhận"),
+    CONFIRMED("Đã xác nhận"),
     PREPARING("Chờ lấy hàng"),
     SHIPPING("Đang giao"),
     DELIVERED("Đã giao"),

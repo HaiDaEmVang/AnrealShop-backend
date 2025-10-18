@@ -22,12 +22,10 @@ public interface IOrderItemService {
 
     void insertOrderItemTrack(Set<OrderItem> orderItems, Order newOrder);
 
-    OrderItem ConfirmOrderItem(OrderItem orderItem, OrderItemTrack newStatus);
-
     @Transactional
     void confirmOrderItems(Set<OrderItem> orderItems, OrderTrackStatus newStatus);
 
-    List<OrderItem> getListOrderItems(ModeType mode, Set<String> idShopOrders, String productName, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType, PreparingStatus preparingStatus);
+    List<OrderItem> getListOrderItems(ModeType mode, Set<String> idShopOrders, String productName, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType);
 
     void rejectOrderItemByIds(OrderRejectRequest orderRejectRequest, CancelBy cancelBy);
 

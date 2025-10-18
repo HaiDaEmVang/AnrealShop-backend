@@ -15,6 +15,7 @@ import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrderTrack;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import jakarta.persistence.criteria.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -30,6 +31,7 @@ public class ShopOrderSpecification {
             ModeType mode,
             LocalDateTime fromTime,
             LocalDateTime toTime,
+            Sort sort,
             String status,
             String search,
             SearchType searchType,
@@ -41,15 +43,37 @@ public class ShopOrderSpecification {
             List<Predicate> predicates = new ArrayList<>();
             assert query != null;
             query.distinct(true);
+            if (query.getResultType() != Long.class) {
+//                if (sort != null) {
+//                    sort.stream().forEach(order -> {
+//                        Path<Object> path = root.get(order.getProperty());
+//                        query.orderBy(order.isAscending() ? cb.asc(path) : cb.desc(path));
+//                    });
+//                }
+                root.fetch("user", JoinType.LEFT);
+                root.fetch("order", JoinType.LEFT);
+                root.fetch("shop", JoinType.LEFT);
+                root.fetch("shipping", JoinType.LEFT);
+            }
             Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);
 
             if (StringUtils.hasText(shopId)) {
                 predicates.add(cb.like(cb.lower(root.get("shop").get("id")), "%" + shopId.toLowerCase() + "%"));
             }
+
+            if (preparingStatus == PreparingStatus.PREPARING) {
+                predicates.add(cb.equal(root.get("status"), ShopOrderStatus.PREPARING));
+            } else if (preparingStatus == PreparingStatus.CONFIRMED) {
+                predicates.add(cb.equal(root.get("status"), ShopOrderStatus.CONFIRMED));
+            }
+
             if (mode == ModeType.HOME) {
                 if (StringUtils.hasText(status) && (!status.equalsIgnoreCase("ALL"))) {
                     ShopOrderStatus orderItemStatus = ShopOrderStatus.valueOf(status.toUpperCase());
-                    predicates.add(cb.equal(root.get("status"), orderItemStatus));
+                    if(orderItemStatus.equals(ShopOrderStatus.PREPARING))
+                        predicates.add(root.get("status").in(ShopOrderStatus.PREPARING, ShopOrderStatus.CONFIRMED));
+                    else
+                        predicates.add(cb.equal(root.get("status"), orderItemStatus));
                 }
                 if (toTime != null) {
                     predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toTime));
@@ -60,24 +84,15 @@ public class ShopOrderSpecification {
                 }
             }
             if (mode == ModeType.SHIPPING) {
-                List<OrderTrackStatus> orderItemStatuses = List.of(
-                        OrderTrackStatus.PREPARING,
-                        OrderTrackStatus.WAIT_SHIPMENT
+                List<ShopOrderStatus> shopOrderStatus = List.of(
+                        ShopOrderStatus.PREPARING,
+                        ShopOrderStatus.CONFIRMED
                 );
-                if (orderItemJoin != null)
-                    predicates.add(orderItemJoin.get("status").in(orderItemStatuses));
+                predicates.add(root.get("status").in(shopOrderStatus));
 
                 if (confirmSD != null && confirmED != null) {
-                    Subquery<LocalDateTime> subquery = query.subquery(LocalDateTime.class);
-                    Root<ShopOrderTrack> trackRoot = subquery.from(ShopOrderTrack.class);
-
-                    subquery.select(cb.greatest(trackRoot.get("id").<LocalDateTime>get("updatedAt")))  //.<LocalDateTime>get("id").get("updatedAt")))
-                            .where(cb.equal(trackRoot.get("shopOrder").get("id"), root.get("id")));
-
                     Join<ShopOrder, ShopOrderTrack> trackJoin = root.join("trackingHistory");
-
-                    predicates.add(cb.equal(trackJoin.get("id").get("updatedAt"), subquery));
-                    predicates.add(cb.equal(trackJoin.get("status"), ShopOrderStatus.PREPARING));
+                    predicates.add(cb.equal(trackJoin.get("status"), ShopOrderStatus.CONFIRMED));
                     predicates.add(cb.greaterThanOrEqualTo(trackJoin.get("id").get("updatedAt"), confirmSD));
                     predicates.add(cb.lessThanOrEqualTo(trackJoin.get("id").get("updatedAt"), confirmED));
                 }
@@ -100,14 +115,6 @@ public class ShopOrderSpecification {
                     predicates.add(cb.in(root.get("id")).value(subquery));
                 }
 
-                if (orderItemJoin != null) {
-                    if (preparingStatus == PreparingStatus.PREPARING) {
-                        predicates.add(cb.equal(orderItemJoin.get("status"), OrderTrackStatus.PREPARING));
-                    } else if (preparingStatus == PreparingStatus.WAIT_SHIPMENT) {
-                        predicates.add(cb.equal(orderItemJoin.get("status"), OrderTrackStatus.WAIT_SHIPMENT));
-                    }
-                }
-
             }
             ShopOrderSpecification.filterSearch(predicates, cb, root, search, searchType, orderItemJoin);
 
@@ -116,7 +123,7 @@ public class ShopOrderSpecification {
     }
 
     public static Specification<ShopOrder> filter(String shopId, ModeType modeType, LocalDateTime localDateTime, LocalDateTime now, String search, SearchType searchType) {
-        return ShopOrderSpecification.filter(shopId, modeType, localDateTime, now, null, search, searchType, null, null, null, null);
+        return ShopOrderSpecification.filter(shopId, modeType, localDateTime, now, null, null, search, searchType, null, null, null, null);
     }
 
     public static Specification<ShopOrder> filter(Set<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {

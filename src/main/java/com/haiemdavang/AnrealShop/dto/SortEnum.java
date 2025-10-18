@@ -29,7 +29,7 @@ public enum SortEnum {
 
     public static SortEnum fromValue(String value) {
         for (SortEnum sortEnum : SortEnum.values()) {
-            if (sortEnum.value.equals(value)) {
+            if (sortEnum.value.equalsIgnoreCase(value)) {
                 return sortEnum;
             }
         }
