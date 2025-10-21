@@ -193,10 +193,10 @@ public class ShipmentServiceImp implements IShipmentService {
         if (shippingIds.isEmpty()) {
             response.setOrderItemDtoSet(new HashSet<>());
         }else {
-            Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
-            List<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification);
-            if(shopOrders.size() != shippingIds.size())
-                throw new BadRequestException("ORDER_NOT_FOUND");
+//            Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
+//            List<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification);
+//            if(shopOrders.size() != shippingIds.size())
+//                throw new BadRequestException("ORDER_NOT_FOUND");
             Set<ShippingItem> shippingItems = new HashSet<>();
 
 //            for (Shipping shipping : shippingList.getContent()) {

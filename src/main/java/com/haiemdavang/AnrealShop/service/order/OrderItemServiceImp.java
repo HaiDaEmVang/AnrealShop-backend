@@ -61,7 +61,7 @@ public class OrderItemServiceImp implements IOrderItemService {
     }
 
     @Override
-    public List<OrderItem> getListOrderItems(ModeType mode, Set<String> idShopOrders, String search, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType) {
+    public List<OrderItem> getListOrderItems(ModeType mode, List<String> idShopOrders, String search, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType) {
         Specification<OrderItem> spec = OrderItemSpecification.filter(mode, idShopOrders, search, searchType, status, orderType);
         return orderItemRepository.findAll(spec);
     }
@@ -111,7 +111,7 @@ public class OrderItemServiceImp implements IOrderItemService {
     }
 
     @Override
-    public List<OrderItem> getListOrderItems(Set<String> idShopOrders, String search, SearchType searchType, String status) {
+    public List<OrderItem> getListOrderItems(List<String> idShopOrders, String search, SearchType searchType, String status) {
         Specification<OrderItem> spec = OrderItemSpecification.filter(idShopOrders, search, searchType, status);
         return orderItemRepository.findAll(spec);
     }

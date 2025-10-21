@@ -25,7 +25,7 @@ public interface IOrderItemService {
     @Transactional
     void confirmOrderItems(Set<OrderItem> orderItems, OrderTrackStatus newStatus);
 
-    List<OrderItem> getListOrderItems(ModeType mode, Set<String> idShopOrders, String productName, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType);
+    List<OrderItem> getListOrderItems(ModeType mode, List<String> idShopOrders, String productName, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType);
 
     void rejectOrderItemByIds(OrderRejectRequest orderRejectRequest, CancelBy cancelBy);
 
@@ -33,5 +33,5 @@ public interface IOrderItemService {
 
     List<OrderItem> getForShipment(@NotEmpty(message = "{SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY}") List<String> shopOrderIds);
 
-    List<OrderItem> getListOrderItems(Set<String> idShopOrders, String search, SearchType searchType, String status);
+    List<OrderItem> getListOrderItems(List<String> idShopOrders, String search, SearchType searchType, String status);
 }

@@ -129,7 +129,7 @@ public class UserOrderServiceImp implements IUserOrderService {
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<ShopOrder> shopOrders = shopOrderService.gitListOrderForUser(orderSpecification, pageable);
-        Set<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).collect(Collectors.toSet());
+        List<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).toList();
         Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
 
         Set<UserOrderItemDto> orderItemDtoSet = new HashSet<>();

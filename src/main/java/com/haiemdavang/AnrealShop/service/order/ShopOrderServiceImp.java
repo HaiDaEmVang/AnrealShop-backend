@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,12 +94,12 @@ public class ShopOrderServiceImp implements IShopOrderService {
     public MyShopOrderListResponse getListOrderItems(int page, int limit, ModeType mode, String status, String search, SearchType searchType, LocalDateTime confirmSD, LocalDateTime confirmED, OrderCountType orderType, PreparingStatus preparingStatus, String sortBy) {
         LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
         String shopId = securityUtils.getCurrentUserShop().getId();
-        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shopId, mode, now.minusMonths(2), now, ApplicationInitHelper.getSortBy(sortBy), status, search, searchType, confirmSD, confirmED, orderType, preparingStatus);
+        Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shopId, mode, now.minusMonths(2), now, status, search, searchType, confirmSD, confirmED, orderType, preparingStatus);
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification, pageable);
-        Set<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).collect(Collectors.toSet());
-        Set<OrderItemDto> orderItemDtoSet = new HashSet<>();
+        List<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).toList();
+        List<OrderItemDto> orderItemDtoSet = new ArrayList<>();
         if (!idShopOrders.isEmpty()) {
             Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
             List<OrderItem> orderItems = orderItemService.getListOrderItems(mode, idShopOrders, search, searchType, status, confirmSD, confirmED, orderType);
@@ -110,7 +109,8 @@ public class ShopOrderServiceImp implements IShopOrderService {
                     Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
             );
 
-            for (String idShopOrder : mapOrderItems.keySet()){
+            for (String idShopOrder : idShopOrders){
+                if (!mapOrderItems.containsKey(idShopOrder)) break;
                 ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
                 Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
                 if (shopOrder == null || orderItemsOfShopOrder == null) continue;
