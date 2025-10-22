@@ -8,6 +8,7 @@ import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.exception.ForbiddenException;
 import com.haiemdavang.AnrealShop.mapper.AddressMapper;
+import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
@@ -19,6 +20,7 @@ import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
 import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
+import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipmentRepository;
 import com.haiemdavang.AnrealShop.schedule.ShippingTemplateStringNote;
@@ -56,6 +58,7 @@ public class ShipmentServiceImp implements IShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final SecurityUtils securityUtils;
     private final ShopOrderRepository shopOrderRepository;
+    private final ShipmentMapper shipmentMapper;
 
     @Override
     public List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds) {
@@ -226,7 +229,7 @@ public class ShipmentServiceImp implements IShipmentService {
 
         Page<Shipping> shippingList = shipmentRepository.findAll(shipSpecification, pageable);
 
-        Set<String> shippingIds = shippingList.get().map(Shipping::getId).collect(Collectors.toSet());
+        List<String> shippingIds = shippingList.get().map(Shipping::getId).toList();
 
         MyShopShippingListResponse response = MyShopShippingListResponse.builder()
                 .currentPage(shippingList.getPageable().getPageNumber() + 1)
@@ -236,23 +239,18 @@ public class ShipmentServiceImp implements IShipmentService {
         if (shippingIds.isEmpty()) {
             response.setOrderItemDtoSet(new HashSet<>());
         }else {
-//            Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
-//            List<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification);
-//            if(shopOrders.size() != shippingIds.size())
-//                throw new BadRequestException("ORDER_NOT_FOUND");
+            Specification<ShopOrder> orderSpecification = ShopOrderSpecification.filter(shippingIds, search, searchTypeShipping);
+            List<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification);
+            if(shopOrders.size() != shippingIds.size())
+                throw new BadRequestException("ORDER_NOT_FOUND");
             Set<ShippingItem> shippingItems = new HashSet<>();
-
-//            for (Shipping shipping : shippingList.getContent()) {
-//                Set<OrderItem> orderItems = shipping.getOrderItems();
-//                if (orderItems == null || orderItems.isEmpty()) continue;
-//                String shopOrderId = orderItems.stream().findFirst().get().getShopOrder().getId();
-//                ShopOrder exists = shopOrders.stream().filter(so -> so.getId().equals(shopOrderId)).findFirst().orElseThrow(
-//                        () -> new BadRequestException("ORDER_NOT_FOUND")
-//                );
-//
-//                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
-//                shippingItems.add(shippingItem);
-//            }
+            Map<Shipping, ShopOrder> shippingShopOrderMap = shopOrders.stream()
+                    .collect(Collectors.toMap(ShopOrder::getShipping, so -> so));
+            for (Shipping shipping : shippingList.getContent()) {
+                ShopOrder exists = shippingShopOrderMap.get(shipping);
+                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
+                shippingItems.add(shippingItem);
+            }
             response.setOrderItemDtoSet(shippingItems);
         }
         return response;

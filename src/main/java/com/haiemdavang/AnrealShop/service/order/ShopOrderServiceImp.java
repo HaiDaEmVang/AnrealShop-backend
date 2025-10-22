@@ -308,6 +308,10 @@ public class ShopOrderServiceImp implements IShopOrderService {
                     shopOrder.getOrderItems().stream()
                             .filter(ot -> ot.getStatus().equals(OrderTrackStatus.SHIPPING))
                             .forEach(ot -> ot.setStatus(OrderTrackStatus.SHIPPING));
+            case DELIVERED ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.SHIPPING))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.DELIVERED));
         }
         return shopOrder;
     }

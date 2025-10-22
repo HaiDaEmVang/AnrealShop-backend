@@ -25,11 +25,6 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
 
     Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
 
-    @EntityGraph(attributePaths = {
-            "user",
-            "orderItems",
-            "orderItems.productSku"
-    })
     List<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification);
 
 

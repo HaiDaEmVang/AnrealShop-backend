@@ -26,9 +26,8 @@ public class ShipSpecification {
             assert query != null;
             query.distinct(true);
 
-
             if (StringUtils.hasText(shopId)) {
-                predicates.add(cb.like(cb.lower(root.get("addressFrom").get("shop").get("id")), "%" + shopId.toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("shopOrder").get("shop").get("id")), "%" + shopId.toLowerCase() + "%"));
             }
             if (toTime != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toTime));
@@ -48,13 +47,11 @@ public class ShipSpecification {
             }
 
             if(preparingStatus.equals(PreparingStatus.PICK_UP)) {
-                predicates.add(cb.equal(root.get("status"), ShippingStatus.PICKED_UP));
+                predicates.add(cb.notEqual(root.get("status"), ShippingStatus.ORDER_CREATED));
             } else if(preparingStatus.equals(PreparingStatus.WAITING_FOR_PICKUP)) {
-                predicates.add(cb.equal(root.get("status"), ShippingStatus.WAITING_FOR_PICKUP));
+                predicates.add(cb.equal(root.get("status"), ShippingStatus.ORDER_CREATED));
             }
-
-
-
+            predicates.add(cb.notEqual(root.get("status"), ShippingStatus.DELIVERED));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

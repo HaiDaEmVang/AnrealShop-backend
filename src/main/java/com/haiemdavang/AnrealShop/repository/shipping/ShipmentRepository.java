@@ -17,14 +17,13 @@ import java.util.Optional;
 @NonNullApi
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipping, String> {
-// ham nay loi ha
-    @EntityGraph(attributePaths = {
-            "trackingHistory",
-            "orderItems",
-            "orderItems.shopOrder",
-            "orderItems.shopOrder.user",
-            "orderItems.productSku"
-    })
+
+//    @EntityGraph(attributePaths = {
+//            "trackingHistory",
+//            "shopOrder",
+//            "shopOrder.orderItems",
+//            "shopOrder.orderItems.productSku",
+//    })
     Page<Shipping> findAll(Specification<Shipping> shipSpecification, Pageable pageable);
 
     @EntityGraph(attributePaths = {

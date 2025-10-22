@@ -4,8 +4,10 @@ import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
+import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrderTrack;
 import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
@@ -141,37 +143,44 @@ public class ShopOrderSpecification {
         return ShopOrderSpecification.filter(shopId, modeType, localDateTime, now, null, search, searchType, null, null, null, null);
     }
 
-//    public static Specification<ShopOrder> filter(Set<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {
-//        return (root, query, cb) -> {
-//            List<Predicate> predicates = new ArrayList<>();
-//            assert query != null;
-//            query.distinct(true);
-//
-//            Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);
-//            Join<OrderItem, Shipping> shippingJoin = orderItemJoin.join("shippings", JoinType.INNER);
-//
-//            if (shippingIds != null && !shippingIds.isEmpty()) {
-//                predicates.add(shippingJoin.get("id").in(shippingIds));
-//            }
-//
-//            if (StringUtils.hasText(search)) {
-//                String lowerCaseSearch = "%" + search.toLowerCase() + "%";
-//                if (searchTypeShipping == SearchTypeShipping.ORDER_CODE) {
-//                    predicates.add(cb.like(cb.lower(root.get("id")), lowerCaseSearch));
-//                } else if (searchTypeShipping == SearchTypeShipping.CUSTOMER_NAME) {
-//                    predicates.add(cb.like(cb.lower(root.get("user").get("fullName")), lowerCaseSearch));
-//                } else if (searchTypeShipping == SearchTypeShipping.SHIPPING_CODE) {
-//                    predicates.add(cb.like(cb.lower(shippingJoin.get("id").get("id")), lowerCaseSearch));
-//                }
-//            }
-//
-//            if (predicates.isEmpty()) {
-//                return cb.conjunction();
-//            }
-//
-//            return cb.and(predicates.toArray(new Predicate[0]));
-//        };
-//    }
+    public static Specification<ShopOrder> filter(List<String> shippingIds, String search, SearchTypeShipping searchTypeShipping) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            assert query != null;
+            query.distinct(true);
+
+            if (query.getResultType() != Long.class) {
+                Fetch<ShopOrder, Order> orderFetch = root.fetch("order", JoinType.LEFT);
+                Fetch<ShopOrder, OrderItem> orderItemFetch = root.fetch("orderItems", JoinType.LEFT);
+                orderFetch.fetch("user", JoinType.LEFT);
+                orderItemFetch.fetch("productSku", JoinType.LEFT);
+                root.fetch("shop", JoinType.LEFT);
+            }
+
+            Join<ShopOrder, Shipping> shippingJoin = root.join("shipping", JoinType.LEFT);
+
+            if (shippingIds != null && !shippingIds.isEmpty()) {
+                predicates.add(shippingJoin.get("id").in(shippingIds));
+            }
+
+            if (StringUtils.hasText(search)) {
+                String lowerCaseSearch = "%" + search.toLowerCase() + "%";
+                if (searchTypeShipping == SearchTypeShipping.ORDER_CODE) {
+                    predicates.add(cb.like(cb.lower(root.get("id")), lowerCaseSearch));
+                } else if (searchTypeShipping == SearchTypeShipping.CUSTOMER_NAME) {
+                    predicates.add(cb.like(cb.lower(root.get("user").get("fullName")), lowerCaseSearch));
+                } else if (searchTypeShipping == SearchTypeShipping.SHIPPING_CODE) {
+                    predicates.add(cb.like(cb.lower(shippingJoin.get("id")), lowerCaseSearch));
+                }
+            }
+
+            if (predicates.isEmpty()) {
+                return cb.conjunction();
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 
     public static void filterSearch(List<Predicate> predicates, CriteriaQuery<?> query, CriteriaBuilder cb, Root<ShopOrder> root, String search, SearchType searchType) {
         if(StringUtils.hasText(search)) {
