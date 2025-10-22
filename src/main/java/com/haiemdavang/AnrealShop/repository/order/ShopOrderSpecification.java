@@ -57,9 +57,12 @@ public class ShopOrderSpecification {
             if (mode == ModeType.HOME) {
                 if (StringUtils.hasText(status) && (!status.equalsIgnoreCase("ALL"))) {
                     ShopOrderStatus orderItemStatus = ShopOrderStatus.valueOf(status.toUpperCase());
-                    if(orderItemStatus.equals(ShopOrderStatus.PREPARING))
+                    if (orderItemStatus.equals(ShopOrderStatus.PREPARING))
                         predicates.add(root.get("status").in(ShopOrderStatus.PREPARING, ShopOrderStatus.CONFIRMED));
-                    else if(orderItemStatus.equals(ShopOrderStatus.CLOSED)){
+                    else
+                        predicates.add(cb.equal(root.get("status"), orderItemStatus));
+
+                    if(orderItemStatus.equals(ShopOrderStatus.CLOSED)) {
                         Subquery<String> subquery = query.subquery(String.class);
                         Root<OrderItem> orderItemRoot = subquery.from(OrderItem.class);
                         subquery.select(orderItemRoot.get("shopOrder").get("id"))
@@ -69,8 +72,7 @@ public class ShopOrderSpecification {
                                         cb.equal(orderItemRoot.get("shopOrder").get("id"), root.get("id"))
                                 ));
                         predicates.add(cb.exists(subquery));
-                    } else
-                        predicates.add(cb.equal(root.get("status"), orderItemStatus));
+                    }
                 }
                 if (toTime != null) {
                     predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toTime));

@@ -144,7 +144,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
         shopOrder.setStatus(ShopOrderStatus.CLOSED);
 
         shopOrder.getOrderItems().stream()
-                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
+                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION) || ot.getStatus().equals(OrderTrackStatus.WAIT_SHIPMENT))
                 .forEach(ot -> orderItemService.rejectOrderItemById(ot.getId(), reason, cancelBy));
 
         shopOrderRepository.save(shopOrder);
@@ -296,11 +296,11 @@ public class ShopOrderServiceImp implements IShopOrderService {
             case PREPARING ->
                     shopOrder.getOrderItems().stream()
                             .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PREPARING))
-                            .forEach(ot -> ot.setStatus(OrderTrackStatus.SHIPPING));
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.WAIT_SHIPMENT));
             case SHIPPING ->
                     shopOrder.getOrderItems().stream()
                             .filter(ot -> ot.getStatus().equals(OrderTrackStatus.SHIPPING))
-                            .forEach(ot -> ot.setStatus(OrderTrackStatus.DELIVERED));
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.SHIPPING));
         }
         return shopOrder;
     }
