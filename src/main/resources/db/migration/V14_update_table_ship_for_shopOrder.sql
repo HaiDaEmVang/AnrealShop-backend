@@ -15,4 +15,6 @@
 # alter table shop_order_tracks
 #     modify column status enum('INIT_PROCESSING', 'PENDING_CONFIRMATION', 'CONFIRMED', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CLOSED') not null;
 
+# alter table shipping_tracks
+#     add column note varchar(255) null after status;
 

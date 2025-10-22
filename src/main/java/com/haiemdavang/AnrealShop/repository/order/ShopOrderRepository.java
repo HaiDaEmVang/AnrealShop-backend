@@ -56,14 +56,8 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithOrderItemById(String shopOrderId);
 
-    @EntityGraph(attributePaths = {
-            "order",
-            "order.shippingAddress",
-            "order.shippingAddress.province",
-            "order.shippingAddress.district",
-            "order.shippingAddress.ward",
-    })
-    Set<ShopOrder> findAllByStatus(ShopOrderStatus status);
+//    cho scheduler
+    List<ShopOrder> findAllByStatus(ShopOrderStatus status);
 
     @Override
     @EntityGraph(attributePaths = {
@@ -74,7 +68,10 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
 
     @EntityGraph(attributePaths = {
             "orderItems",
+            "orderItems.productSku",
             "orderItems.trackingHistory",
+            "shop",
+            "shop.user",
             "trackingHistory"
     })
     Set<ShopOrder> findByIdIn(Collection<String> ids);
@@ -88,5 +85,4 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithFullOrderItemById(String shopOrderId);
 
-    List<ShopOrder> findAllByIdIn(Collection<String> ids);
 }

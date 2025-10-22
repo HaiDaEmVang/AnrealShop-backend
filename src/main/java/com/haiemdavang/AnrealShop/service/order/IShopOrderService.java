@@ -45,7 +45,7 @@ public interface IShopOrderService {
 
     UserOrderDetailDto getShopOrderForUser(String shopOrderId);
 
-    void confirmShipmentOrders();
+    List<String> confirmOrders(ShopOrderStatus statusFilter, ShopOrderStatus newStatus);
 
     void availableForShipById(String shopOrderId, BaseCreateShipmentRequest request);
 

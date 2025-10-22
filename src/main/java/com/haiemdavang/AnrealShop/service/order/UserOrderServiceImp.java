@@ -157,12 +157,6 @@ public class UserOrderServiceImp implements IUserOrderService {
                 .build();
     }
 
-//    @Override
-//    public void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
-//        shopOrderService.rejectOrderById(shopOrderId, reason, cancelBy);
-//    }
-
-
 
     private Order createNewOrder(CheckoutRequestDto requestDto, UserAddress userAddress, PaymentType paymentType) {
         User user = securityUtils.getCurrentUser();

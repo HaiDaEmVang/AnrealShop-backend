@@ -9,6 +9,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
     public static final String PRODUCT_SYNC_TOPIC = "topic-product-sync";
     public static final String NOTICE_SYNC_TOPIC = "topic-notice-sync";
+    public static final String SHIPPING_STATUS_SYNC_TOPIC = "topic-shipping-status-sync";
 
     @Bean
     public NewTopic productSyncTopic(){
@@ -21,6 +22,14 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic noticeSyncTopic(){
         return TopicBuilder.name(NOTICE_SYNC_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic shippingSyncTopic(){
+        return TopicBuilder.name(SHIPPING_STATUS_SYNC_TOPIC)
                 .partitions(3)
                 .replicas(1)
                 .build();

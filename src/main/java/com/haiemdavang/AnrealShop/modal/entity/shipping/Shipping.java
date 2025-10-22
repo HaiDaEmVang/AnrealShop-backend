@@ -90,9 +90,9 @@ public class Shipping {
         track.setShipping(this);
     }
 
-    public void setStatus(ShippingStatus status) {
+    public void setStatus(ShippingStatus status, String note) {
         this.status = status;
-        ShippingTrack track = new ShippingTrack(this, status, LocalDateTime.now());
+        ShippingTrack track = new ShippingTrack(this, status, LocalDateTime.now(), note);
         addTrackingHistory(track);
     }
 

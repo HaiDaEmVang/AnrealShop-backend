@@ -244,12 +244,17 @@ public class ShopOrderServiceImp implements IShopOrderService {
 
     @Override
     @Transactional
-    public void confirmShipmentOrders() {
-        Set<ShopOrder> shopOrder = shopOrderRepository.findAllByStatus(ShopOrderStatus.PREPARING);
-        shopOrder.stream().map(so -> updateStatusShopOrder(so, ShopOrderStatus.SHIPPING)).forEach(this::handleMapStatus);
+    public List<String> confirmOrders(ShopOrderStatus statusFilter, ShopOrderStatus newStatus) {
+        List<ShopOrder> shopOrder = shopOrderRepository.findAllByStatus(statusFilter);
+        if (shopOrder.isEmpty()) {
+            return null;
+        }
+        List<String> shopOrderIs = shopOrder.stream().map(ShopOrder::getId).toList();
 
-        shopOrderRepository.saveAll(shopOrder);
+        updateStatus(shopOrderIs, newStatus);
+        return shopOrderIs;
     }
+
 
     @Override
     @Transactional
@@ -273,6 +278,8 @@ public class ShopOrderServiceImp implements IShopOrderService {
         shopOrders.forEach(so -> updateStatusShopOrder(so, status));
         shopOrderRepository.saveAll(shopOrders);
     }
+
+
 
     private  void handleMapStatus(ShopOrder shopOrder) {
         if (shopOrder.getOrderItems().stream().allMatch(ot -> ot.getStatus().equals(OrderTrackStatus.CANCELED))) {

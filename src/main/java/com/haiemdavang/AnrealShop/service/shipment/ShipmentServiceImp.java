@@ -17,15 +17,17 @@ import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
-import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipmentRepository;
+import com.haiemdavang.AnrealShop.schedule.ShippingTemplateStringNote;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.order.IOrderItemService;
+import com.haiemdavang.AnrealShop.tech.kafka.dto.ShippingSyncMessage;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -145,7 +147,7 @@ public class ShipmentServiceImp implements IShipmentService {
                         .shopOrder(shopOrder)
                         .build();
 
-                shipping.setStatus(ShippingStatus.ORDER_CREATED);
+                shipping.setStatus(ShippingStatus.ORDER_CREATED, ShippingTemplateStringNote.ORDER_CREATED_NOTES);
                 shipmentRepository.save(shipping);
             } else {
                 throw new AnrealShopException("SERVER_ERROR");
@@ -171,7 +173,7 @@ public class ShipmentServiceImp implements IShipmentService {
                 .dayPickup(request.getPickupDate())
                 .shopOrder(shopOrder)
                 .build();
-        shipping.setStatus(ShippingStatus.ORDER_CREATED);
+        shipping.setStatus(ShippingStatus.ORDER_CREATED, ShippingTemplateStringNote.ORDER_CREATED_NOTES);
         shipmentRepository.save(shipping);
     }
 
@@ -190,8 +192,34 @@ public class ShipmentServiceImp implements IShipmentService {
     }
 
     @Override
+    @Transactional
+    public void updateShipmentStatus(List<String> shopOrderIds, ShippingStatus shippingStatus, String note) {
+        if (shopOrderIds == null || shopOrderIds.isEmpty()) {
+            throw new BadRequestException("SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY");
+        }
+        List<Shipping> shippings = shipmentRepository.findByShopOrderIdIn(shopOrderIds);
+
+        shippings.forEach(item -> item.setStatus(shippingStatus, note));
+        shipmentRepository.saveAll(shippings);
+    }
+
+    @Override
+    public List<Shipping> getListShippingByShopOrderStatus(ShopOrderStatus shopOrderStatus) {
+        return shipmentRepository.findAllByShopOrderStatus(shopOrderStatus);
+    }
+
+    @Override
+    @Transactional
+    public Shipping processShippingSyncMessage(ShippingSyncMessage message) {
+        Shipping shipping = shipmentRepository.findById(message.getId())
+                .orElseThrow(() -> new BadRequestException("SHIPPING_NOT_FOUND"));
+        shipping.setStatus(message.getStatus(), message.getNote());
+        return shipmentRepository.save(shipping);
+    }
+
+    @Override
     public MyShopShippingListResponse getListForShop(int page, int limit, String search, SearchTypeShipping searchTypeShipping, PreparingStatus preparingStatus, String sortBy) {
-       LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
+        LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
         String shopId = securityUtils.getCurrentUserShop().getId();
         Specification<Shipping> shipSpecification = ShipSpecification.filter(shopId, now.minusMonths(2), now, search, searchTypeShipping, preparingStatus);
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
@@ -234,26 +262,6 @@ public class ShipmentServiceImp implements IShipmentService {
     public Shipping getShippingByShopOrderId(String shopOrderId) {
         return shipmentRepository.findByShopOrderId(shopOrderId);
     }
-
-    @Override
-    @Transactional
-    public void createShipmentForSchedule(Set<ShopOrder> shopOrder) {
-//        List<Shipping> shippings = new ArrayList<>();
-//        shopOrder.stream().map(so -> {
-//            Shipping shipping = Shipping.builder()
-//                    .addressFrom(so.getShippingAddress())
-//                    .addressTo(so.getOrder().getShippingAddress())
-//                    .totalWeight(so.)
-//                    .fee(so.getShippingFee())
-//                    .note("Tạo tự động")
-//                    .dayPickup(LocalDate.now())
-//                    .status(ShippingStatus.WAITING_FOR_PICKUP)
-//                    .build();
-//            shippings.add(shipping);
-//            return shipping;
-//        })
-    }
-
 
 
 }
