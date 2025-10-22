@@ -265,12 +265,12 @@ public class ShopOrderServiceImp implements IShopOrderService {
 
     @Override
     @Transactional
-    public void updateStatus(List<String> shopOrderIds, ShopOrderStatus preparing) {
+    public void updateStatus(List<String> shopOrderIds, ShopOrderStatus status) {
         Set<ShopOrder> shopOrders = shopOrderRepository.findByIdIn(shopOrderIds);
         if (shopOrders.size() != shopOrderIds.size()) {
             throw new BadRequestException("SOME_ORDER_NOT_FOUND");
         }
-        shopOrders.forEach(so -> updateStatusShopOrder(so, preparing));
+        shopOrders.forEach(so -> updateStatusShopOrder(so, status));
         shopOrderRepository.saveAll(shopOrders);
     }
 

@@ -50,4 +50,6 @@ public interface IShopOrderService {
     void availableForShipById(String shopOrderId, BaseCreateShipmentRequest request);
 
     void updateStatus(@NotEmpty(message = "{SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY}") List<String> shopOrderIds, ShopOrderStatus preparing);
+
+
 }

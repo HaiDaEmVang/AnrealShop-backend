@@ -9,6 +9,7 @@ import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.service.order.IOrderItemService;
 import com.haiemdavang.AnrealShop.service.order.IShopOrderService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,6 +73,12 @@ public class MyShopOrderController {
     @PutMapping("approve/{shopOrderId}")
     public ResponseEntity<?> approvalShopOrder(@PathVariable String shopOrderId) {
         orderService.approvalShopOrderById(shopOrderId);
+        return ResponseEntity.ok(Map.of("message", "approval order successfully!"));
+    }
+
+    @PutMapping("approvals")
+    public ResponseEntity<?> approvalShopOrders(@RequestBody List<String> shopOrderIds) {
+        orderService.updateStatus(shopOrderIds, ShopOrderStatus.CONFIRMED);
         return ResponseEntity.ok(Map.of("message", "approval order successfully!"));
     }
 

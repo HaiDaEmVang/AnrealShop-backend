@@ -87,4 +87,6 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "LEFT JOIN FETCH so.trackingHistory sht " +
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithFullOrderItemById(String shopOrderId);
+
+    List<ShopOrder> findAllByIdIn(Collection<String> ids);
 }
