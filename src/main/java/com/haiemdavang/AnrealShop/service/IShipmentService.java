@@ -31,4 +31,5 @@ public interface IShipmentService {
 
     void createShipments(String shopOrderId, BaseCreateShipmentRequest request);
 
+    String rejectById(String shippingId, String reason);
 }

@@ -19,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"addressFrom", "addressTo", "trackingHistory"})
+@ToString(exclude = {"addressFrom", "addressTo", "trackingHistory", "shopOrder"})
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "shippings")

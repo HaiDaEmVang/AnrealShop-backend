@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.repository.shipping;
 
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
+import io.micrometer.common.lang.NonNullApi;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -8,6 +9,9 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
+@NonNullApi
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipping, String> {
 // ham nay loi ha
@@ -24,4 +28,8 @@ public interface ShipmentRepository extends JpaRepository<Shipping, String> {
             "trackingHistory",
     })
     Shipping findByShopOrderId(String shopOrderId);
+
+    @Override
+    @EntityGraph(attributePaths = {"shopOrder"})
+    Optional<Shipping> findById(String s);
 }

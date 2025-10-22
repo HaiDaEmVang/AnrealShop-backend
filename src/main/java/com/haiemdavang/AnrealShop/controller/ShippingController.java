@@ -6,6 +6,8 @@ import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.CreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.MyShopShippingListResponse;
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
+import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
+import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
 import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.order.IShopOrderService;
@@ -35,6 +37,13 @@ public class ShippingController {
     ) {
         MyShopShippingListResponse response = shipmentService.getListForShop(page, limit, search, searchTypeShipping, preparingStatus, sortBy);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/my-shop/reject-shipping/{shippingId}")
+    public ResponseEntity<?> getListForShop(@PathVariable String shippingId, @RequestBody String reason) {
+        String shopOrderId = shipmentService.rejectById(shippingId, reason);
+        orderService.rejectOrderById(shopOrderId, reason, CancelBy.SHOP);
+        return ResponseEntity.ok(Map.of("message", "reject order successfully!"));
     }
 
     @PostMapping("/fee-for-cart")

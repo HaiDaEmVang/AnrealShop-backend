@@ -47,11 +47,13 @@ public class OrderItemSpecification {
             }
 
             if (mode == ModeType.HOME) {
-                if (StringUtils.hasText(status) && !status.equalsIgnoreCase(ShopOrderStatus.CLOSED.name())) {
-                    if (!status.equalsIgnoreCase("ALL")) {
+                if (StringUtils.hasText(status) && !status.equalsIgnoreCase("ALL")) {
+                    if (!status.equalsIgnoreCase(ShopOrderStatus.CLOSED.name())){
                         predicates.add(root.get("cancelReason").isNull());
                         predicates.add(root.get("canceledBy").isNull());
-
+                    }else {
+                        predicates.add(root.get("cancelReason").isNotNull());
+                        predicates.add(root.get("canceledBy").isNotNull());
                     }
                 }
             }

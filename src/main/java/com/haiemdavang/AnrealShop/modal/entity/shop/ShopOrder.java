@@ -21,7 +21,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress", "shipping"})
+@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress", "shipping", "orderItems"})
 @EqualsAndHashCode(of = {"id", "user", "order", "shop"})
 @NamedEntityGraph(
         name = "ShopOrder.graph.forShop",

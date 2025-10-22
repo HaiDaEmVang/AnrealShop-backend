@@ -6,6 +6,7 @@ import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
+import com.haiemdavang.AnrealShop.exception.ForbiddenException;
 import com.haiemdavang.AnrealShop.mapper.AddressMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
@@ -172,6 +173,20 @@ public class ShipmentServiceImp implements IShipmentService {
                 .build();
         shipping.setStatus(ShippingStatus.ORDER_CREATED);
         shipmentRepository.save(shipping);
+    }
+
+    @Override
+    @Transactional
+    public String rejectById(String shippingId, String reason) {
+        Shipping shipping = shipmentRepository.findById(shippingId)
+                .orElseThrow(() -> new BadRequestException("SHIPPING_NOT_FOUND"));
+        ShippingStatus  status = shipping.getStatus();
+        if (status.equals(ShippingStatus.ORDER_CREATED) || status.equals(ShippingStatus.WAITING_FOR_PICKUP)) {
+            shipping.setCancelReason(reason);
+        } else {
+            throw new ForbiddenException("FORBIDDEN_SHIPPING");
+        }
+        return shipping.getShopOrder().getId();
     }
 
     @Override

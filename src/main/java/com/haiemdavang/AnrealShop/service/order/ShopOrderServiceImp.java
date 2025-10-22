@@ -274,13 +274,11 @@ public class ShopOrderServiceImp implements IShopOrderService {
         shopOrderRepository.saveAll(shopOrders);
     }
 
-
     private  void handleMapStatus(ShopOrder shopOrder) {
         if (shopOrder.getOrderItems().stream().allMatch(ot -> ot.getStatus().equals(OrderTrackStatus.CANCELED))) {
             shopOrder.setStatus(ShopOrderStatus.CLOSED);
+            shopOrderRepository.save(shopOrder);
         }
-
-        shopOrderRepository.save(shopOrder);
     }
 
     private Long getDiscountShippingFee(Long shippingFee) {

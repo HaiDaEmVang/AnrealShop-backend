@@ -68,7 +68,7 @@ public class OrderMapper {
                 .customerName(shopOrder.getUser().getFullName())
                 .customerImage(shopOrder.getUser().getAvatarUrl())
                 .shippingMethod("hang nhe")
-                .shippingId("123456")
+                .shippingId(shopOrder.getShipping() != null ? shopOrder.getShipping().getId(): null)
                 .productOrderItemDtoSet(productOrderItemSet)
                 .build();
 
