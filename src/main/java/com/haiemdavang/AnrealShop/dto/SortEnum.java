@@ -16,7 +16,7 @@ public enum SortEnum {
     OLDEST("oldest", Sort.by(Sort.Direction.ASC, "createdAt")),
     CREATED_AT_ASC("createdAt-asc", Sort.by(Sort.Direction.ASC, "createdAt")),
     CREATED_AT_DESC("createdAt-desc", Sort.by(Sort.Direction.DESC, "createdAt")),
-    UPDATE_AT_DESC("updateAt-desc", Sort.by(Sort.Direction.DESC, "updatedAt")),
+    UPDATED_AT_DESC("updatedAt-desc", Sort.by(Sort.Direction.DESC, "updatedAt")),
     UNSORTED("default", Sort.unsorted());
 
     private final String value;
