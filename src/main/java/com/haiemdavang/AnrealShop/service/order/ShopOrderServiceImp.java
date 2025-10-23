@@ -306,7 +306,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
                             .forEach(ot -> ot.setStatus(OrderTrackStatus.WAIT_SHIPMENT));
             case SHIPPING ->
                     shopOrder.getOrderItems().stream()
-                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.SHIPPING))
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.WAIT_SHIPMENT))
                             .forEach(ot -> ot.setStatus(OrderTrackStatus.SHIPPING));
             case DELIVERED ->
                     shopOrder.getOrderItems().stream()
