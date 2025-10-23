@@ -245,6 +245,7 @@ public class ShipmentServiceImp implements IShipmentService {
                 throw new BadRequestException("ORDER_NOT_FOUND");
             Set<ShippingItem> shippingItems = new HashSet<>();
             Map<Shipping, ShopOrder> shippingShopOrderMap = shopOrders.stream()
+                    .filter(so -> so.getShipping() != null)
                     .collect(Collectors.toMap(ShopOrder::getShipping, so -> so));
             for (Shipping shipping : shippingList.getContent()) {
                 ShopOrder exists = shippingShopOrderMap.get(shipping);
