@@ -18,12 +18,6 @@ import java.util.Optional;
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipping, String> {
 
-//    @EntityGraph(attributePaths = {
-//            "trackingHistory",
-//            "shopOrder",
-//            "shopOrder.orderItems",
-//            "shopOrder.orderItems.productSku",
-//    })
     Page<Shipping> findAll(Specification<Shipping> shipSpecification, Pageable pageable);
 
     @EntityGraph(attributePaths = {
