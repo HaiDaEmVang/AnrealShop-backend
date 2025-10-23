@@ -110,7 +110,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
             );
 
             for (String idShopOrder : idShopOrders){
-                if (!mapOrderItems.containsKey(idShopOrder)) break;
+                if (!mapOrderItems.containsKey(idShopOrder)) continue;
                 ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
                 Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
                 if (shopOrder == null || orderItemsOfShopOrder == null) continue;
