@@ -96,7 +96,7 @@ public class ProductServiceImp implements IProductService {
         LocalDateTime enDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
 
         Specification<Product> spec = ProductSpecification.adminFilter(search, restrictStatus, startDateTime, enDateTime);
-        Pageable pageable = PageRequest.of(page, limit, SortEnum.UPDATE_AT_DESC.getSort());
+        Pageable pageable = PageRequest.of(page, limit, SortEnum.CREATED_AT_ASC.getSort());
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 

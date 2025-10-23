@@ -21,4 +21,6 @@ public class UserProductOrderItemDto {
 
     private String cancelReason;
     private boolean isReviewed;
+
+    private String orderItemId;
 }

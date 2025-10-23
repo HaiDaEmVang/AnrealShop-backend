@@ -40,6 +40,7 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
             "LEFT JOIN FETCH a.ward " +
             "LEFT JOIN FETCH o.payment pay " +
             "LEFT JOIN FETCH so.trackingHistory " +
+            "LEFT JOIN FETCH so.shipping " +
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithFullInfoById(String shopOrderId);
 
