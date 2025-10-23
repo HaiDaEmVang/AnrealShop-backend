@@ -2,12 +2,8 @@ package com.haiemdavang.AnrealShop.repository.shipping;
 
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
-import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
-import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
@@ -29,10 +25,9 @@ public class ShipSpecification {
             List<Predicate> predicates = new ArrayList<>();
             assert query != null;
             query.distinct(true);
-            Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);;
 
             if (StringUtils.hasText(shopId)) {
-                predicates.add(cb.like(cb.lower(root.get("addressFrom").get("shop").get("id")), "%" + shopId.toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("shopOrder").get("shop").get("id")), "%" + shopId.toLowerCase() + "%"));
             }
             if (toTime != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), toTime));
@@ -47,21 +42,16 @@ public class ShipSpecification {
                 } else if (searchTypeShipping == SearchTypeShipping.CUSTOMER_NAME) {
                     predicates.add(cb.like(cb.lower(root.get("addressTo").get("user").get("fullName")), "%" + search.toLowerCase() + "%"));
                 } else if (searchTypeShipping == SearchTypeShipping.ORDER_CODE) {
-                    if (orderItemJoin != null) {
-                        Join<OrderItem, ShopOrder> shopOrderJoin = orderItemJoin.join("shopOrder", JoinType.INNER);
-                        predicates.add(cb.like(cb.lower(shopOrderJoin.get("id")), "%" + search.toLowerCase() + "%"));
-                    }
+                    predicates.add(cb.like(cb.lower(root.get("shopOrder").get("id")), "%" + search.toLowerCase() + "%"));
                 }
             }
 
             if(preparingStatus.equals(PreparingStatus.PICK_UP)) {
-                predicates.add(cb.equal(root.get("status"), ShippingStatus.PICKED_UP));
+                predicates.add(cb.notEqual(root.get("status"), ShippingStatus.ORDER_CREATED));
             } else if(preparingStatus.equals(PreparingStatus.WAITING_FOR_PICKUP)) {
-                predicates.add(cb.equal(root.get("status"), ShippingStatus.WAITING_FOR_PICKUP));
+                predicates.add(cb.equal(root.get("status"), ShippingStatus.ORDER_CREATED));
             }
-
-
-
+            predicates.add(cb.notEqual(root.get("status"), ShippingStatus.DELIVERED));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

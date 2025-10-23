@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.repository.order;
 
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import io.micrometer.common.lang.NonNullApi;
 import io.micrometer.common.lang.Nullable;
 import org.springframework.data.domain.Page;
@@ -12,21 +13,18 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 @NonNullApi
 @Repository
 public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, JpaSpecificationExecutor<ShopOrder> {
 
-    @EntityGraph(value = "ShopOrder.graph.forShop", type = EntityGraph.EntityGraphType.FETCH)
     Page<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification, Pageable pageable);
 
-    @EntityGraph(attributePaths = {
-            "user",
-            "orderItems",
-            "orderItems.productSku"
-    })
     List<ShopOrder> findAll(@Nullable Specification<ShopOrder> orderSpecification);
 
 
@@ -47,8 +45,39 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, String>, J
 
     @Query(value = "SELECT so FROM ShopOrder so " +
             "LEFT JOIN FETCH so.orderItems oi " +
+            "LEFT JOIN FETCH oi.productSku ps " +
+            "LEFT JOIN FETCH so.order o " +
+            "LEFT JOIN FETCH so.trackingHistory " +
             "WHERE so.id = :shopOrderId")
     ShopOrder findWithOrderItemById(String shopOrderId);
 
+//    cho scheduler
+    List<ShopOrder> findAllByStatus(ShopOrderStatus status);
+
+    @Override
+    @EntityGraph(attributePaths = {
+            "order",
+            "order.shippingAddress",
+    })
+    Optional<ShopOrder> findById(String s);
+
+    @EntityGraph(attributePaths = {
+            "orderItems",
+            "orderItems.productSku",
+            "orderItems.trackingHistory",
+            "shop",
+            "shop.user",
+            "trackingHistory"
+    })
+    Set<ShopOrder> findByIdIn(Collection<String> ids);
+
+    @Query(value = "SELECT so FROM ShopOrder so " +
+            "LEFT JOIN FETCH so.order o " +
+            "LEFT JOIN FETCH so.orderItems oi " +
+            "LEFT JOIN FETCH oi.trackingHistory th " +
+            "LEFT JOIN FETCH oi.productSku sku " +
+            "LEFT JOIN FETCH so.trackingHistory sht " +
+            "WHERE so.id = :shopOrderId")
+    ShopOrder findWithFullOrderItemById(String shopOrderId);
 
 }

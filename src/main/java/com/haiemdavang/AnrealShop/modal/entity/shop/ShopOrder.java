@@ -21,14 +21,15 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress", "shipping"})
+@ToString(exclude = {"user", "order", "shop", "trackingHistory", "shippingAddress", "shipping", "orderItems"})
 @EqualsAndHashCode(of = {"id", "user", "order", "shop"})
 @NamedEntityGraph(
         name = "ShopOrder.graph.forShop",
         attributeNodes = {
                 @NamedAttributeNode(value = "order", subgraph = "orderSubgraph"),
                 @NamedAttributeNode("user"),
-                @NamedAttributeNode("shop")
+                @NamedAttributeNode("shop"),
+                @NamedAttributeNode("shipping")
         },
         subgraphs = {
                 @NamedSubgraph(
@@ -75,6 +76,9 @@ public class ShopOrder {
     @Column(nullable = false, name = "total_amount")
     private Long totalAmount;
 
+    @Column(nullable = false, name = "total_weight")
+    private Long totalWeight;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
@@ -87,7 +91,7 @@ public class ShopOrder {
     @Builder.Default
     private Set<ShopOrderTrack> trackingHistory = new HashSet<>();
 
-    @OneToOne(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "shopOrder", orphanRemoval = true)
     private Shipping shipping;
 
     public void addTrackingHistory(ShopOrderTrack track) {

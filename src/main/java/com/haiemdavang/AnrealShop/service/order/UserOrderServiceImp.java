@@ -129,7 +129,7 @@ public class UserOrderServiceImp implements IUserOrderService {
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<ShopOrder> shopOrders = shopOrderService.gitListOrderForUser(orderSpecification, pageable);
-        Set<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).collect(Collectors.toSet());
+        List<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).toList();
         Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
 
         Set<UserOrderItemDto> orderItemDtoSet = new HashSet<>();
@@ -156,12 +156,6 @@ public class UserOrderServiceImp implements IUserOrderService {
                 .orderItemDtoSet(orderItemDtoSet)
                 .build();
     }
-
-//    @Override
-//    public void rejectShopOrderById(String shopOrderId, String reason, CancelBy cancelBy) {
-//        shopOrderService.rejectOrderById(shopOrderId, reason, cancelBy);
-//    }
-
 
 
     private Order createNewOrder(CheckoutRequestDto requestDto, UserAddress userAddress, PaymentType paymentType) {
@@ -203,10 +197,12 @@ public class UserOrderServiceImp implements IUserOrderService {
             Long shippingFee = mapFeeForShops.get(shopAddress);
 
             long totalForShop = 0L;
+            long totalWeightForShop = 0L;
 
             for (OrderItem orderItem : order.getOrderItems()) {
                 if (orderItem.getProductSku().getProduct().getShop().equals(shopAddress.getShop())){
                     totalForShop += orderItem.getQuantity() * orderItem.getPrice();
+                    totalWeightForShop += orderItem.getQuantity() * orderItem.getProductSku().getProduct().getWeight();
                     shopOrder.addOrderItems(orderItem);
                 }
             }
@@ -215,6 +211,7 @@ public class UserOrderServiceImp implements IUserOrderService {
             shopOrder.setShippingFee(shippingFee);
             shopOrder.setTotalAmount(totalForShop);
             shopOrder.setShippingAddress(shopAddress);
+            shopOrder.setTotalWeight(totalWeightForShop);
 
             order.addShopOrder(shopOrder);
         }

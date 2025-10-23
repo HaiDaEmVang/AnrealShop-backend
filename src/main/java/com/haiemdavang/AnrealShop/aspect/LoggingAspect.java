@@ -13,7 +13,7 @@ import java.util.Arrays;
 @Slf4j
 public class LoggingAspect {
 
-    @Pointcut("within(com.haiemdavang.AnrealShop.service..*) || within(com.haiemdavang.AnrealShop.elasticsearch..*)")
+    @Pointcut("within(com.haiemdavang.AnrealShop.service..*) || within(com.haiemdavang.AnrealShop.tech..*)")
     public void serviceMethods() {}
 
     @Before("serviceMethods()")

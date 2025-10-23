@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,5 +15,5 @@ public class MyShopOrderListResponse {
     private Long totalCount;
     private Integer totalPages;
     private Integer currentPage;
-    private Set<OrderItemDto> orderItemDtoSet;
+    private List<OrderItemDto> orderItemDtoSet;
 }

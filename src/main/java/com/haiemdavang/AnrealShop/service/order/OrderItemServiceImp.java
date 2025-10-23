@@ -3,7 +3,6 @@ package com.haiemdavang.AnrealShop.service.order;
 import com.haiemdavang.AnrealShop.dto.order.OrderRejectRequest;
 import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
-import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
@@ -43,23 +42,6 @@ public class OrderItemServiceImp implements IOrderItemService {
 
     @Transactional
     @Override
-    public OrderItem ConfirmOrderItem(OrderItem orderItem, OrderItemTrack newStatus) {
-        OrderItemTrack latestTrack = orderItem.getTrackingHistory().stream()
-                .max(Comparator.comparing(OrderItemTrack::getUpdatedAt))
-                .orElseThrow(() -> new BadRequestException("NO_TRACKING_HISTORY"));
-
-        if (latestTrack.equals(newStatus))
-            throw new BadRequestException("STATUS_NOT_CHANGED");
-
-        orderItem.addTrackingHistory(newStatus);
-
-        orderItem.setStatus(newStatus.getStatus());
-
-        return orderItemRepository.save(orderItem);
-    }
-
-    @Transactional
-    @Override
     public void confirmOrderItems(Set<OrderItem> orderItems, OrderTrackStatus newStatus) {
         Set<OrderItem> orderItemsSet = new HashSet<>();
         for (OrderItem item : orderItems) {
@@ -79,8 +61,8 @@ public class OrderItemServiceImp implements IOrderItemService {
     }
 
     @Override
-    public List<OrderItem> getListOrderItems(ModeType mode, Set<String> idShopOrders, String search, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType, PreparingStatus preparingStatus) {
-        Specification<OrderItem> spec = OrderItemSpecification.filter(mode, idShopOrders, search, searchType, status, orderType, preparingStatus);
+    public List<OrderItem> getListOrderItems(ModeType mode, List<String> idShopOrders, String search, SearchType searchType, String status, LocalDateTime localDateTime, LocalDateTime dateTime, OrderCountType orderType) {
+        Specification<OrderItem> spec = OrderItemSpecification.filter(mode, idShopOrders, search, searchType, status, orderType);
         return orderItemRepository.findAll(spec);
     }
 
@@ -129,7 +111,7 @@ public class OrderItemServiceImp implements IOrderItemService {
     }
 
     @Override
-    public List<OrderItem> getListOrderItems(Set<String> idShopOrders, String search, SearchType searchType, String status) {
+    public List<OrderItem> getListOrderItems(List<String> idShopOrders, String search, SearchType searchType, String status) {
         Specification<OrderItem> spec = OrderItemSpecification.filter(idShopOrders, search, searchType, status);
         return orderItemRepository.findAll(spec);
     }

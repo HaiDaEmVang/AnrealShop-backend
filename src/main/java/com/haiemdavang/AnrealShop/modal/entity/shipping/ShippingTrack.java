@@ -30,14 +30,18 @@ public class ShippingTrack {
     @Builder.Default
     private ShippingStatus status = ShippingStatus.ORDER_CREATED;
 
+    @Column(name = "note")
+    private String note;
+
     public LocalDateTime getUpdatedAt() {
         return (this.id != null) ? this.id.getUpdatedAt() : null;
     }
 
-    public ShippingTrack(Shipping shipping, ShippingStatus status, LocalDateTime updatedAt) {
+    public ShippingTrack(Shipping shipping, ShippingStatus status, LocalDateTime updatedAt, String note) {
         this.id = new ShippingTrackId(shipping.getId(), updatedAt);
         this.shipping = shipping;
         this.status = status;
+        this.note = note;
     }
 
     public ShippingTrack(Shipping shipping) {

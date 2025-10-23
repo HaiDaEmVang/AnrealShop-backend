@@ -8,16 +8,19 @@ import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
+import com.haiemdavang.AnrealShop.dto.shipping.BaseCreateShipmentRequest;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
 import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public interface IShopOrderService {
@@ -41,4 +44,12 @@ public interface IShopOrderService {
     void rejectOrderById(String shopOrderId, String reason, CancelBy cancelBy);
 
     UserOrderDetailDto getShopOrderForUser(String shopOrderId);
+
+    List<String> confirmOrders(ShopOrderStatus statusFilter, ShopOrderStatus newStatus);
+
+    void availableForShipById(String shopOrderId, BaseCreateShipmentRequest request);
+
+    void updateStatus(@NotEmpty(message = "{SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY}") List<String> shopOrderIds, ShopOrderStatus preparing);
+
+
 }

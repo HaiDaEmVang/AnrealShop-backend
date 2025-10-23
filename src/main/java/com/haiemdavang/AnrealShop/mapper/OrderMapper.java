@@ -61,15 +61,14 @@ public class OrderMapper {
     public OrderItemDto toOrderItemDto(ShopOrder shopOrder, Set<OrderItem> orderItemsOfShopOrder) {
         if (shopOrder == null || orderItemsOfShopOrder.isEmpty()) return null;
         Set<ProductOrderItemDto> productOrderItemSet = orderItemsOfShopOrder.stream().map(this::toOrderItemDto).collect(Collectors.toSet());
-        Set<String> orderStatus = orderItemsOfShopOrder.stream().map(item -> item.getStatus().name()).collect(Collectors.toSet());
         return OrderItemDto.builder()
                 .shopOrderId(shopOrder.getId())
-                .orderStatus(orderStatus)
+                .orderStatus(shopOrder.getStatus().name())
                 .paymentMethod(shopOrder.getOrder().getPayment().getGateway().getValue())
                 .customerName(shopOrder.getUser().getFullName())
                 .customerImage(shopOrder.getUser().getAvatarUrl())
                 .shippingMethod("hang nhe")
-                .shippingId("123456")
+                .shippingId(shopOrder.getShipping() != null ? shopOrder.getShipping().getId(): null)
                 .productOrderItemDtoSet(productOrderItemSet)
                 .build();
 

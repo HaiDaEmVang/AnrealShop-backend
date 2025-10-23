@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -42,10 +41,10 @@ public class ProductDetailDto {
     private float averageRating; // nullable = true
     private int totalReviews; // nullable = true
 
-    private BigDecimal weight; // nullable = true
-    private BigDecimal height; // nullable = true
-    private BigDecimal length; // nullable = true
-    private BigDecimal width; // nullable = true
+    private Long weight; // nullable = true
+    private Long height; // nullable = true
+    private Long length; // nullable = true
+    private Long width; // nullable = true
 
     private BaseShopDto baseShopDto; // nullable = true
     private List<ProductMediaDto> medias; // nullable = true

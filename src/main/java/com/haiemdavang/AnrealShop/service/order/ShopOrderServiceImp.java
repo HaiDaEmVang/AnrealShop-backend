@@ -5,6 +5,7 @@ import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
 import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
+import com.haiemdavang.AnrealShop.dto.shipping.BaseCreateShipmentRequest;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.mapper.OrderMapper;
 import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
@@ -97,24 +98,25 @@ public class ShopOrderServiceImp implements IShopOrderService {
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<ShopOrder> shopOrders = shopOrderRepository.findAll(orderSpecification, pageable);
-        Set<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).collect(Collectors.toSet());
-        Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
+        List<String> idShopOrders = shopOrders.stream().map(ShopOrder::getId).toList();
+        List<OrderItemDto> orderItemDtoSet = new ArrayList<>();
+        if (!idShopOrders.isEmpty()) {
+            Map<String, ShopOrder> mapShopOrders = shopOrders.stream().collect(Collectors.toMap(ShopOrder::getId, so -> so));
+            List<OrderItem> orderItems = orderItemService.getListOrderItems(mode, idShopOrders, search, searchType, status, confirmSD, confirmED, orderType);
+            Map<String, Set<OrderItem>> mapOrderItems = orderItems.stream().collect(
+                    Collectors.groupingBy(oi -> oi.getShopOrder().getId(), Collectors.toSet())
+            ).entrySet().stream().collect(
+                    Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
+            );
 
-        Set<OrderItemDto> orderItemDtoSet = new HashSet<>();
-
-        List<OrderItem> orderItems = orderItemService.getListOrderItems(mode, idShopOrders, search, searchType, status, confirmSD, confirmED, orderType, preparingStatus);
-        Map<String, Set<OrderItem>> mapOrderItems = orderItems.stream().collect(
-                Collectors.groupingBy(oi -> oi.getShopOrder().getId(), Collectors.toSet())
-        ).entrySet().stream().collect(
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
-        );
-
-        for (String idShopOrder : mapOrderItems.keySet()){
-            ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
-            Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
-            if (shopOrder == null || orderItemsOfShopOrder == null) continue;
-            OrderItemDto orderItemDto = orderMapper.toOrderItemDto(shopOrder, orderItemsOfShopOrder);
-            orderItemDtoSet.add(orderItemDto);
+            for (String idShopOrder : idShopOrders){
+                if (!mapOrderItems.containsKey(idShopOrder)) continue;
+                ShopOrder shopOrder = mapShopOrders.get(idShopOrder);
+                Set<OrderItem> orderItemsOfShopOrder = mapOrderItems.get(idShopOrder);
+                if (shopOrder == null || orderItemsOfShopOrder == null) continue;
+                OrderItemDto orderItemDto = orderMapper.toOrderItemDto(shopOrder, orderItemsOfShopOrder);
+                orderItemDtoSet.add(orderItemDto);
+            }
         }
 
         return  MyShopOrderListResponse.builder()
@@ -142,7 +144,7 @@ public class ShopOrderServiceImp implements IShopOrderService {
         shopOrder.setStatus(ShopOrderStatus.CLOSED);
 
         shopOrder.getOrderItems().stream()
-                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
+                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION) || ot.getStatus().equals(OrderTrackStatus.WAIT_SHIPMENT))
                 .forEach(ot -> orderItemService.rejectOrderItemById(ot.getId(), reason, cancelBy));
 
         shopOrderRepository.save(shopOrder);
@@ -173,7 +175,6 @@ public class ShopOrderServiceImp implements IShopOrderService {
 
         return orderDetailDto;
     }
-
 
     @Override
     public OrderDetailDto getShopOrder(String shopOrderId) {
@@ -230,15 +231,8 @@ public class ShopOrderServiceImp implements IShopOrderService {
             throw new BadRequestException("ORDER_NOT_FOUND");
         }
 
-        ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
-
-        shopOrder.setStatus(ShopOrderStatus.PREPARING);
-
-        shopOrder.getOrderItems().stream()
-                .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
-                .forEach(ot -> ot.setStatus(OrderTrackStatus.PREPARING));
-
-        shopOrderRepository.save(shopOrder);
+        ShopOrder shopOrder = shopOrderRepository.findWithFullOrderItemById(shopOrderId);
+        shopOrderRepository.save(updateStatusShopOrder(shopOrder, ShopOrderStatus.CONFIRMED));
     }
 
     @Override
@@ -248,19 +242,77 @@ public class ShopOrderServiceImp implements IShopOrderService {
         handleMapStatus(shopOrder);
     }
 
+    @Override
+    @Transactional
+    public List<String> confirmOrders(ShopOrderStatus statusFilter, ShopOrderStatus newStatus) {
+        List<ShopOrder> shopOrder = shopOrderRepository.findAllByStatus(statusFilter);
+        if (shopOrder.isEmpty()) {
+            return null;
+        }
+        List<String> shopOrderIs = shopOrder.stream().map(ShopOrder::getId).toList();
+
+        updateStatus(shopOrderIs, newStatus);
+        return shopOrderIs;
+    }
+
+
+    @Override
+    @Transactional
+    public void availableForShipById(String shopOrderId, BaseCreateShipmentRequest request) {
+        if (shopOrderId == null || shopOrderId.isEmpty() || !shopOrderRepository.existsById(shopOrderId)) {
+            throw new BadRequestException("ORDER_NOT_FOUND");
+        }
+
+        ShopOrder shopOrder = shopOrderRepository.findWithOrderItemById(shopOrderId);
+        shipmentService.createShipments(shopOrderId, request);
+        shopOrderRepository.save(updateStatusShopOrder(shopOrder, ShopOrderStatus.PREPARING));
+    }
+
+    @Override
+    @Transactional
+    public void updateStatus(List<String> shopOrderIds, ShopOrderStatus status) {
+        Set<ShopOrder> shopOrders = shopOrderRepository.findByIdIn(shopOrderIds);
+        if (shopOrders.size() != shopOrderIds.size()) {
+            throw new BadRequestException("SOME_ORDER_NOT_FOUND");
+        }
+        shopOrders.forEach(so -> updateStatusShopOrder(so, status));
+        shopOrderRepository.saveAll(shopOrders);
+    }
+
 
 
     private  void handleMapStatus(ShopOrder shopOrder) {
         if (shopOrder.getOrderItems().stream().allMatch(ot -> ot.getStatus().equals(OrderTrackStatus.CANCELED))) {
             shopOrder.setStatus(ShopOrderStatus.CLOSED);
+            shopOrderRepository.save(shopOrder);
         }
-
-        shopOrderRepository.save(shopOrder);
     }
 
     private Long getDiscountShippingFee(Long shippingFee) {
         return shippingFee == 0L ? 0L : (long) (shippingFee * SHIPPING_FEE_RATE);
     }
 
+    private ShopOrder updateStatusShopOrder(ShopOrder shopOrder, ShopOrderStatus newStatus) {
+        shopOrder.setStatus(newStatus);
 
+        switch (newStatus) {
+            case CONFIRMED ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PENDING_CONFIRMATION))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.PREPARING));
+            case PREPARING ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.PREPARING))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.WAIT_SHIPMENT));
+            case SHIPPING ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.WAIT_SHIPMENT))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.SHIPPING));
+            case DELIVERED ->
+                    shopOrder.getOrderItems().stream()
+                            .filter(ot -> ot.getStatus().equals(OrderTrackStatus.SHIPPING))
+                            .forEach(ot -> ot.setStatus(OrderTrackStatus.DELIVERED));
+        }
+        return shopOrder;
+    }
 }

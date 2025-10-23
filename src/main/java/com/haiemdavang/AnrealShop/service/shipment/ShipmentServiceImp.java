@@ -6,27 +6,30 @@ import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
+import com.haiemdavang.AnrealShop.exception.ForbiddenException;
 import com.haiemdavang.AnrealShop.mapper.AddressMapper;
+import com.haiemdavang.AnrealShop.mapper.ShipmentMapper;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.cart.CartItem;
-import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
-import com.haiemdavang.AnrealShop.modal.enums.OrderTrackStatus;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
+import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipmentRepository;
+import com.haiemdavang.AnrealShop.schedule.ShippingTemplateStringNote;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.order.IOrderItemService;
+import com.haiemdavang.AnrealShop.tech.kafka.dto.ShippingSyncMessage;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +58,7 @@ public class ShipmentServiceImp implements IShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final SecurityUtils securityUtils;
     private final ShopOrderRepository shopOrderRepository;
+    private final ShipmentMapper shipmentMapper;
 
     @Override
     public List<CartShippingFee> getShippingFeeForCart(List<String> cartItemIds) {
@@ -114,16 +118,16 @@ public class ShipmentServiceImp implements IShipmentService {
 
     @Override
     @Transactional
-    public void createShipment(CreateShipmentRequest createShipmentRequest) {
+    public void createShipments(CreateShipmentRequest createShipmentRequest) {
         List<OrderItem> orderItems = orderItemService.getForShipment(createShipmentRequest.getShopOrderIds());
 //        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
         Shop currentShop = securityUtils.getCurrentUserShop();
         ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
 
-        Map<Order, List<OrderItem>> orderListMap = orderItems.stream()
-                .collect(Collectors.groupingBy(OrderItem::getOrder));
+        Map<ShopOrder, List<OrderItem>> orderListMap = orderItems.stream()
+                .collect(Collectors.groupingBy(OrderItem::getShopOrder));
 
-        for (Order shopOrder : orderListMap.keySet()) {
+        for (ShopOrder shopOrder : orderListMap.keySet()) {
             Set<OrderItem> items = new HashSet<>(orderListMap.get(shopOrder));
             long totalWeight = items.stream()
                     .mapToInt(item -> item.getProductSku().getProduct().getWeight().intValue() * item.getQuantity())
@@ -138,17 +142,16 @@ public class ShipmentServiceImp implements IShipmentService {
 //                ighnService.createShippingOrder(shopOrder, items, infoOrder, createShipmentRequest.getNote());
                 Shipping shipping = Shipping.builder()
                         .addressFrom(fromAddress)
-                        .addressTo(shopOrder.getShippingAddress())
+                        .addressTo(shopOrder.getOrder().getShippingAddress())
                         .totalWeight(totalWeight)
                         .fee((long) infoOrder.getFee())
                         .note(createShipmentRequest.getNote())
                         .dayPickup(createShipmentRequest.getPickupDate())
+                        .shopOrder(shopOrder)
                         .build();
 
-                shipping.setStatus(ShippingStatus.WAITING_FOR_PICKUP);
+                shipping.setStatus(ShippingStatus.ORDER_CREATED, ShippingTemplateStringNote.ORDER_CREATED_NOTES);
                 shipmentRepository.save(shipping);
-
-                orderItemService.confirmOrderItems(items, OrderTrackStatus.WAIT_SHIPMENT);
             } else {
                 throw new AnrealShopException("SERVER_ERROR");
             }
@@ -156,15 +159,77 @@ public class ShipmentServiceImp implements IShipmentService {
     }
 
     @Override
+    @Transactional
+    public void createShipments(String shopOrderId, BaseCreateShipmentRequest request) {
+//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(createShipmentRequest.getAddressId());
+//        Shop currentShop = securityUtils.getCurrentUserShop();
+//        ShopAddress fromAddress = addressService.getShopAddressByIdShop(currentShop.getId());
+        ShopOrder shopOrder = shopOrderRepository.findById(shopOrderId)
+                .orElseThrow(() -> new BadRequestException("SHOP_ORDER_NOT_FOUND"));
+
+        Shipping shipping = Shipping.builder()
+                .addressFrom(shopOrder.getShippingAddress())
+                .addressTo(shopOrder.getOrder().getShippingAddress())
+                .totalWeight(shopOrder.getTotalWeight())
+                .fee(shopOrder.getShippingFee())
+                .note(request.getNote())
+                .dayPickup(request.getPickupDate())
+                .shopOrder(shopOrder)
+                .build();
+        shipping.setStatus(ShippingStatus.ORDER_CREATED, ShippingTemplateStringNote.ORDER_CREATED_NOTES);
+        shipmentRepository.save(shipping);
+    }
+
+    @Override
+    @Transactional
+    public String rejectById(String shippingId, String reason) {
+        Shipping shipping = shipmentRepository.findById(shippingId)
+                .orElseThrow(() -> new BadRequestException("SHIPPING_NOT_FOUND"));
+        ShippingStatus  status = shipping.getStatus();
+        if (status.equals(ShippingStatus.ORDER_CREATED) || status.equals(ShippingStatus.WAITING_FOR_PICKUP)) {
+            shipping.setCancelReason(reason);
+        } else {
+            throw new ForbiddenException("FORBIDDEN_SHIPPING");
+        }
+        return shipping.getShopOrder().getId();
+    }
+
+    @Override
+    @Transactional
+    public void updateShipmentStatus(List<String> shopOrderIds, ShippingStatus shippingStatus, String note) {
+        if (shopOrderIds == null || shopOrderIds.isEmpty()) {
+            throw new BadRequestException("SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY");
+        }
+        List<Shipping> shippings = shipmentRepository.findByShopOrderIdIn(shopOrderIds);
+
+        shippings.forEach(item -> item.setStatus(shippingStatus, note));
+        shipmentRepository.saveAll(shippings);
+    }
+
+    @Override
+    public List<Shipping> getListShippingByShopOrderStatus(ShopOrderStatus shopOrderStatus) {
+        return shipmentRepository.findAllByShopOrderStatus(shopOrderStatus);
+    }
+
+    @Override
+    @Transactional
+    public Shipping processShippingSyncMessage(ShippingSyncMessage message) {
+        Shipping shipping = shipmentRepository.findById(message.getId())
+                .orElseThrow(() -> new BadRequestException("SHIPPING_NOT_FOUND"));
+        shipping.setStatus(message.getStatus(), message.getNote());
+        return shipmentRepository.save(shipping);
+    }
+
+    @Override
     public MyShopShippingListResponse getListForShop(int page, int limit, String search, SearchTypeShipping searchTypeShipping, PreparingStatus preparingStatus, String sortBy) {
-       LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
+        LocalDateTime now =  LocalDate.now().atTime(23, 59, 59);
         String shopId = securityUtils.getCurrentUserShop().getId();
         Specification<Shipping> shipSpecification = ShipSpecification.filter(shopId, now.minusMonths(2), now, search, searchTypeShipping, preparingStatus);
         Pageable pageable = PageRequest.of(page, limit, ApplicationInitHelper.getSortBy(sortBy));
 
         Page<Shipping> shippingList = shipmentRepository.findAll(shipSpecification, pageable);
 
-        Set<String> shippingIds = shippingList.get().map(Shipping::getId).collect(Collectors.toSet());
+        List<String> shippingIds = shippingList.get().map(Shipping::getId).toList();
 
         MyShopShippingListResponse response = MyShopShippingListResponse.builder()
                 .currentPage(shippingList.getPageable().getPageNumber() + 1)
@@ -179,18 +244,14 @@ public class ShipmentServiceImp implements IShipmentService {
             if(shopOrders.size() != shippingIds.size())
                 throw new BadRequestException("ORDER_NOT_FOUND");
             Set<ShippingItem> shippingItems = new HashSet<>();
-
-//            for (Shipping shipping : shippingList.getContent()) {
-//                Set<OrderItem> orderItems = shipping.getOrderItems();
-//                if (orderItems == null || orderItems.isEmpty()) continue;
-//                String shopOrderId = orderItems.stream().findFirst().get().getShopOrder().getId();
-//                ShopOrder exists = shopOrders.stream().filter(so -> so.getId().equals(shopOrderId)).findFirst().orElseThrow(
-//                        () -> new BadRequestException("ORDER_NOT_FOUND")
-//                );
-//
-//                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
-//                shippingItems.add(shippingItem);
-//            }
+            Map<Shipping, ShopOrder> shippingShopOrderMap = shopOrders.stream()
+                    .filter(so -> so.getShipping() != null)
+                    .collect(Collectors.toMap(ShopOrder::getShipping, so -> so));
+            for (Shipping shipping : shippingList.getContent()) {
+                ShopOrder exists = shippingShopOrderMap.get(shipping);
+                ShippingItem shippingItem = shipmentMapper.toShippingItems(shipping, exists);
+                shippingItems.add(shippingItem);
+            }
             response.setOrderItemDtoSet(shippingItems);
         }
         return response;
@@ -200,5 +261,6 @@ public class ShipmentServiceImp implements IShipmentService {
     public Shipping getShippingByShopOrderId(String shopOrderId) {
         return shipmentRepository.findByShopOrderId(shopOrderId);
     }
+
 
 }

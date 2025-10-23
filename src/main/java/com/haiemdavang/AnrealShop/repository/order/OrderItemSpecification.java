@@ -2,7 +2,6 @@ package com.haiemdavang.AnrealShop.repository.order;
 
 import com.haiemdavang.AnrealShop.dto.order.search.ModeType;
 import com.haiemdavang.AnrealShop.dto.order.search.OrderCountType;
-import com.haiemdavang.AnrealShop.dto.order.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.order.search.SearchType;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.product.Product;
@@ -15,20 +14,16 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class OrderItemSpecification {
 
     public static Specification<OrderItem> filter(
             ModeType  mode,
-            Set<String> shopOrderIds,
+            List<String> shopOrderIds,
             String productName,
             SearchType searchType,
             String status,
-//            LocalDateTime confirmSD,
-//            LocalDateTime confirmED,
-            OrderCountType orderType,
-            PreparingStatus preparingStatus) {
+            OrderCountType orderType) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             assert query != null;
@@ -43,57 +38,47 @@ public class OrderItemSpecification {
                 predicates.add(cb.like(cb.lower(productJoin.get("name")), "%" + productName.toLowerCase() + "%"));
             }
 
-            if (mode == ModeType.USER) {
-                if (StringUtils.hasText(status) && status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {
-                    predicates.add(root.get("status").in(OrderTrackStatus.CANCELED));
-                }
-                if (StringUtils.hasText(status) && status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
-                    predicates.add(root.get("status").in(OrderTrackStatus.REFUND));
+            if (mode == ModeType.USER && StringUtils.hasText(status)) {
+                if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {
+                    predicates.add(cb.equal(root.get("status"), OrderTrackStatus.CANCELED));
+                } else if (status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
+                    predicates.add(cb.equal(root.get("status"), OrderTrackStatus.REFUND));
                 }
             }
 
             if (mode == ModeType.HOME) {
-                if (StringUtils.hasText(status) && !status.equalsIgnoreCase(ShopOrderStatus.CLOSED.name())) {
-                    if (!status.equalsIgnoreCase("ALL")) {
+                if (StringUtils.hasText(status) && !status.equalsIgnoreCase("ALL")) {
+                    if (!status.equalsIgnoreCase(ShopOrderStatus.CLOSED.name())){
                         predicates.add(root.get("cancelReason").isNull());
                         predicates.add(root.get("canceledBy").isNull());
-
+                    }else {
+                        predicates.add(root.get("cancelReason").isNotNull());
+                        predicates.add(root.get("canceledBy").isNotNull());
                     }
                 }
             }
 
 
             if (mode == ModeType.SHIPPING) {
-                List<OrderTrackStatus> orderItemStatuses = List.of(
-                        OrderTrackStatus.PREPARING,
-                        OrderTrackStatus.WAIT_SHIPMENT
-                );
-                predicates.add(root.get("status").in(orderItemStatuses));
 
-                if (orderType.equals(OrderCountType.ONE)){
-                    Subquery<String> subquery = query.subquery(String.class);
-                    Root<OrderItem> itemRoot = subquery.from(OrderItem.class);
-                    subquery.select(itemRoot.get("id"))
-                            .where(cb.equal(itemRoot.get("status"), OrderTrackStatus.PREPARING))
-                            .groupBy(itemRoot.get("id"))
-                            .having(cb.equal(cb.count(itemRoot.get("id")), 1L));
-                    predicates.add(cb.in(root.get("id")).value(subquery));
-                } else if (orderType.equals(OrderCountType.MORE)){
-                    Subquery<String> subquery = query.subquery(String.class);
-                    Root<OrderItem> itemRoot = subquery.from(OrderItem.class);
-                    subquery.select(itemRoot.get("id"))
-                            .where(cb.equal(itemRoot.get("status"), OrderTrackStatus.PREPARING))
-                            .groupBy(itemRoot.get("id"))
-                            .having(cb.greaterThan(cb.count(itemRoot.get("id")), 1L));
-                    predicates.add(cb.in(root.get("id")).value(subquery));
+                predicates.add(root.get("cancelReason").isNull());
+                predicates.add(root.get("canceledBy").isNull());
+
+                if (orderType.equals(OrderCountType.ONE) || orderType.equals(OrderCountType.MORE)) {
+                    Subquery<Long> subquery = query.subquery(Long.class);
+                    Root<OrderItem> itemCounter = subquery.from(OrderItem.class);
+                    subquery.select(cb.count(itemCounter.get("id")));
+                    subquery.where(cb.and(
+                            cb.equal(itemCounter.get("shopOrder"), root.get("shopOrder")),
+                            cb.equal(itemCounter.get("status"), OrderTrackStatus.PREPARING)
+                    ));
+
+                    if (orderType.equals(OrderCountType.ONE)) {
+                        predicates.add(cb.equal(subquery, 1L));
+                    } else {
+                        predicates.add(cb.greaterThan(subquery, 1L));
+                    }
                 }
-            }
-
-
-            if (preparingStatus == PreparingStatus.PREPARING) {
-                predicates.add(cb.equal(root.get("status"), OrderTrackStatus.PREPARING));
-            } else if (preparingStatus == PreparingStatus.WAIT_SHIPMENT) {
-                predicates.add(cb.equal(root.get("status"), OrderTrackStatus.WAIT_SHIPMENT));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -101,7 +86,7 @@ public class OrderItemSpecification {
     }
 
 
-    public static Specification<OrderItem> filter(Set<String> idShopOrders, String search, SearchType searchType, String status) {
-        return OrderItemSpecification.filter(ModeType.USER, idShopOrders, search, searchType, status, null, null);
+    public static Specification<OrderItem> filter(List<String> idShopOrders, String search, SearchType searchType, String status) {
+        return OrderItemSpecification.filter(ModeType.USER, idShopOrders, search, searchType, status, null);
     }
 }
