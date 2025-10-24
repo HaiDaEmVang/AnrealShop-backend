@@ -259,7 +259,8 @@ public class ShipmentServiceImp implements IShipmentService {
 
     @Override
     public Shipping getShippingByShopOrderId(String shopOrderId) {
-        return shipmentRepository.findByShopOrderId(shopOrderId);
+        return shipmentRepository.findByShopOrderId(shopOrderId)
+                .orElse(null);
     }
 
 

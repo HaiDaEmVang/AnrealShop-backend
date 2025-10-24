@@ -23,7 +23,7 @@ public interface ShipmentRepository extends JpaRepository<Shipping, String> {
     @EntityGraph(attributePaths = {
             "trackingHistory",
     })
-    Shipping findByShopOrderId(String shopOrderId);
+    Optional<Shipping> findByShopOrderId(String shopOrderId);
 
     @Override
     @EntityGraph(attributePaths = {"shopOrder", "trackingHistory"})
