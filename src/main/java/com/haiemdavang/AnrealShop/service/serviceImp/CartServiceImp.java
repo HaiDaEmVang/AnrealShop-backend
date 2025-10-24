@@ -41,7 +41,7 @@ public class CartServiceImp implements ICartService {
         String key = String.format(PREFIX_CART, userId);
         Integer cachedCount = redisService.getValue(key, -1);
         if (cachedCount != -1) return cachedCount;
-        int count = cartRepository.countByUserId(userId);
+        int count = cartItemRepository.countByCartUserId(userId);
         redisService.addValue(key, count);
         return count;
     }
