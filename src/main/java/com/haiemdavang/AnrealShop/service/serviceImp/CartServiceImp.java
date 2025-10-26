@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.haiemdavang.AnrealShop.tech.redis.config.RedisTemplate.PREFIX_CART;
+
 @Service
 @RequiredArgsConstructor
 public class CartServiceImp implements ICartService {
@@ -34,11 +36,10 @@ public class CartServiceImp implements ICartService {
     private final SecurityUtils securityUtils;
     private final CartMapper cartMapper;
     private final ShopMapper shopMapper;
-    private final String PREFIX_CART = "user:%s:cart";
 
     @Override
     public int countByUserId(String userId) {
-        String key = String.format(PREFIX_CART, userId);
+        String key = String.format(PREFIX_CART.getValue(), userId);
         Integer cachedCount = redisService.getValue(key, -1);
         if (cachedCount != -1) return cachedCount;
         int count = cartItemRepository.countByCartUserId(userId);
@@ -207,7 +208,7 @@ public class CartServiceImp implements ICartService {
     }
 
     private void invalidateCartCache(String userId) {
-        String key = String.format(PREFIX_CART, userId);
+        String key = String.format(PREFIX_CART.getValue(), userId);
         redisService.del(key);
     }
 }

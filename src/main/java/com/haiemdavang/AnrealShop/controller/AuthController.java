@@ -49,4 +49,5 @@ public class AuthController {
         mailService.delOTP(resetPassword.getEmail());
         return ResponseEntity.ok(Map.of("message", "Thay đổi mật khẩu thành công!"));
     }
+
 }

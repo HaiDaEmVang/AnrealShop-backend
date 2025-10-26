@@ -13,15 +13,15 @@ import org.hibernate.annotations.Where;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"user", "shopCategories"})
 @EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "shops")
-@SQLDelete(sql = "UPDATE shops SET deleted = true, updated_at = CURRENT_TIMESTAMP WHERE id = ?") // Khi gọi delete(), Hibernate sẽ chạy lệnh này
+@SQLDelete(sql = "UPDATE shops SET deleted = true, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
 @Where(clause = "deleted = false")
 public class Shop {
 
