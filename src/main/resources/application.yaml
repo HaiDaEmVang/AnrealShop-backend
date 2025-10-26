@@ -44,6 +44,7 @@ spring:
         spring.json.use.type.headers: true
 
   messages:
+    basename: errorMessage/MessageString
     encoding: UTF-8
 
 logging:

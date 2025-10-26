@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.mapper;
 
 import com.haiemdavang.AnrealShop.dto.shop.BaseShopDto;
+import com.haiemdavang.AnrealShop.dto.shop.ShopDto;
 import com.haiemdavang.AnrealShop.tech.elasticsearch.document.EsShop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,16 @@ public class ShopMapper {
         return EsShop.builder()
                 .id(shop.getId())
                 .name(shop.getName())
+                .build();
+    }
+
+    public ShopDto toShopDto(Shop shop) {
+        if (shop == null) return null;
+        return ShopDto.builder()
+                .id(shop.getId())
+                .name(shop.getName())
+                .avatarUrl(shop.getAvatarUrl())
+                .shopUrl(shop.getUrlSlug())
                 .build();
     }
 }

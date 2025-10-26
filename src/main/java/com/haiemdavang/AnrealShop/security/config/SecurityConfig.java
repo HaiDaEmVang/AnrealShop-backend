@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     public final static List<String> PUBLIC_URLS = List.of(
-            "/**",
+//            "/**",
             "/IPN",
             "/api/public/**",
             "/api/logout",

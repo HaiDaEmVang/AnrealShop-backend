@@ -39,8 +39,7 @@ public class OrderMapper {
         return shopOrderTracks.stream().map(track -> HistoryTrackDto.builder()
                 .status(track.getStatus().name())
                 .id(track.getId().toString())
-                .title("NaN")
-                .timestamp(track.getUpdatedAt())
+                .status(track.getStatus().name())
                 .build()).collect(Collectors.toSet());
     }
 
@@ -76,6 +75,7 @@ public class OrderMapper {
 
     public UserProductOrderItemDto toUserProductOrderItemDto(OrderItem orderItem) {
         return UserProductOrderItemDto.builder()
+                .orderItemId(orderItem.getId())
                 .productId(orderItem.getProductSku().getProduct().getId())
                 .productSkuId(orderItem.getProductSku().getId())
                 .productName(orderItem.getProductSku().getProduct().getName())
@@ -118,7 +118,9 @@ public class OrderMapper {
                 .shopName(shopOrder.getShop().getName())
                 .shopImage(shopOrder.getShop().getAvatarUrl())
                 .productItems(productItems)
+                .shippingId(shopOrder.getShipping() != null ? shopOrder.getShipping().getId(): null)
                 .shippingFee(shopOrder.getShippingFee())
+                .paymentMethod(shopOrder.getOrder().getPayment().getGateway().getValue())
                 .totalProductCost(shopOrder.getTotalAmount())
                 .isReviewed(false)
                 .address(addressMapper.toSimpleAddressDto(userAddress))

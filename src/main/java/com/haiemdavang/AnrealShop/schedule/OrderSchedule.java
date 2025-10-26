@@ -55,16 +55,16 @@ public class OrderSchedule {
                         }
                     }
                     break;
-                case OUT_FOR_DELIVERY:
-                    for (int i = 1; i < ShippingTemplateStringNote.OUT_FOR_DELIVERY_NOTES.size(); i++) {
-                        String deliveryNote = ShippingTemplateStringNote.OUT_FOR_DELIVERY_NOTES.get(i);
-                        shippingStatusKafkaProducer.sendSyncMessage(ShippingSyncMessage.from(id, ShippingStatus.OUT_FOR_DELIVERY, deliveryNote));
-                        if (i == ShippingTemplateStringNote.OUT_FOR_DELIVERY_NOTES.size() - 1) {
-                            String deliveredNote = ShippingTemplateStringNote.DELIVERED_NOTES;
-                            shippingStatusKafkaProducer.sendSyncMessage(ShippingSyncMessage.from(id, ShippingStatus.DELIVERED, deliveredNote));
-                        }
-                    }
-                    break;
+//                case OUT_FOR_DELIVERY:
+//                    for (int i = 1; i < ShippingTemplateStringNote.OUT_FOR_DELIVERY_NOTES.size(); i++) {
+//                        String deliveryNote = ShippingTemplateStringNote.OUT_FOR_DELIVERY_NOTES.get(i);
+//                        shippingStatusKafkaProducer.sendSyncMessage(ShippingSyncMessage.from(id, ShippingStatus.OUT_FOR_DELIVERY, deliveryNote));
+//                        if (i == ShippingTemplateStringNote.OUT_FOR_DELIVERY_NOTES.size() - 1) {
+//                            String deliveredNote = ShippingTemplateStringNote.DELIVERED_NOTES;
+//                            shippingStatusKafkaProducer.sendSyncMessage(ShippingSyncMessage.from(id, ShippingStatus.DELIVERED, deliveredNote));
+//                        }
+//                    }
+//                    break;
             }
         }
     }

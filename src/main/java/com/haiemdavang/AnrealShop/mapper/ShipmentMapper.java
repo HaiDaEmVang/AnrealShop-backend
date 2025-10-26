@@ -1,16 +1,16 @@
 package com.haiemdavang.AnrealShop.mapper;
 
-import com.haiemdavang.AnrealShop.dto.order.HistoryTrackDto;
+import com.haiemdavang.AnrealShop.dto.shipping.HistoryShipping;
+import com.haiemdavang.AnrealShop.dto.shipping.HistoryShippingNote;
 import com.haiemdavang.AnrealShop.dto.shipping.ShippingItem;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.ShippingTrack;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
+import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,19 +39,24 @@ public class ShipmentMapper {
     }
 
 
-    public List<HistoryTrackDto> toHistoryTrackDto(Collection<ShippingTrack> shippingTracks) {
+    public List<HistoryShipping> toHistoryTrackDto(Collection<ShippingTrack> shippingTracks) {
         if (shippingTracks == null || shippingTracks.isEmpty()) return List.of();
+        Map<ShippingStatus, List<ShippingTrack>> historyTrackMap = shippingTracks.stream()
+                .collect(Collectors.groupingBy(ShippingTrack::getStatus));
 
-        return shippingTracks.stream().map(this::toHistoryTrackDto)
-                .sorted(Comparator.comparing(HistoryTrackDto::getTimestamp))
+        return Arrays.stream(ShippingStatus.values()).map(item -> this.toHistoryShippingNote(historyTrackMap.get(item)))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private HistoryTrackDto toHistoryTrackDto(ShippingTrack track) {
-        return HistoryTrackDto.builder()
-                .id(track.getId() != null ? track.getId().toString() : null)
-                .status(track.getStatus() != null ? track.getStatus().name() : null)
-                .timestamp(track.getUpdatedAt())
+    private HistoryShipping toHistoryShippingNote(List<ShippingTrack> shippingTracks) {
+        if (shippingTracks == null || shippingTracks.isEmpty()) return null;
+        List<HistoryShippingNote> notes = shippingTracks.stream()
+                .sorted(Comparator.comparing( ShippingTrack::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(item -> HistoryShippingNote.builder().content(item.getNote()).timestamp(item.getUpdatedAt()).build()).toList();
+        return HistoryShipping.builder()
+                .status(shippingTracks.get(0).getStatus().name())
+                .notes(notes)
                 .build();
     }
 

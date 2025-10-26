@@ -205,6 +205,12 @@ public class ShopOrderSpecification {
             query.distinct(true);
             Join<ShopOrder, OrderItem> orderItemJoin = root.join("orderItems", JoinType.INNER);
 
+            if (query.getResultType() != Long.class) {
+                root.fetch("order", JoinType.LEFT);
+                root.fetch("shop", JoinType.LEFT);
+                root.fetch("shipping", JoinType.LEFT);
+            }
+
             ShopOrderStatus statusCompare;
             try {
                 if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name()) || status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())){
@@ -214,7 +220,7 @@ public class ShopOrderSpecification {
                 throw new BadRequestException("INVALID_STATUS");
             }
 
-            predicates.add(cb.equal(root.get("status"), statusCompare));
+//            predicates.add(cb.equal(root.get("status"), statusCompare));
 
             if (statusCompare == ShopOrderStatus.CLOSED) {
                 if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {

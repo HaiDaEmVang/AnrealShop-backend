@@ -27,5 +27,6 @@ public class UserDto {
 
     private AddressDto address;
     private int cartCount;
+    private boolean hasShop;
 
 }

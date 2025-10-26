@@ -11,6 +11,9 @@ import com.haiemdavang.AnrealShop.modal.entity.user.Role;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.modal.enums.RoleName;
 import com.haiemdavang.AnrealShop.repository.UserRepository;
+import com.haiemdavang.AnrealShop.service.IAddressService;
+import com.haiemdavang.AnrealShop.service.ICartService;
+import com.haiemdavang.AnrealShop.service.IShopService;
 import com.haiemdavang.AnrealShop.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,8 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImp implements IUserService {
     private final UserRepository userRepository;
     private final RoleServiceImp roleService;
-    private final AddressServiceImp addressServiceImp;
-    private final CartServiceImp cartServiceImp;
+    private final IAddressService addressServiceImp;
+    private final ICartService cartServiceImp;
+    private final IShopService shopServiceImp;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -92,6 +96,7 @@ public class UserServiceImp implements IUserService {
     @Override
     public UserDto findDtoByEmail(String username) {
         UserDto userDto =  userMapper.toUserDto(findByEmail(username));
+        userDto.setHasShop(shopServiceImp.isExistByUserId(userDto.getId()));
         userDto.setAddress(addressServiceImp.findAddressPrimary());
         userDto.setCartCount(cartServiceImp.countByUserId(userDto.getId()));
         return userDto;

@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.dto.order;
 
 import com.haiemdavang.AnrealShop.dto.address.SimpleAddressDto;
+import com.haiemdavang.AnrealShop.dto.shipping.HistoryShipping;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,14 +23,17 @@ public class UserOrderDetailDto {
     private String shopImage;
 
     @Builder.Default
-    private List<HistoryTrackDto> orderHistory = new ArrayList<>();
+    private List<HistoryShipping> orderHistory = new ArrayList<>();
     @Builder.Default
     private List<ProductOrderItemDto> productItems = new ArrayList<>();
 
     private Long totalProductCost;
     private Long totalShippingCost;
+    private String shippingId;
     private Long shippingFee;
     private Long shippingDiscount;
+
+    private String paymentMethod;
 
     private Long totalCost;
 
