@@ -52,10 +52,10 @@ jobs:
                   echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u haiemdavang --password-stdin
                   
                   # 3. Kéo (pull) image mới nhất
-                  docker-compose -f docker-compose-app.yml pull backend-app
+                  docker compose -f docker-compose-app.yml pull backend-app
                   
                   # 4. Khởi động lại service 'backend-app' với image mới
-                  docker-compose -f docker-compose-app.yml up -d --no-deps backend-app
+                  docker compose -f docker-compose-app.yml up -d --no-deps backend-app
                   
                   # 5. (Tùy chọn) Xóa các image rác để tiết kiệm dung lượng
                   docker image prune -f
