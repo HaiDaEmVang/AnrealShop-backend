@@ -23,7 +23,7 @@ jobs:
             with:
               registry: ghcr.io
               username: haiemdavang
-              password: ${{ secrets.GITHUB_TOKEN }}
+              password: ${{ secrets.GH_PAT }}
 
           - name: Build and push Docker image
             uses: docker/build-push-action@v5
