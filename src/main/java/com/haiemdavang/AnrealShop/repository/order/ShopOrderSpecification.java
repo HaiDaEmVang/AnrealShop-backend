@@ -220,7 +220,7 @@ public class ShopOrderSpecification {
                 throw new BadRequestException("INVALID_STATUS");
             }
 
-//            predicates.add(cb.equal(root.get("status"), statusCompare));
+            predicates.add(cb.equal(root.get("status"), statusCompare));
 
             if (statusCompare == ShopOrderStatus.CLOSED) {
                 if (status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name())) {

@@ -43,6 +43,9 @@ public class OrderItemSpecification {
                     predicates.add(cb.equal(root.get("status"), OrderTrackStatus.CANCELED));
                 } else if (status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
                     predicates.add(cb.equal(root.get("status"), OrderTrackStatus.REFUND));
+                } else if (!status.equalsIgnoreCase(OrderTrackStatus.CANCELED.name()) && !status.equalsIgnoreCase(OrderTrackStatus.REFUND.name())) {
+                    predicates.add(root.get("cancelReason").isNull());
+                    predicates.add(root.get("canceledBy").isNull());
                 }
             }
 
