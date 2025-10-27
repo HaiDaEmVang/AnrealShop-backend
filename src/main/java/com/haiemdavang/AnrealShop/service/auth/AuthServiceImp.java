@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.service.auth;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
+import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -26,20 +27,24 @@ public class AuthServiceImp implements IAuthService {
     private final IUserService userService;
 
     public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        ResponseCookie accessTokenCookie = jwtInit.generaJwtCookie(authentication);
-        ResponseCookie refreshTokenCookie = jwtInit.generaJwtRefreshCookie(authentication);
+            ResponseCookie accessTokenCookie = jwtInit.generaJwtCookie(authentication);
+            ResponseCookie refreshTokenCookie = jwtInit.generaJwtRefreshCookie(authentication);
 
-        response.addHeader("Set-Cookie", accessTokenCookie.toString());
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+            response.addHeader("Set-Cookie", accessTokenCookie.toString());
+            response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
-        UserDto user = userService.findDtoByEmail(loginRequest.getUsername());
+            UserDto user = userService.findDtoByEmail(loginRequest.getUsername());
 
-        return new LoginResponse(accessTokenCookie.getValue(), user);
+            return new LoginResponse(accessTokenCookie.getValue(), user);
+        } catch (Exception e) {
+            throw new BadRequestException("LOGIN_FAILED");
+        }
     }
 
     @Override
