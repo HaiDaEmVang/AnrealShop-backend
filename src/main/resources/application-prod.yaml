@@ -1,6 +1,17 @@
+server:
+  base_url: https://api.haiemdavang.id.vn
+  fe:
+    base_url: https://shop.haiemdavang.id.vn
+    oauth2:
+      redirect-uri: ${server.fe.base_url}/login
+  servlet:
+    session:
+      cookie:
+        domain: localhost
+
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&rewriteBatchedStatements=true
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -26,13 +37,8 @@ spring:
             scope:
               - email
               - profile
-server:
-  base_url: http://localhost
-  servlet:
-    session:
-      cookie:
-        domain: localhost
-fe_base_url: ${server.base_url}:5173
+
+fe_base_url: ${server.fe_url}
 cloudinary:
   cloud-name: ${CLOUDINARY_NAME}
   api-key: ${CLOUDINARY_KEY}
@@ -40,7 +46,7 @@ cloudinary:
 payment:
   vnPay:
     url: ${VNP_URL}
-    returnUrl: https://api.haiemdavang.id.vn/api/public/vnpay/payment-callback
+    returnUrl: ${server.base_url}/api/public/vnpay/payment-callback
     tmnCode: ${VNP_TMCODE}
     secretKey: ${VNP_SECRET_KEY}
     version: ${VNP_VER}

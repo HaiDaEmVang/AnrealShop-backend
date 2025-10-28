@@ -1,12 +1,11 @@
 package com.haiemdavang.AnrealShop.mapper;
 
-import com.haiemdavang.AnrealShop.config.ApplicationConfigInit;
+import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OAuth2UserInfo;
+import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
-import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
-import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OAuth2UserInfo;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +26,7 @@ public class UserMapper {
         String username = request.email().split("@")[0];
         user.setUsername(username);
         user.setPassword(request.password());
-        user.setAvatarUrl(ApplicationConfigInit.IMAGE_USER_DEFAULT);
+        user.setAvatarUrl(ApplicationInitHelper.IMAGE_USER_DEFAULT);
         return user;
     }
     
@@ -81,18 +80,6 @@ public class UserMapper {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
-    }
-    
-    public User toUser(LoginRequest loginRequest) {
-        if (loginRequest == null) {
-            return null;
-        }
-        
-        User user = new User();
-        user.setUsername(loginRequest.getUsername());
-        user.setPassword(loginRequest.getPassword());
-        
-        return user;
     }
 
     

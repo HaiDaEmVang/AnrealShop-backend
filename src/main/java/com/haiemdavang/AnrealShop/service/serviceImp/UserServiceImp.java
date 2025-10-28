@@ -1,6 +1,5 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
-import com.haiemdavang.AnrealShop.dto.auth.Oauth2.OAuth2UserInfo;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
@@ -15,6 +14,7 @@ import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShopService;
 import com.haiemdavang.AnrealShop.service.IUserService;
+import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,22 +47,7 @@ public class UserServiceImp implements IUserService {
     @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(()-> new BadRequestException("USER_NOT_FOUND"));
-    }
-
-    @Override
-    @Transactional
-    public void createUserFromOauth2(OAuth2UserInfo info) {
-        if (info == null || info.getEmail() == null) {
-            throw new BadRequestException("INVALID_OAUTH2_USER_INFO");
-        }
-        User newUser = userMapper.createUserFromOauth2UserInfo(info);
-        String randomPassword = generateRandomPassword();
-        newUser.setPassword(passwordEncoder.encode(randomPassword));
-
-        Role role = roleService.getRoleByName(RoleName.USER);
-        newUser.setRole(role);
-        userRepository.save(newUser);
+                .orElseThrow(() -> new BadRequestException("USER_NOT_FOUND"));
     }
 
     @Override
@@ -89,6 +74,7 @@ public class UserServiceImp implements IUserService {
         User user = userMapper.createUserFromRegisterRequest(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role role = roleService.getRoleByName(RoleName.USER);
+        user.setAvatarUrl(ApplicationInitHelper.IMAGE_USER_DEFAULT);
         user.setRole(role);
         userRepository.save(user);
     }
@@ -97,12 +83,9 @@ public class UserServiceImp implements IUserService {
     public UserDto findDtoByEmail(String username) {
         UserDto userDto =  userMapper.toUserDto(findByEmail(username));
         userDto.setHasShop(shopServiceImp.isExistByUserId(userDto.getId()));
-        userDto.setAddress(addressServiceImp.findAddressPrimary());
+        userDto.setAddress(addressServiceImp.findAddressPrimaryOrNull());
         userDto.setCartCount(cartServiceImp.countByUserId(userDto.getId()));
         return userDto;
     }
 
-    private String generateRandomPassword() {
-        return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 12);
-    }
 }

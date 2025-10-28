@@ -44,4 +44,6 @@ public interface IAddressService {
     ShopAddress getShopAddressByIdShop(String id);
 
     ShopAddress getShopAddressById(String shopId, String addressId);
+
+    AddressDto findAddressPrimaryOrNull();
 }

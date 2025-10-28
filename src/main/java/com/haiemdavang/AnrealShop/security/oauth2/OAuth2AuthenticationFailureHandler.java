@@ -1,6 +1,5 @@
 package com.haiemdavang.AnrealShop.security.oauth2;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,17 +13,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     private final Environment env;
-    @Value("${app.oauth2.redirect-uri:http://localhost:5173/login}")
+    @Value("${server.fe.oauth2.redirect-uri:http://localhost:5173/login}")
     private String defaultTargetUrl;
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
 
         String errorMessage = env.getProperty(exception.getMessage(),   "Authentication failed");
         String targetUrl = UriComponentsBuilder.fromUriString(defaultTargetUrl)

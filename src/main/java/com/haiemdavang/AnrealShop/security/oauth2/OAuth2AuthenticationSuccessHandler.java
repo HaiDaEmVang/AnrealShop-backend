@@ -1,7 +1,6 @@
 package com.haiemdavang.AnrealShop.security.oauth2;
 
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +20,11 @@ import java.nio.charset.StandardCharsets;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtInit jwtInit;
-    @Value("${app.oauth2.redirect-uri:http://localhost:5173/login}")
+    @Value("${server.fe.oauth2.redirect-uri:http://localhost:5173/login}")
     private String defaultTargetUrl;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
 
         ResponseCookie cookie_token = jwtInit.generaJwtCookie(authentication);
         ResponseCookie cookie_access_token = jwtInit.generaJwtRefreshCookie(authentication);
