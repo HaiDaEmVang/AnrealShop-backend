@@ -38,7 +38,6 @@ spring:
               - email
               - profile
 
-fe_base_url: ${server.fe_url}
 cloudinary:
   cloud-name: ${CLOUDINARY_NAME}
   api-key: ${CLOUDINARY_KEY}

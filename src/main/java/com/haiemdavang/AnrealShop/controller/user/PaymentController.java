@@ -24,7 +24,7 @@ public class PaymentController {
     private final VNPayService vNPayService;
     private final IUserOrderService orderService;
 
-    @Value("${fe_base_url}")
+    @Value("${server.fe.base_url}")
     private String feBaseUrl;
 
     @RequestMapping(value = "/IPN", method = {RequestMethod.GET, RequestMethod.POST})
