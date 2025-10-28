@@ -7,7 +7,7 @@ import java.text.Normalizer;
 
 public class ApplicationInitHelper {
 
-
+    public static String IMAGE_USER_DEFAULT = "https://res.cloudinary.com/dqogp38jb/image/upload/v1750060824/7309681_msx5j1.jpg";
 
     public static String toSlug(String combined) {
         String noDiacritics = Normalizer.normalize(combined, Normalizer.Form.NFD);

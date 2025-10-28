@@ -282,4 +282,12 @@ public class AddressServiceImp implements IAddressService {
                 .orElseThrow(() -> new BadRequestException("ADDRESS_NOT_FOUND"));
     }
 
+    @Override
+    public AddressDto findAddressPrimaryOrNull() {
+        User currentUser = securityUtils.getCurrentUser();
+        UserAddress userAddress = userAddressRepository.findByUserIdAndPrimaryAddressTrue(currentUser.getId())
+                .orElse(null);
+        return mapper.toAddressDto(userAddress);
+    }
+
 }

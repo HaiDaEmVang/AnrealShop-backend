@@ -7,6 +7,7 @@ import com.haiemdavang.AnrealShop.security.oauth2.OAuth2AuthenticationFailureHan
 import com.haiemdavang.AnrealShop.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecuService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class SecurityConfig {
             "/api/otp/**",
             "/swagger-ui/**",
             "/v3/api-docs/**");
-    public final static List<String> PUBLIC_ORIGINS = List.of("http://localhost:5173", "https://anreal-shop.vercel.app", "https://shop.haiemdavang.id.vn");
+    public final static List<String> PUBLIC_ORIGINS = List.of("http://localhost:5173", "https://anreal-shop.vercel.app", "https://shop.haiemdavang.id.vn", "http://localhost:4141", "https://api.haiemdavang.id.vn");
     private final UserDetailSecuService userDetailSecuService;
     private final JwtEntryPoint jwtEntryPoint;
     private final JwtFilter jwtFilter;
@@ -82,14 +84,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS.toArray(new String[0])).permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(daoAuthenticationProvider())
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authz -> authz

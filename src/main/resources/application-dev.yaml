@@ -37,7 +37,7 @@ spring:
     locations: classpath:db/migration
 
   kafka:
-    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT:9092}
 
   elasticsearch:
     uris: http://${ES_HOST:localhost}:${ES_PORT:9200}
@@ -68,7 +68,7 @@ logging:
 
 
 server:
-  base_url: http://api.haiemdavang.id.vn
+  base_url: http://localhost:4141
   servlet:
     session:
       cookie:
