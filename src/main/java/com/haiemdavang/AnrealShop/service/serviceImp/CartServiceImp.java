@@ -50,7 +50,6 @@ public class CartServiceImp implements ICartService {
     @Override
     @Transactional
     public boolean addToCart(CartItemDto cartItemDto) {
-//        check neu la sp cua chinh user thi throw forbiden
         User currentUser = securityUtils.getCurrentUser();
         String userId = currentUser.getId();
 
@@ -147,19 +146,6 @@ public class CartServiceImp implements ICartService {
                 ).reversed())
                 .toList();
     }
-
-//    @Override
-//    public Map<Shop, Set<CartItem>> getMapCartItems() {
-//        User user = securityUtils.getCurrentUser();
-//        Set<CartItem> cartItems = cartItemRepository.findCartItemsByUserId(user.getId());
-//
-//        return cartItems.stream().collect(
-//                Collectors.groupingBy(
-//                        item -> item.getProductSku().getProduct().getShop(),
-//                        Collectors.toSet()
-//                )
-//        );
-//    }
 
     @Override
     public Map<Shop, Set<CartItem>> getCartItemsByIdIn(List<String> cartItemIds) {

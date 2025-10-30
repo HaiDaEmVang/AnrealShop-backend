@@ -46,7 +46,7 @@ public class GHNServiceImp implements IGHNService {
                 Integer.parseInt(infoShipment.from.getDistrictId()),
                 Integer.parseInt(infoShipment.to.getDistrictId()));
 
-        if (serviceIds.isEmpty() || serviceIds.size() < 2) {
+        if (serviceIds.isEmpty() || (infoShipment.getWeight() > 20000 && serviceIds.size() < 2)) {
             return InfoShippingOrder.createFailedInfoShippingOrder();
         }
         int serviceId = infoShipment.getWeight() <= 20000 ? serviceIds.get(0).getService_id() : serviceIds.get(1).getService_type_id();

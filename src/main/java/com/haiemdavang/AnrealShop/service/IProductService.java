@@ -43,4 +43,6 @@ public interface IProductService {
     List<ProductSku> findByProductSkuIdIn(Set<String> ids);
 
     void decreaseProductSkuQuantity(Set<OrderItem> orderItems);
+
+    List<ProductSku> getProductSkuByIdIn(Set<String> strings);
 }

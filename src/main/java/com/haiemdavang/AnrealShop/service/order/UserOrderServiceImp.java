@@ -15,7 +15,6 @@ import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.order.Order;
 import com.haiemdavang.AnrealShop.modal.entity.order.OrderItem;
 import com.haiemdavang.AnrealShop.modal.entity.order.Payment;
-import com.haiemdavang.AnrealShop.modal.entity.product.Product;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
@@ -174,14 +173,13 @@ public class UserOrderServiceImp implements IUserOrderService {
 
         long subTotalAmount = 0L;
         for (ProductSku productSku : productSkus) {
-            Product product = productSku.getProduct();
             Integer quantity = itemRequests.get(productSku.getId());
 
-            subTotalAmount += product.getPrice() * quantity;
+            subTotalAmount += productSku.getPrice() * quantity;
             OrderItem orderItem = OrderItem.builder()
                     .productSku(productSku)
                     .quantity(quantity)
-                    .price(product.getPrice())
+                    .price(productSku.getPrice())
                     .build();
             order.addOrderItem(orderItem);
         }

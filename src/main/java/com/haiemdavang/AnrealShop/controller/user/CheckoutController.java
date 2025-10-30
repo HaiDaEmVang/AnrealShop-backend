@@ -8,7 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +23,7 @@ public class CheckoutController {
     private final ICheckoutService checkoutService;
 
     @PostMapping("/items")
-        public ResponseEntity<List<CheckoutInfoDto>> getListCheckout(@RequestBody Map<String, Integer> itemsCheckoutRequest) {
+    public ResponseEntity<List<CheckoutInfoDto>> getListCheckout(@RequestBody Map<String, Integer> itemsCheckoutRequest) {
         return ResponseEntity.ok(checkoutService.getListCheckout(itemsCheckoutRequest));
     }
 
