@@ -71,6 +71,9 @@ public class User {
     private LocalDate dob;
 
     @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean verify = false;
+
+    @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean deleted = false;
 
     @Column(name = "delete_reason", columnDefinition = "TEXT")

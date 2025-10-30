@@ -10,10 +10,12 @@ import com.haiemdavang.AnrealShop.modal.entity.user.Role;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import com.haiemdavang.AnrealShop.modal.enums.RoleName;
 import com.haiemdavang.AnrealShop.repository.UserRepository;
+import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
 import com.haiemdavang.AnrealShop.service.IShopService;
 import com.haiemdavang.AnrealShop.service.IUserService;
+import com.haiemdavang.AnrealShop.tech.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,11 +32,9 @@ public class UserServiceImp implements IUserService {
     private final IShopService shopServiceImp;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final IMailService mailService;
+    private final SecurityUtils securityUtils;
 
-    @Override
-    public boolean isExists(String email) {
-        return !userRepository.existsByEmail(email);
-    }
 
     @Override
     @Transactional
@@ -86,6 +86,18 @@ public class UserServiceImp implements IUserService {
         userDto.setAddress(addressServiceImp.findAddressPrimaryOrNull());
         userDto.setCartCount(cartServiceImp.countByUserId(userDto.getId()));
         return userDto;
+    }
+
+    @Override
+    @Transactional
+    public UserDto verifyEmail(String email, String code) {
+        if (code == null || code.isEmpty() || !mailService.verifyOTP(code, email)) {
+            throw new BadRequestException("INVALID_VERIFICATION_CODE");
+        }
+        User user = securityUtils.getCurrentUser();
+        user.setVerify(true);
+        userRepository.save(user);
+        return userMapper.toUserDto(user);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.haiemdavang.AnrealShop.tech.mail;
 
 public enum MailType {
-    REGISTER,
+    VERIFY_EMAIL,
     RESET_PASSWORD
 }

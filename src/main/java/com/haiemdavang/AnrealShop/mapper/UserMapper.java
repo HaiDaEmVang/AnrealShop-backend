@@ -30,21 +30,6 @@ public class UserMapper {
         return user;
     }
     
-    public ProfileRequest toProfileRequest(User user) {
-        if (user == null) {
-            return null;
-        }
-        
-        ProfileRequest profileRequest = new ProfileRequest();
-        profileRequest.setFullName(user.getFullName());
-        profileRequest.setPhoneNumber(user.getPhoneNumber());
-        profileRequest.setGender(user.getGender());
-        profileRequest.setDob(user.getDob());
-        profileRequest.setAvatarUrl(user.getAvatarUrl());
-        
-        return profileRequest;
-    }
-    
     public User updateUserFromProfileRequest(User user, ProfileRequest profileRequest) {
         if (user == null || profileRequest == null) {
             return user;
@@ -54,6 +39,7 @@ public class UserMapper {
         user.setPhoneNumber(profileRequest.getPhoneNumber());
         user.setGender(profileRequest.getGender());
         user.setDob(profileRequest.getDob());
+        user.setAvatarUrl(profileRequest.getAvatarUrl());
         
         if (profileRequest.getAvatarUrl() != null && !profileRequest.getAvatarUrl().isEmpty()) {
             user.setAvatarUrl(profileRequest.getAvatarUrl());
@@ -76,6 +62,7 @@ public class UserMapper {
                 .avatarUrl(user.getAvatarUrl())
                 .gender(user.getGender())
                 .dob(user.getDob())
+                .isVerified(user.isVerify())
                 .role(user.getRole() != null ? user.getRole().getName().toString() : null)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
