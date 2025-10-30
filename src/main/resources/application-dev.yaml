@@ -69,14 +69,14 @@ logging:
 
 server:
   base_url: http://localhost:4141
+  fe:
+    base_url: http://localhost:5173
   servlet:
     session:
       cookie:
         domain: localhost
   port: 4141
 
-
-fe_base_url: https://shop.haiemdavang.id.vn
 
 
 cloudinary:

@@ -4,6 +4,7 @@ import com.haiemdavang.AnrealShop.dto.shipping.BaseCreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.CreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.MyShopShippingListResponse;
+import com.haiemdavang.AnrealShop.dto.shipping.search.CheckoutShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.modal.enums.CancelBy;
@@ -48,6 +49,12 @@ public class ShippingController {
     @PostMapping("/fee-for-cart")
     public ResponseEntity<List<CartShippingFee>> getFeeForCart(@RequestBody List<String> cartItemIds) {
         List<CartShippingFee> cartShippingFee = shipmentService.getShippingFeeForCart(cartItemIds);
+        return ResponseEntity.ok(cartShippingFee);
+    }
+
+    @PostMapping("/fee-for-checkout")
+    public ResponseEntity<List<CartShippingFee>> getFeeForCheckout(@RequestBody CheckoutShippingFee checkoutShippingFee) {
+        List<CartShippingFee> cartShippingFee = shipmentService.getShippingFeeForCheckout(checkoutShippingFee);
         return ResponseEntity.ok(cartShippingFee);
     }
 

@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.service.shipment;
 
 import com.haiemdavang.AnrealShop.dto.address.AddressDto;
 import com.haiemdavang.AnrealShop.dto.shipping.*;
+import com.haiemdavang.AnrealShop.dto.shipping.search.CheckoutShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
@@ -18,7 +19,6 @@ import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
 import com.haiemdavang.AnrealShop.modal.entity.shop.Shop;
 import com.haiemdavang.AnrealShop.modal.entity.shop.ShopOrder;
 import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
-import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderRepository;
 import com.haiemdavang.AnrealShop.repository.order.ShopOrderSpecification;
 import com.haiemdavang.AnrealShop.repository.shipping.ShipSpecification;
@@ -27,6 +27,7 @@ import com.haiemdavang.AnrealShop.schedule.ShippingTemplateStringNote;
 import com.haiemdavang.AnrealShop.security.SecurityUtils;
 import com.haiemdavang.AnrealShop.service.IAddressService;
 import com.haiemdavang.AnrealShop.service.ICartService;
+import com.haiemdavang.AnrealShop.service.IProductService;
 import com.haiemdavang.AnrealShop.service.IShipmentService;
 import com.haiemdavang.AnrealShop.service.order.IOrderItemService;
 import com.haiemdavang.AnrealShop.tech.kafka.dto.ShippingSyncMessage;
@@ -52,6 +53,7 @@ public class ShipmentServiceImp implements IShipmentService {
     private final IGHNService ighnService;
     private final ICartService cartService;
     private final IAddressService addressService;
+    private final IProductService productService;
 
     private final AddressMapper addressMapper;
     private final IOrderItemService orderItemService;
@@ -91,6 +93,48 @@ public class ShipmentServiceImp implements IShipmentService {
 
         return result;
     }
+
+    @Override
+    public List<CartShippingFee> getShippingFeeForCheckout(CheckoutShippingFee checkoutShippingFee) {
+        UserAddress userAddress = addressService.getCurrentUserAddressById(checkoutShippingFee.getUserAddressId());
+        List<ProductSku> productSkus = productService.getProductSkuByIdIn(checkoutShippingFee.getCheckoutItems().keySet());
+        Map<ProductSku, Integer> productSkuIntegerMap = productSkus.stream()
+                .collect(Collectors.toMap(
+                        pk -> pk,
+                        pk -> checkoutShippingFee.getCheckoutItems().get(pk.getId())
+                ));
+
+        Map<Shop, List<ProductSku>> shopListMap = productSkus.stream()
+                .collect(Collectors.groupingBy(
+                        sku -> sku.getProduct().getShop()
+                ));
+
+        Map<String, AddressDto> shopAddresses = addressService.getShopAddressByIdIn(shopListMap.keySet().stream().map(Shop::getId).collect(Collectors.toSet()));
+
+        List<CartShippingFee> result = new ArrayList<>();
+        for (Shop s: shopListMap.keySet()) {
+            AddressDto shopAddress = shopAddresses.get(s.getId());
+            int totalWeight = shopListMap.get(s).stream()
+                    .mapToInt(item -> item.getProduct().getWeight().intValue() * productSkuIntegerMap.get(item))
+                    .sum();
+            InfoShipment info = InfoShipment.builder()
+                    .from(shopAddress)
+                    .to(addressMapper.toAddressDto(userAddress))
+                    .weight(totalWeight)
+                    .build();
+            InfoShippingOrder infoOrder = ighnService.getShippingOrderInfo(info);
+            result.add(CartShippingFee.builder()
+                    .shopId(s.getId())
+                    .fee(infoOrder.getFee())
+                    .leadTime(infoOrder.getLeadTime())
+                    .isSuccess(infoOrder.isSuccess)
+                    .serviceName(infoOrder.getServiceName())
+                    .build());
+        }
+
+        return result;
+    }
+
 
     @Override
     public Map<ShopAddress, Long> getShippingFee(UserAddress userAddress, Map<ProductSku, Integer> productSkus) {
@@ -192,23 +236,6 @@ public class ShipmentServiceImp implements IShipmentService {
             throw new ForbiddenException("FORBIDDEN_SHIPPING");
         }
         return shipping.getShopOrder().getId();
-    }
-
-    @Override
-    @Transactional
-    public void updateShipmentStatus(List<String> shopOrderIds, ShippingStatus shippingStatus, String note) {
-        if (shopOrderIds == null || shopOrderIds.isEmpty()) {
-            throw new BadRequestException("SHIPMENT_SHOP_ORDER_IDS_NOT_EMPTY");
-        }
-        List<Shipping> shippings = shipmentRepository.findByShopOrderIdIn(shopOrderIds);
-
-        shippings.forEach(item -> item.setStatus(shippingStatus, note));
-        shipmentRepository.saveAll(shippings);
-    }
-
-    @Override
-    public List<Shipping> getListShippingByShopOrderStatus(ShopOrderStatus shopOrderStatus) {
-        return shipmentRepository.findAllByShopOrderStatus(shopOrderStatus);
     }
 
     @Override
