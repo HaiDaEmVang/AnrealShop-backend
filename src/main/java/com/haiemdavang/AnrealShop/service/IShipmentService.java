@@ -4,14 +4,13 @@ import com.haiemdavang.AnrealShop.dto.shipping.BaseCreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.CartShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.CreateShipmentRequest;
 import com.haiemdavang.AnrealShop.dto.shipping.MyShopShippingListResponse;
+import com.haiemdavang.AnrealShop.dto.shipping.search.CheckoutShippingFee;
 import com.haiemdavang.AnrealShop.dto.shipping.search.PreparingStatus;
 import com.haiemdavang.AnrealShop.dto.shipping.search.SearchTypeShipping;
 import com.haiemdavang.AnrealShop.modal.entity.address.ShopAddress;
 import com.haiemdavang.AnrealShop.modal.entity.address.UserAddress;
 import com.haiemdavang.AnrealShop.modal.entity.product.ProductSku;
 import com.haiemdavang.AnrealShop.modal.entity.shipping.Shipping;
-import com.haiemdavang.AnrealShop.modal.enums.ShippingStatus;
-import com.haiemdavang.AnrealShop.modal.enums.ShopOrderStatus;
 import com.haiemdavang.AnrealShop.tech.kafka.dto.ShippingSyncMessage;
 
 import java.util.List;
@@ -32,9 +31,8 @@ public interface IShipmentService {
 
     String rejectById(String shippingId, String reason);
 
-    void updateShipmentStatus(List<String> shopOrderIds, ShippingStatus shippingStatus, String note);
-
-    List<Shipping> getListShippingByShopOrderStatus(ShopOrderStatus shopOrderStatus);
 
     Shipping processShippingSyncMessage(ShippingSyncMessage message);
+
+    List<CartShippingFee> getShippingFeeForCheckout(CheckoutShippingFee checkoutShippingFee);
 }

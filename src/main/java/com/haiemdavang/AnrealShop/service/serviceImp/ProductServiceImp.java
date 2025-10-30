@@ -459,6 +459,11 @@ public class ProductServiceImp implements IProductService {
 //        cap nhat them es nha cu
     }
 
+    @Override
+    public List<ProductSku> getProductSkuByIdIn(Set<String> strings) {
+        return productSkuRepository.findByProductSkuIdIn(strings);
+    }
+
     private void updateAttributeForProduct(List<ProductGeneralAttribute> oldAttributeForProduct,
                                           List<ProductAttributeDto> attributes,
                                           Product product) {
