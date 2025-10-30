@@ -76,13 +76,13 @@ public class MailTemplate {
                 + "</html>";
     }
 
-    public static String getAccountCreationEmailHTMLVietnamese(String code, String userName) {
+    public static String getEmailVerificationHTMLVietnamese(String code, String userName) {
         return "<!DOCTYPE html>\r\n"
                 + "<html>\r\n"
                 + "<head>\r\n"
                 + "    <meta charset=\"UTF-8\">\r\n"
                 + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n"
-                + "    <title>Xác Minh Email Tạo Tài Khoản</title>\r\n"
+                + "    <title>Xác Minh Email</title>\r\n"
                 + "    <style>\r\n"
                 + "        body {\r\n"
                 + "            font-family: 'Helvetica Neue', Arial, sans-serif;\r\n"
@@ -115,7 +115,7 @@ public class MailTemplate {
                 + "            font-size: 28px;\r\n"
                 + "            font-weight: bold;\r\n"
                 + "            color: #ffffff;\r\n"
-                + "            background: linear-gradient(135deg, #28a745, #218838);\r\n"
+                + "            background: linear-gradient(135deg, #007bff, #0056b3);\r\n"
                 + "            display: inline-block;\r\n"
                 + "            padding: 15px 25px;\r\n"
                 + "            border-radius: 8px;\r\n"
@@ -136,21 +136,21 @@ public class MailTemplate {
                 + "</head>\r\n"
                 + "<body>\r\n"
                 + "    <div class=\"container\">\r\n"
-                + "        <div class=\"header\">✅ Chào Mừng Bạn Đến Với AnrealShop!</div>\r\n"
+                + "        <div class=\"header\">📧 Xác Minh Email</div>\r\n"
                 + "        <p class=\"message\">Xin chào, <span class=\"username\">" + userName + "</span>!</p>\r\n"
-                + "        <p class=\"message\">Cảm ơn bạn đã đăng ký tài khoản. Vui lòng sử dụng mã xác thực dưới đây để hoàn tất việc tạo tài khoản:</p>\r\n"
+                + "        <p class=\"message\">Vui lòng sử dụng mã xác thực dưới đây để xác minh địa chỉ email của bạn:</p>\r\n"
                 + "        <div class=\"otp\">" + code + "</div>\r\n"
                 + "        <p class=\"message\">Mã này sẽ hết hạn sau 10 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>\r\n"
-                + "        <div class=\"footer\">Nếu bạn không thực hiện việc đăng ký này, vui lòng bỏ qua email.</div>\r\n"
+                + "        <div class=\"footer\">Nếu bạn không yêu cầu xác minh email này, vui lòng bỏ qua email.</div>\r\n"
                 + "    </div>\r\n"
                 + "</body>\r\n"
                 + "</html>";
     }
 
-    public static String getEmailHTML(String code, String email, MailType mailType) {
+        public static String getEmailHTML(String code, String email, MailType mailType) {
         switch (mailType){
-            case REGISTER -> {
-                return getAccountCreationEmailHTMLVietnamese(code, email);
+            case VERIFY_EMAIL -> {
+                return getEmailVerificationHTMLVietnamese(code, email);
             }
             case RESET_PASSWORD -> {
                 return getOtpVerificationEmailHTMLVietnamese(code, email);

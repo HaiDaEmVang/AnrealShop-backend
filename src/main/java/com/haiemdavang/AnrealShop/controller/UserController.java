@@ -50,6 +50,11 @@ public class UserController {
     public ResponseEntity<UserDto> updateProfile(@Valid @RequestBody ProfileRequest profileRequest, @AuthenticationPrincipal UserDetailSecu userDetails) {
         return ResponseEntity.ok(userService.updateProfile(userDetails.getEmail(), profileRequest));
     }
+
+    @PutMapping("/verify-email")
+    public ResponseEntity<UserDto> verifyEmail(@RequestParam String code, @AuthenticationPrincipal UserDetailSecu userDetails) {
+        return ResponseEntity.ok(userService.verifyEmail(userDetails.getEmail(), code));
+    }
     
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable String id) {
