@@ -8,7 +8,6 @@ import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import jakarta.validation.Valid;
 
 public interface IUserService {
-    boolean isExists(String email);
 
     void resetPassword(String email, String password);
 
@@ -21,4 +20,6 @@ public interface IUserService {
     void registerUser(@Valid RegisterRequest request);
 
     UserDto findDtoByEmail(String username);
+
+    UserDto verifyEmail(String email, String code);
 }

@@ -1,31 +1,30 @@
 package com.haiemdavang.AnrealShop.tech.mail.service;
 
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 import com.haiemdavang.AnrealShop.exception.AnrealShopException;
 import com.haiemdavang.AnrealShop.exception.BadRequestException;
 import com.haiemdavang.AnrealShop.exception.ForbiddenException;
-import com.haiemdavang.AnrealShop.utils.MailTemplate;
+import com.haiemdavang.AnrealShop.repository.UserRepository;
 import com.haiemdavang.AnrealShop.tech.mail.MailType;
 import com.haiemdavang.AnrealShop.tech.redis.service.IRedisService;
-import com.haiemdavang.AnrealShop.service.IUserService;
+import com.haiemdavang.AnrealShop.utils.MailTemplate;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class MailServiceImp implements IMailService{
-    private final IUserService userService;
+    private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
     private final IRedisService redisService;
     @Value("${spring.mail.username}")
@@ -43,7 +42,7 @@ public class MailServiceImp implements IMailService{
         } catch (IllegalArgumentException e) {
             throw new AnrealShopException("INVALID_MAIL_TYPE");
         }
-        if(userService.isExists(email) && !mailType.equals(MailType.REGISTER))
+        if(userRepository.existsByEmail(email) && !mailType.equals(MailType.VERIFY_EMAIL))
             throw new BadRequestException("USER_NOT_FOUND");
         int stamp = 0;
 
@@ -60,7 +59,7 @@ public class MailServiceImp implements IMailService{
                 MimeMessageHelper mailHelper = new MimeMessageHelper(mail, true, "UTF-8");
                 mailHelper.setFrom(mailFrom);
                 mailHelper.setSubject("Your OTP");
-                String code = getcode();
+                String code = getCode();
                 mailHelper.setText(MailTemplate.getEmailHTML(code, email, mailType), true);
                 mailHelper.setTo(email);
                 javaMailSender.send(mail);
@@ -84,7 +83,7 @@ public class MailServiceImp implements IMailService{
     }
 
     @Override
-    public String getcode() {
+    public String getCode() {
         Random random = new Random();
         return String.format("%06d", random.nextInt(1000000));
     }
