@@ -2,6 +2,7 @@ package com.haiemdavang.AnrealShop.controller;
 
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
+import com.haiemdavang.AnrealShop.dto.user.ChangePasswordDto;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.security.userDetails.UserDetailSecu;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -54,6 +55,11 @@ public class UserController {
     @PutMapping("/verify-email")
     public ResponseEntity<UserDto> verifyEmail(@RequestParam String code, @AuthenticationPrincipal UserDetailSecu userDetails) {
         return ResponseEntity.ok(userService.verifyEmail(userDetails.getEmail(), code));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<UserDto> updatePassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) {
+        return ResponseEntity.ok(userService.updatePassword(changePasswordDto));
     }
     
     @DeleteMapping("/{id}")

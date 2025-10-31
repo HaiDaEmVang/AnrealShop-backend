@@ -3,6 +3,7 @@ package com.haiemdavang.AnrealShop.service;
 
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
+import com.haiemdavang.AnrealShop.dto.user.ChangePasswordDto;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
 import com.haiemdavang.AnrealShop.modal.entity.user.User;
 import jakarta.validation.Valid;
@@ -22,4 +23,6 @@ public interface IUserService {
     UserDto findDtoByEmail(String username);
 
     UserDto verifyEmail(String email, String code);
+
+    UserDto updatePassword(@Valid ChangePasswordDto changePasswordDto);
 }
