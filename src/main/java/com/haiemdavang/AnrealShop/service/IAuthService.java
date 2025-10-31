@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface IAuthService {
-    LoginResponse login(LoginRequest loginRequest, HttpServletResponse response);
+    LoginResponse login(LoginRequest loginRequest, HttpServletResponse response, HttpServletRequest request);
     void logout(HttpServletRequest request, HttpServletResponse response);
     LoginResponse refreshToken(HttpServletRequest request, HttpServletResponse response);
 }

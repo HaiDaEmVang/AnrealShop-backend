@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -25,8 +26,11 @@ public class AuthServiceImp implements IAuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtInit jwtInit;
     private final IUserService userService;
+    private final LoginHistoryService loginHistoryService;
 
-    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
+    @Override
+    @Transactional
+    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response, HttpServletRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -40,6 +44,8 @@ public class AuthServiceImp implements IAuthService {
             response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
             UserDto user = userService.findDtoByEmail(loginRequest.getUsername());
+
+            loginHistoryService.saveLoginHistory(request);
 
             return new LoginResponse(accessTokenCookie.getValue(), user);
         } catch (Exception e) {

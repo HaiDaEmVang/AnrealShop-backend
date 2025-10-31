@@ -9,8 +9,6 @@ import com.haiemdavang.AnrealShop.utils.ApplicationInitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class UserMapper {
@@ -63,6 +61,7 @@ public class UserMapper {
                 .gender(user.getGender())
                 .dob(user.getDob())
                 .isVerified(user.isVerify())
+                .hasPassword(user.getPassword() != null && !user.getPassword().isEmpty())
                 .role(user.getRole() != null ? user.getRole().getName().toString() : null)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
@@ -80,7 +79,7 @@ public class UserMapper {
         user.setUsername(oauth2UserInfo.getUsername());
         user.setFullName(oauth2UserInfo.getFullName());
         user.setAvatarUrl(oauth2UserInfo.getAvatarUrl());
-        user.setPassword(UUID.randomUUID().toString());
+        user.setPassword(null);
         user.setFromSocial(true);
         
         return user;
