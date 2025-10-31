@@ -19,3 +19,7 @@
 
 # alter table users
 # modify column password varchar(60) default null;
+
+# alter  table history_login
+# add column logout_at datetime(6) null after login_at,
+# add column device varchar(100) null after user_agent;

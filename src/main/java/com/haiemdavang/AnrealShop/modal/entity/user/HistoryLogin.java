@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(of = "id")
 @Table(name = "history_login", indexes = {
         @Index(name = "idx_history_login_username", columnList = "user_id"),
-        @Index(name = "idx_history_login_loginAt", columnList = "loginAt")
+        @Index(name = "idx_history_login_loginAt", columnList = "loginAt"),
 })
 public class HistoryLogin {
 
@@ -29,15 +29,23 @@ public class HistoryLogin {
     private User user;
 
     @CreationTimestamp
-    @Column(nullable = false)
+    @Column(nullable = false, name = "login_at")
     private LocalDateTime loginAt;
+
+    @Column(name = "logout_at")
+    private LocalDateTime logoutAt;
 
     @Column(nullable = false, length = 45, name = "ip_address")
     private String ipAddress;
 
-    @Column(length = 255, name = "user_agent")
+    @Column(name = "user_agent")
     private String userAgent;
 
     @Column(length = 100)
     private String location;
+
+    @Column(length = 100, unique = true)
+    private String device;
+
+
 }

@@ -1,6 +1,7 @@
 package com.haiemdavang.AnrealShop.security.oauth2;
 
 import com.haiemdavang.AnrealShop.security.jwt.JwtInit;
+import com.haiemdavang.AnrealShop.service.auth.LoginHistoryService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final JwtInit jwtInit;
     @Value("${server.fe.oauth2.redirect-uri:http://localhost:5173/login}")
     private String defaultTargetUrl;
+    private final LoginHistoryService loginHistoryService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -37,6 +39,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("success", URLEncoder.encode(message, StandardCharsets.UTF_8))
                 .build()
                 .toUriString();
+
+        loginHistoryService.saveLoginHistory(request);
 
         clearAuthenticationAttributes(request);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
