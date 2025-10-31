@@ -1,8 +1,10 @@
 package com.haiemdavang.AnrealShop.controller;
 
+import com.haiemdavang.AnrealShop.dto.auth.HistoryLoginDto;
 import com.haiemdavang.AnrealShop.dto.auth.LoginRequest;
 import com.haiemdavang.AnrealShop.dto.auth.LoginResponse;
 import com.haiemdavang.AnrealShop.dto.auth.ForgotPwRequest;
+import com.haiemdavang.AnrealShop.service.auth.LoginHistoryService;
 import com.haiemdavang.AnrealShop.tech.mail.service.IMailService;
 import com.haiemdavang.AnrealShop.service.IAuthService;
 import com.haiemdavang.AnrealShop.service.IUserService;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -24,10 +27,11 @@ public class AuthController {
     private final IAuthService authService;
     private final IMailService mailService;
     private final IUserService userService;
+    private final LoginHistoryService loginHistoryService;
     
     @PostMapping("/login")
-    public ResponseEntity< LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        return ResponseEntity.ok(authService.login(request, response));
+    public ResponseEntity< LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response, HttpServletRequest httpServletRequest){
+        return ResponseEntity.ok(authService.login(request, response, httpServletRequest));
     }
 
 
@@ -48,6 +52,11 @@ public class AuthController {
         userService.resetPassword(resetPassword.getEmail(), resetPassword.getPassword());
         mailService.delOTP(resetPassword.getEmail());
         return ResponseEntity.ok(Map.of("message", "Thay đổi mật khẩu thành công!"));
+    }
+
+    @GetMapping("/history-login")
+    public ResponseEntity<List<HistoryLoginDto>> getLoginHistory(HttpServletRequest request) {
+        return ResponseEntity.ok(loginHistoryService.getLoginHistory(request));
     }
 
 }

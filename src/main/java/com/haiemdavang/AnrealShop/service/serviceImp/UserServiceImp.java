@@ -1,5 +1,6 @@
 package com.haiemdavang.AnrealShop.service.serviceImp;
 
+import com.haiemdavang.AnrealShop.dto.user.ChangePasswordDto;
 import com.haiemdavang.AnrealShop.dto.user.ProfileRequest;
 import com.haiemdavang.AnrealShop.dto.user.RegisterRequest;
 import com.haiemdavang.AnrealShop.dto.user.UserDto;
@@ -96,6 +97,17 @@ public class UserServiceImp implements IUserService {
         }
         User user = securityUtils.getCurrentUser();
         user.setVerify(true);
+        userRepository.save(user);
+        return userMapper.toUserDto(user);
+    }
+
+    @Override
+    public UserDto updatePassword(ChangePasswordDto changePasswordDto) {
+        User user = securityUtils.getCurrentUser();
+        if (user.getPassword() != null && !user.getPassword().isEmpty() && !passwordEncoder.matches(changePasswordDto.getOldPassword(), user.getPassword())) {
+            throw new BadRequestException("OLD_PASSWORD_INCORRECT");
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
         userRepository.save(user);
         return userMapper.toUserDto(user);
     }

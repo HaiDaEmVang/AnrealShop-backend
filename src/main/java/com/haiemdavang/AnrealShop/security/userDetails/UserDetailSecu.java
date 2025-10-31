@@ -24,14 +24,17 @@ public class UserDetailSecu implements UserDetails, OAuth2User {
     private String password;
     private Collection<GrantedAuthority> grantedAuthorities;
     private Map<String, Object> attributes;
+    private User user;
 
-    public static UserDetailSecu createUserDetails(User u){
+    public static UserDetailSecu createUserDetails(User u) {
         return UserDetailSecu.builder().email(u.getEmail()).password(u.getPassword())
+                .user(u)
                 .id(u.getId()).grantedAuthorities(Collections.singleton(new SimpleGrantedAuthority("ROLE_" + u.getRole().getName()))).build();
     }
 
     public static UserDetailSecu createUserDetailFormOAuth2(User user) {
         return UserDetailSecu.builder().email(user.getEmail()).password(user.getPassword())
+                .user(user)
                 .id(user.getId()).grantedAuthorities(Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()))).build();
     }
 
@@ -64,5 +67,9 @@ public class UserDetailSecu implements UserDetails, OAuth2User {
     @Override
     public String getName() {
         return this.email;
+    }
+
+    public User getUserEntity() {
+        return this.user;
     }
 }
